@@ -1,0 +1,7 @@
+{
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "name": "Copy of EAV - Gestão de Ativos",
+  "description": "Sistema corporativo para gestão de equipamentos de TI com leitor de código de barras nativo."
+}

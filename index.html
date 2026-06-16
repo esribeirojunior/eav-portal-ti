@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EAV - Gestão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #ffffff;
+            --bg-card: #ffffff;
+            --accent-primary: #0f2d70; /* Navy Blue do mockup */
+            --accent-secondary: #10b981;
+            --glass-border: #e2e8f0;
+
+            /* Cores por Setor */
+            --color-coord: #667eea;
+            --color-diret: #f093fb;
+            --color-disce: #4facfe;
+            --color-finan: #43e97b;
+            --color-secre: #fa709a;
+            --color-supri: #fbc2eb;
+            --color-ti: #a8edea;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            letter-spacing: -0.01em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.light {
+            --bg-deep: #ffffff;
+            --bg-card: #ffffff;
+            --glass-border: #e2e8f0;
+            background-color: var(--bg-deep) !important;
+            background-image: none !important;
+            color: #1e293b !important;
+        }
+
+        body:not(.light) {
+            --bg-deep: #0c0d21;
+            --bg-card: #14152e;
+            --glass-border: rgba(255, 255, 255, 0.05);
+            background-color: #0c0d21 !important;
+            color: #ffffff !important;
+        }
+
+        /* Sobrescrita de Cores de Texto (Mapeamento Dark -> Light) */
+        body.light .text-white { color: #0f172a !important; }
+        body.light .text-white\/80 { color: #1e293b !important; }
+        body.light .text-white\/60 { color: #334155 !important; }
+        body.light .text-white\/50 { color: #475569 !important; }
+        body.light .text-white\/40 { color: #64748b !important; }
+        body.light .text-white\/30 { color: #94a3b8 !important; }
+        body.light .text-white\/20 { color: #cbd5e1 !important; }
+        body.light .text-white\/10 { color: #e2e8f0 !important; }
+
+        /* Sobrescrita de Cores de Fundo (Mapeamento Dark -> Light) */
+        body.light .bg-\[\#0c0d21\] { background-color: #ffffff !important; }
+        body.light .bg-\[\#0a0b2e\] { background-color: #ffffff !important; }
+        body.light .bg-\[\#1a1b3b\] { background-color: #ffffff !important; }
+        body.light .bg-\[\#14152e\] { background-color: #ffffff !important; }
+        body.light .bg-\[\#14152e\]\/40 { background-color: #ffffff !important; }
+        body.light .bg-\[\#14152e\]\/60 { background-color: #ffffff !important; }
+        body.light .bg-\[\#1c1d3a\] { background-color: #ffffff !important; }
+        body.light .bg-slate-900 { background-color: #ffffff !important; }
+        body.light .bg-white\/\[0\.02\] { background-color: #ffffff !important; border-color: #e2e8f0 !important; }
+        body.light .bg-white\/\[0\.03\] { background-color: #f8fafc !important; border-color: #e2e8f0 !important; }
+        
+        body.light .bg-white\/5 { background-color: #f1f5f9 !important; }
+        body.light .bg-white\/10 { background-color: #cbd5e1 !important; }
+        body.light .bg-white\/20 { background-color: #94a3b8 !important; }
+        body.light .bg-black\/20 { background-color: #f1f5f9 !important; }
+        body.light .bg-black\/80 { background-color: rgba(15, 23, 42, 0.4) !important; }
+
+        /* Bordas */
+        body.light .border-white\/5 { border-color: #e2e8f0 !important; }
+        body.light .border-white\/10 { border-color: #e2e8f0 !important; }
+        body.light .border-white\/20 { border-color: #cbd5e1 !important; }
+        body.light .border-white\/\[0\.08\] { border-color: #e2e8f0 !important; }
+
+        /* Cores Indigo adaptadas para Navy Blue */
+        body.light .text-indigo-400 { color: #0f2d70 !important; }
+        body.light .text-indigo-500 { color: #0f2d70 !important; }
+        body.light .text-indigo-300 { color: #1e3a8a !important; }
+        body.light .bg-indigo-600 { background-color: #0f2d70 !important; color: #ffffff !important; }
+        body.light .hover\:bg-indigo-500:hover { background-color: #1a4294 !important; }
+        body.light .hover\:bg-indigo-700:hover { background-color: #0c2050 !important; }
+        body.light .bg-indigo-600\/10 { background-color: #eef2ff !important; color: #0f2d70 !important; }
+        body.light .border-indigo-500 { border-color: #0f2d70 !important; }
+        body.light .border-indigo-600\/20 { border-color: #bfdbfe !important; }
+        body.light .text-indigo-400\/40 { color: #64748b !important; }
+        body.light .text-indigo-400\/60 { color: #0f2d70 !important; }
+        body.light .text-emerald-400 { color: #059669 !important; }
+        body.light .text-emerald-500 { color: #059669 !important; }
+        body.light .text-emerald-400\/80 { color: #059669 !important; }
+        body.light .text-emerald-400\/60 { color: #059669 !important; }
+
+        /* Garantir texto branco dentro de elementos coloridos no modo light */
+        body.light .bg-orange-600,
+        body.light .bg-orange-600 *,
+        body.light .bg-emerald-600,
+        body.light .bg-emerald-600 *,
+        body.light .bg-blue-600,
+        body.light .bg-blue-600 *,
+        body.light .bg-teal-600,
+        body.light .bg-teal-600 *,
+        body.light .bg-rose-600,
+        body.light .bg-rose-600 *,
+        body.light .bg-purple-600,
+        body.light .bg-purple-600 *,
+        body.light .bg-indigo-600,
+        body.light .bg-indigo-600 * {
+            color: #ffffff !important;
+        }
+
+        /* Ajustes dos Cards de Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.light .glass-card {
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+        }
+
+        .glass-header {
+            background: rgba(12, 13, 33, 0.85) !important;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        body.light .glass-header {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        /* Sobrescrita de Cores Slate para Light Mode */
+        body.light .bg-slate-900 { background-color: #ffffff !important; }
+        body.light .bg-slate-800 { background-color: #f8fafc !important; }
+        body.light .bg-slate-800\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
+        body.light .bg-slate-900\/50 { background-color: rgba(241, 245, 249, 0.8) !important; }
+        body.light .border-slate-800 { border-color: #e2e8f0 !important; }
+        body.light .border-slate-700 { border-color: #cbd5e1 !important; }
+        body.light .border-slate-700\/50 { border-color: rgba(203, 213, 225, 0.5) !important; }
+        body.light .text-slate-400 { color: #64748b !important; }
+        body.light .text-slate-500 { color: #94a3b8 !important; }
+        body.light .text-slate-600 { color: #cbd5e1 !important; }
+        body.light .hover\:bg-slate-700\/50:hover { background-color: rgba(226, 232, 240, 0.6) !important; }
+        body.light .hover\:bg-slate-700:hover { background-color: #e2e8f0 !important; }
+
+        /* Ocultar bolhas/brilhos de fundo da antiga IA */
+        body.light .pointer-events-none.blur-\[120px\],
+        body.light .pointer-events-none.blur-\[60px\],
+        body.light .blur-\[80px\] {
+            display: none !important;
+        }
+
+        /* Inputs, Selects e Placeholders */
+        body.light input, body.light select, body.light option {
+            color: #0f172a !important;
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        /* Outros ajustes de visibilidade em Light Mode */
+        body.light .text-white\/40 { color: #64748b !important; }
+        body.light .hover\:text-white:hover { color: #0f172a !important; }
+        body.light header .text-white\/30 { color: #64748b !important; }
+        body.light header .bg-white\/5 { background-color: #f1f5f9 !important; }
+
+        /* Estilização das Badges de Status (Mockup EAV) */
+        .status-badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .status-badge-em-uso {
+            background-color: #e3f9e5 !important;
+            color: #1f7a26 !important;
+        }
+        .status-badge-disponivel {
+            background-color: #e0e6ed !important;
+            color: #4c6ef5 !important;
+        }
+        .status-badge-manutencao {
+            background-color: #ffe3e3 !important;
+            color: #cd1a1a !important;
+        }
+
+        /* Typography Refinements */
+        h1,
+        h2,
+        h3,
+        .font-black {
+            letter-spacing: -0.04em !important;
+            line-height: 1.1;
+        }
+
+        .tracking-widest {
+            letter-spacing: 0.3em !important;
+        }
+
+        /* Custom scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            border: 2px solid var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.98) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .animate-premium {
+            animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        .animate-scan {
+            animation: scan 2s linear infinite;
+        }
+
+        /* Custody Section Custom Theme Classes (Aba Em Uso) */
+        .custody-user-card {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 1.5rem !important;
+            padding: 1.5rem !important;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .custody-user-card:hover {
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(-2px);
+        }
+        body.light .custody-user-card {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02) !important;
+        }
+        body.light .custody-user-card:hover {
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        .custody-user-header {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            padding-bottom: 1rem !important;
+        }
+        body.light .custody-user-header {
+            border-bottom-color: #f1f5f9 !important;
+        }
+
+        .custody-badge {
+            background-color: rgba(99, 102, 241, 0.15) !important;
+            color: #818cf8 !important;
+            font-size: 9px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.05em !important;
+            padding: 3px 10px !important;
+            border-radius: 9999px !important;
+            display: inline-block !important;
+            text-transform: uppercase !important;
+        }
+        body.light .custody-badge {
+            background-color: #e0e7ff !important;
+            color: #4338ca !important;
+        }
+
+        .custody-device-item {
+            background-color: rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 1rem !important;
+            padding: 0.875rem 1.125rem !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .custody-device-item:hover {
+            border-color: rgba(99, 102, 241, 0.3) !important;
+            background-color: rgba(0, 0, 0, 0.25) !important;
+        }
+        body.light .custody-device-item {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+        body.light .custody-device-item:hover {
+            border-color: #cbd5e1 !important;
+            background-color: #f1f5f9 !important;
+        }
+
+        .custody-device-icon {
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+            border-radius: 0.75rem !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+        body.light .custody-device-icon {
+            background-color: #e2e8f0 !important;
+            color: #475569 !important;
+        }
+
+        .custody-history-btn {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            padding: 0.5rem !important;
+            border-radius: 0.5rem !important;
+            transition: all 0.2s ease-in-out !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .custody-history-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        body.light .custody-history-btn {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            color: #475569 !important;
+        }
+        body.light .custody-history-btn:hover {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .custody-return-btn {
+            background-color: rgba(244, 63, 94, 0.1) !important;
+            color: #f43f5e !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            font-size: 9px !important;
+            letter-spacing: 0.05em !important;
+            padding: 0.5rem 0.875rem !important;
+            border-radius: 0.5rem !important;
+            transition: all 0.2s ease-in-out !important;
+            border: none !important;
+        }
+        .custody-return-btn:hover {
+            background-color: #f43f5e !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3) !important;
+        }
+        body.light .custody-return-btn {
+            background-color: #ffe4e6 !important;
+            color: #be123c !important;
+        }
+        body.light .custody-return-btn:hover {
+            background-color: #e11d48 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2) !important;
+        }
+
+        /* Custom Scrollbar - Global */
+        ::-webkit-scrollbar {
+            width: 14px;
+            height: 14px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2b2b2b;
+            border-left: 1px solid #1a1a1a;
+        }
+
+        body.light ::-webkit-scrollbar-track {
+            background: #2b2b2b; /* Mantendo escuro no light mode conforme screenshot */
+            border-left: 1px solid #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #686868;
+            border: 3px solid #2b2b2b;
+            border-radius: 8px;
+        }
+
+        body.light ::-webkit-scrollbar-thumb {
+            background: #686868;
+            border: 3px solid #2b2b2b;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #858585;
+        }
+
+        ::-webkit-scrollbar-button:single-button {
+            background-color: #2b2b2b;
+            display: block;
+            border-style: solid;
+            height: 14px;
+            width: 14px;
+        }
+        
+        /* Up Arrow */
+        ::-webkit-scrollbar-button:single-button:vertical:decrement {
+            border-width: 0 4px 5px 4px;
+            border-color: transparent transparent #777 transparent;
+        }
+        ::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+            border-color: transparent transparent #aaa transparent;
+        }
+        
+        /* Down Arrow */
+        ::-webkit-scrollbar-button:single-button:vertical:increment {
+            border-width: 5px 4px 0 4px;
+            border-color: #777 transparent transparent transparent;
+        }
+        ::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+            border-color: #aaa transparent transparent transparent;
+        }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.38.0"
+  }
+}
+</script>
+</head>
+
+<body class="light">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+{
+  "name": "eav-gestao-ativos",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "electron-main.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.js",
+    "pm2:start": "npm run build && pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop gestao-ativos",
+    "pm2:restart": "pm2 restart gestao-ativos",
+    "pm2:delete": "pm2 delete gestao-ativos",
+    "pm2:logs": "pm2 logs gestao-ativos",
+    "pm2:status": "pm2 status",
+    "app:dev": "concurrently -k \"vite\" \"wait-on https://localhost:3000 && electron .\"",
+    "app:build": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.91.0",
+    "express": "^4.22.2",
+    "googleapis": "^173.0.0",
+    "html5-qrcode": "^2.3.8",
+    "lucide-react": "^0.562.0",
+    "openai": "^6.42.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "recharts": "^3.6.0",
+    "tesseract.js": "^7.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-basic-ssl": "^2.1.4",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^10.0.1",
+    "dotenv": "^17.2.3",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1",
+    "node-fetch": "^3.3.2",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.eav.gestao.ativos",
+    "productName": "EAV Equipamentos",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "data/**/*",
+      "lib/**/*",
+      "types.ts",
+      "server.js",
+      "electron-main.js",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
