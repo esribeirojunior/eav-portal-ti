@@ -31,3 +31,7 @@ dist-ssr
 # Google API Credentials and spreadsheet data
 data/google-credentials.json
 data/inventario.xlsx
+dist-electron/
+*.zip
+electron_log.txt
+Agente_Universal_VNC/

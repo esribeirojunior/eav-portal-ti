@@ -1,0 +1,105 @@
+Created At: 2026-06-17T18:23:28Z
+Completed At: 2026-06-17T18:23:30Z
+
+				The command completed successfully.
+				Output:
+				<truncated 1 lines>
+-                await fetchDevices();         // Atualiza em background
+-                showNotification('Equipamento entregue!');
+-              }}
+-            />
+-
+-            <ReturnModal
+-              isOpen={!!returningDevice}
+-              onClose={() => setReturningDevice(null)}
+-              device={returningDevice}
+-              onConfirm={async (device) => {
+-                try {
+-                  // Verifica se tem atribuição atual
+-                  if (!device.currentAssignment) return;
+-
+-                  // 1. Atualiza a tabela assignments (fecha a entrega)
+-                  const { error: assignError } = await supabase
+-                    .from('assignments')
+-                    .update({
+-                      returned_at: new Date().toISOString(), // Ou endDate, dependendo do seu banco
+-                      return_photo_url: ''
+-                    })
+-                    .eq('id', device.currentAssignment.id);
+-
+-                  if (assignError) throw assignError;
+-
+-                  // 2. Atualiza o status do dispositivo para DISPONÍVEL
+-                  const { error: deviceUpdateError } = await supabase
+-                    .from('devices')
+-                    .update({ status: DeviceStatus.AVAILABLE })
+-                    .eq('id', device.id);
+-
+-                  if (deviceUpdateError) throw deviceUpdateError;
+-
+-                  // LOG DE AUDITORIA: DEVOLUÇÃO
+-                  logAuditAction(userEmail, 'DEVOLUÇÃO', `Devolução recebida: ${device.tag}`, 'DEVICE', device.id);
+-
+-                  await fetchDevices();
+-                  setReturningDevice(null);
+-                  showNotification('Devolução registrada com sucesso!');
+-
+-                } catch (e) {
+-                  console.error("Erro na devolução:", e);
+-                  showNotification("Erro ao processar devolução.");
+-                }
+
+<truncated 4236 bytes>
+           <AccessoryModal isOpen={true} userEmail={userEmail} onClose={() => setIsAccessoryModalOpen(false)} 
++                  onSuccess={async () => {
++                    await fetchDevices();
++                    showNotification('Acessório entregue com sucesso!');
++                  }}
++                />
++              )}
++
++            </main>
++          </div>
+         )
+       }
++      {/* FIM MÓDULO DE ATIVOS COM NOVO SIDEBAR */}
++
++
+ 
+       {currentModule === 'selector' && (
+         <ModuleSelector
+@@ -1001,6 +794,33 @@ const App: React.FC = () => {
+         />
+       )}
+ 
++            {/* FLOATING THEME TOGGLE (Igual IA) */}
++      <button 
++        onClick={() => {
++          const html = document.documentElement;
++          if (html.classList.contains('dark')) {
++            html.classList.remove('dark');
++            html.classList.add('light');
++            document.body.classList.remove('dark');
++            document.body.classList.add('light');
++            localStorage.setItem('theme', 'light');
++            setThemeState('light');
++          } else {
++            html.classList.add('dark');
++            html.classList.remove('light');
++            document.body.classList.add('dark');
++            document.body.classList.remove('light');
++            localStorage.setItem('theme', 'dark');
++            setThemeState('dark');
++          }
++        }}
++        className="fixed bottom-6 right-24 w-14 h-14 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-white shadow-xl shadow-slate-200/50 dark:shadow-black/50 hover:scale-110 active:scale-95 transition-all z-50 flex items-center justify-center group border border-slate-200 dark:border-slate-700"
++        title="Alternar Tema"
++      >
++        <Sun size={24} className="hidden dark:block group-hover:text-amber-400 transition-colors" />
++        <Moon size={24} className="block dark:hidden group-hover:text-indigo-500 transition-colors" />
++      </button>
++
+       {/* EAV COPILOT (Chatbot IA) */}
+       <Copilot />
+     </div >
+

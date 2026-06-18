@@ -1,0 +1,147 @@
+          <div className="flex w-full h-screen overflow-hidden bg-[#f4f7fc] dark:bg-[#0c0d21] transition-colors">
+            {/* --- SIDEBAR --- */}
+            <aside className="w-[280px] flex-shrink-0 bg-white dark:bg-white/5 border-r border-slate-200 dark:border-white/5 flex flex-col sticky top-0 h-screen overflow-y-auto hidden md:flex shadow-sm">
+              {/* Logo container */}
+              <div className="p-8 flex items-center justify-center cursor-pointer mb-2" onClick={() => setCurrentModule('selector')}>
+                <LogoEAV size="normal" single={true} theme={theme} />
+              </div>
+
+              {/* Menu Principal */}
+              <div className="px-6 mb-8">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Menu Principal</p>
+                <div className="space-y-2">
+                  <button onClick={() => setSubView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${subView === 'dashboard' ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </button>
+                  <button onClick={() => setSubView('inventory')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' || subView === 'menu') ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                    <ClipboardList size={18} />
+                    Inventário
+                  </button>
+                </div>
+              </div>
+
+              {/* Ações Rápidas */}
+              <div className="px-6 mb-8">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Ações Rápidas</p>
+                <div className="space-y-2">
+                  <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                    <Plus size={18} />
+                    Novo Ativo
+                  </button>
+                  <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                    <Cable size={18} />
+                    Entrega Rápida
+                  </button>
+                </div>
+              </div>
+
+              {/* Perfil e Voltar (Rodapé da Sidebar) */}
+              <div className="mt-auto p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+                <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-3 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-[#5b61f8] flex items-center justify-center flex-shrink-0 font-black text-white text-sm shadow-inner">
+                    {userEmail.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-black text-slate-800 dark:text-white truncate">{userEmail.split('@')[0]}</p>
+                    <p className="text-[9px] font-bold text-slate-400 dark:text-white/40 truncate">@{userEmail.split('@')[1]}</p>
+                  </div>
+                </div>
+                <button onClick={() => setCurrentModule('selector')} className="w-full flex items-center justify-center gap-2 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white transition-all rounded-xl text-[10px] font-black uppercase tracking-widest group shadow-sm">
+                  <LogOut size={14} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
+                  Módulos
+                </button>
+              </div>
+            </aside>
+
+            {/* --- MAIN CONTENT AREA --- */}
+            <main className="flex-1 overflow-y-auto bg-[#f4f7fc] dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors">
+              <div className="max-w-[1400px] mx-auto animate-premium">
+                {/* --- HEADER SUPERIOR INVENTÁRIO/DASHBOARD --- */}
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10">
+                  <div>
+                    <h2 className="text-3xl md:text-5xl font-[900] uppercase tracking-tighter text-[#1e293b] dark:text-white flex items-center gap-4">
+                      {subView === 'dashboard' ? 'Dashboard' : 'Inventário'}
+                      {(subView === 'inventory' || subView === 'menu') && (
+                        <button
+                          onClick={() => setIsDeviceModalOpen(true)}
+                          className="md:hidden p-2 bg-indigo-600 text-white rounded-lg active:scale-95"
+                        >
+                          <Plus size={20} />
+                        </button>
+                      )}
+                    </h2>
+                    <p className="text-[13px] font-bold text-slate-400 dark:text-white/40 mt-2">
+                      {subView === 'dashboard' ? 'Métricas e relatórios do sistema' : 'Gestão completa de equipamentos e licenças.'}
+                    </p>
+                  </div>
+
+                  {/* PESQUISA E FILTROS (Só no inventário) */}
+                  {(subView === 'inventory' || subView === 'menu') && (
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <div className="relative w-full sm:w-80">
+                        <input
+                          type="text"
+                          placeholder="Pesquisar..."
+                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3.5 pl-12 pr-4 text-[12px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-white/20 shadow-sm"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
+                      </div>
+
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex items-center">
+                          <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value as any)}
+                            className="appearance-none bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                          >
+                            {['Todos', 'Manutenção', ...Object.values(DeviceType)].map((cat) => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                          <MapPin size={12} className="absolute left-3 text-slate-300 pointer-events-none hidden" />
+                        </div>
+                        
+                        <div className="relative flex items-center">
+                          <select
+                            value={selectedCampus}
+                            onChange={(e) => setSelectedCampus(e.target.value as any)}
+                            className="appearance-none bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                          >
+                            {['Todos', 'Álvares', 'Aeroporto', 'Álvares / Aeroporto'].map((cp) => (
+                              <option key={cp} value={cp}>{cp}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* --- CONTEÚDO PRINCIPAL --- */}
+                {subView === 'dashboard' ? (
+                  <Dashboard
+                    stats={stats}
+                    devices={devices}
+                    onBack={() => setSubView('inventory')}
+                    userEmail={userEmail}
+                    onLogout={handleLogout}
+                    onImportClick={() => setIsImportModalOpen(true)}
+                    onExportClick={handleExportCSV}
+                  />
+                ) : (
+                  <DeviceList
+                    devices={filteredDevices}
+                    onAssign={setAssigningDevice}
+                    onReturn={setReturningDevice}
+                    onHistory={setViewingHistory}
+                    onMaintenance={handleMaintenance}
+                    onDelete={handleDeleteDevice}
+                    onRefresh={fetchDevices}
+                  />
+                )}
+              </div>
+            </main>
+          </div>

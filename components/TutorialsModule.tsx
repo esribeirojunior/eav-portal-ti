@@ -312,7 +312,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                 ) : viewingTutorial ? (
                     /* Detailed View */
                     <div className="animate-in slide-in-from-right-4 duration-300 space-y-8">
-                        <div className="bg-[#14152e]/60 border border-white/5 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
+                        <div className="bg-slate-900/60 border border-white/5 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/5 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
                             
                             <div className="relative z-10 space-y-8">
@@ -418,7 +418,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                     <button
                                         key={tutorial.id}
                                         onClick={() => setViewingTutorial(tutorial)}
-                                        className="group bg-[#14152e]/60 p-8 rounded-[2.5rem] border border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-4px] text-left relative overflow-hidden"
+                                        className="group bg-slate-900/60 p-8 rounded-[2.5rem] border border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-4px] text-left relative overflow-hidden"
                                     >
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-orange-600/10 transition-colors" />
                                         
@@ -444,7 +444,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
             {/* Modal de Cadastro/Edição */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-2xl bg-[#0c0d21] rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                    <div className="w-full max-w-2xl bg-slate-950 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                         <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-orange-900/20 to-slate-900">
                             <div>
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight">{editingTutorial ? 'Editar Manual' : 'Novo Manual'}</h3>

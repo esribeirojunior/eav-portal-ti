@@ -1,9 +1,8 @@
-# Script de Protótipo do Agente RMM para o EAVTEST
-# Este script coleta informações do computador local e envia para o painel web.
+param (
+    [string]$ServerIP = "127.0.0.1"
+)
 
-$serverUrl = "http://10.5.0.12:3001/api/agent/sync"
-# Opcional: Para testar na rede, comente a linha acima e use o IP:
-# $serverUrl = "http://10.5.0.12:3001/api/agent/sync"
+$serverUrl = "http://${ServerIP}:3000/api/agent/sync"
 
 # ==========================================
 # 0. Habilitar Acesso Remoto (RDP) Automaticamente
@@ -13,6 +12,34 @@ try {
     Enable-NetFirewallRule -DisplayGroup "Área de Trabalho Remota" -ErrorAction SilentlyContinue
     Enable-NetFirewallRule -DisplayGroup "Remote Desktop" -ErrorAction SilentlyContinue
 } catch {}
+
+# ==========================================
+# 0.5. Instalacao e Configuracao Silenciosa do TightVNC
+# ==========================================
+$vncPath = "C:\Program Files\TightVNC\tvnserver.exe"
+if (-not (Test-Path $vncPath)) {
+    Write-Host "TightVNC nao encontrado. Baixando e instalando em segundo plano..." -ForegroundColor Yellow
+    $msiUrl = "https://www.tightvnc.com/download/2.8.81/tightvnc-2.8.81-gpl-setup-64bit.msi"
+    $msiPath = "$env:TEMP\tightvnc.msi"
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
+        
+        $installArgs = "/i `"$msiPath`" /quiet /norestart SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=eav@2017 SET_USECONTROLAUTHENTICATION=1 VALUE_OF_USECONTROLAUTHENTICATION=1 SET_CONTROLPASSWORD=1 VALUE_OF_CONTROLPASSWORD=eav@2017"
+        $process = Start-Process "msiexec.exe" -ArgumentList $installArgs -Wait -NoNewWindow -PassThru
+        
+        if ($process.ExitCode -eq 0) {
+            Write-Host "TightVNC instalado e configurado com sucesso!" -ForegroundColor Green
+        } else {
+            Write-Host "Falha na instalacao do TightVNC. (Codigo $($process.ExitCode))" -ForegroundColor Red
+        }
+        Remove-Item $msiPath -ErrorAction SilentlyContinue
+    } catch {
+        Write-Host "Erro ao baixar ou instalar o TightVNC: $($_.Exception.Message)" -ForegroundColor Red
+    }
+} else {
+    Write-Host "TightVNC ja esta instalado neste computador." -ForegroundColor Green
+}
 
 Write-Host "Iniciando Coleta de Dados do Computador..." -ForegroundColor Cyan
 
@@ -142,7 +169,10 @@ Write-Host "Dados Coletados com Sucesso!" -ForegroundColor Green
 Write-Host "Enviando para o Servidor: $serverUrl ..." -ForegroundColor Yellow
 
 try {
-    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json"
+    $headers = @{
+        "Bypass-Tunnel-Reminder" = "true"
+    }
+    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json" -Headers $headers
     
     if ($response.success) {
         Write-Host "Sincronização concluída com sucesso!" -ForegroundColor Green

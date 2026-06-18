@@ -149,7 +149,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Monitor de Campus */}
                         <button 
                             onClick={() => setActiveProject('monitcall')}
-                            className="group bg-[#14152e]/60 p-10 rounded-[3rem] border border-white/5 hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-slate-900/60 p-10 rounded-[3rem] border border-white/5 hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-cyan-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -172,7 +172,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Gestão de Tarefas TI */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('tasks')}
-                            className="group bg-[#14152e]/60 p-10 rounded-[3rem] border border-white/5 hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-slate-900/60 p-10 rounded-[3rem] border border-white/5 hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-cyan-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -195,7 +195,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Cofre de Senhas */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('vault')}
-                            className="group bg-[#14152e]/60 p-10 rounded-[3rem] border border-white/5 hover:border-blue-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-slate-900/60 p-10 rounded-[3rem] border border-white/5 hover:border-blue-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-blue-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -218,7 +218,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Passo a Passo TI */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('tutorials')}
-                            className="group bg-[#14152e]/60 p-10 rounded-[3rem] border border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-slate-900/60 p-10 rounded-[3rem] border border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-orange-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -240,7 +240,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                     </div>
                 ) : (
                     <div className="animate-in zoom-in-95 duration-500 space-y-8">
-                        <div className="bg-[#14152e]/60 border border-white/5 rounded-[3rem] p-8 md:p-12">
+                        <div className="bg-slate-900/60 border border-white/5 rounded-[3rem] p-8 md:p-12">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3 text-cyan-500">

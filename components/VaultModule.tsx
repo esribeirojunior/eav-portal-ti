@@ -111,9 +111,9 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
   };
 
   return (
-    <div className="flex h-screen bg-[#0c0d21] text-white overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-950 text-white overflow-hidden font-sans">
       {/* Sidebar de Navegação Local */}
-      <div className="w-full md:w-80 flex flex-col border-r border-white/5 bg-[#0c0d21] p-6 space-y-8">
+      <div className="w-full md:w-80 flex flex-col border-r border-white/5 bg-slate-950 p-6 space-y-8">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}

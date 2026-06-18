@@ -60,6 +60,7 @@ export interface Device {
   history: Assignment[];
   responsible?: string;
   department?: string;
+  condition?: string;
 }
 
 export interface InventoryStats {

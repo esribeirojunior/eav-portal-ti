@@ -140,7 +140,7 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
 
   const modalContent = (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 sm:p-6 animate-fade-in font-sans">
-      <div className="bg-[#14152e] w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col relative animate-slide-up">
+      <div className="bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col relative animate-slide-up">
         
         {/* Glow Effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-32 bg-indigo-500/20 blur-[80px] rounded-full pointer-events-none" />

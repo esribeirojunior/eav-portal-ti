@@ -1,6 +1,5 @@
 import React from 'react';
 import { Device, DeviceStatus, DeviceType } from '../types';
-import { UserProfile } from './UserProfile';
 import {
   PieChart,
   Pie,
@@ -16,16 +15,15 @@ import {
 import {
   Package,
   CheckCircle,
-  Clock,
-  ChevronLeft,
-  Download,
   Hammer,
+  AlertTriangle,
   Laptop,
   Headphones,
   MousePointer,
   Keyboard,
-  Settings,
-  Monitor
+  Monitor,
+  FileUp,
+  FileDown
 } from 'lucide-react';
 
 interface Props {
@@ -38,15 +36,17 @@ interface Props {
   onBack: () => void;
   userEmail: string;
   onLogout: () => void;
+  onImportClick?: () => void;
+  onExportClick?: () => void;
 }
 
-export const Dashboard: React.FC<Props> = ({ stats, devices, onBack, userEmail, onLogout }) => {
+export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onExportClick }) => {
   const maintenanceCount = devices.filter(d => d.status === DeviceStatus.MAINTENANCE).length;
 
   const pieData = [
     { name: 'Em Estoque', value: stats.available, color: '#10b981' },
     { name: 'Em Uso', value: stats.inUse, color: '#6366f1' },
-    { name: 'Manutenção', value: maintenanceCount, color: '#f59e0b' },
+    { name: 'Manutenção', value: maintenanceCount, color: '#ef4444' },
   ].filter(d => d.value > 0);
 
   const categoryData = Object.values(DeviceType).map(type => ({
@@ -71,149 +71,154 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onBack, userEmail, 
     }
   };
 
-  const handleDownloadCSV = () => {
-    const headers = ['Patrimonio', 'Modelo', 'Serie', 'Categoria', 'Status', 'Responsavel'];
-    const rows = devices.map(d => [
-      d.tag,
-      d.model,
-      d.serialNumber || 'N/A',
-      d.type,
-      d.status,
-      d.currentAssignment?.userName || 'ESTOQUE'
-    ]);
-
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map(row => row.join(';'))
-    ].join('\n');
-
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `inventario_eav_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-  };
-
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-        <div className="flex items-center gap-6">
-          <button
-            onClick={onBack}
-            className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-white/40 active:scale-90 border border-white/5"
-          >
-            <ChevronLeft size={24} />
-          </button>
-          <div>
-            <h2 className="text-4xl font-[900] uppercase tracking-tighter text-white">Estatísticas</h2>
-            <p className="text-white/20 text-[10px] font-black tracking-[0.3em] uppercase mt-1">Visão Geral da Operação TI</p>
-          </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+      
+      {/* Header Menu for Dashboard */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm gap-4">
+        <div>
+          <h2 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Estatísticas e Relatórios</h2>
+          <p className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mt-1">Visão global do inventário</p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <UserProfile
-            userEmail={userEmail}
-            onLogout={onLogout}
-          />
-          <button
-            onClick={handleDownloadCSV}
-            className="group flex items-center justify-center gap-3 bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white px-8 py-5 rounded-2xl border border-indigo-600/20 transition-all font-black text-[11px] uppercase tracking-widest active:scale-95"
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button 
+            onClick={onImportClick}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-500 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-white rounded-xl transition-all text-[11px] font-black uppercase tracking-widest shadow-sm"
           >
-            <Download size={18} className="group-hover:translate-y-0.5 transition-transform" />
-            Exportar Inventário
+            <FileUp size={16} />
+            Importar
+          </button>
+          <button 
+            onClick={onExportClick}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg"
+          >
+            <FileDown size={16} />
+            Exportar CSV
           </button>
         </div>
       </div>
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Total Geral" value={stats.total} icon={<Package />} color="from-blue-600/20 to-transparent border-blue-500/20" />
-        <StatCard label="Em Estoque" value={stats.available} icon={<CheckCircle />} color="from-emerald-600/20 to-transparent border-emerald-500/20" textColor="text-emerald-400" />
-        <StatCard label="Em Uso" value={stats.inUse} icon={<Clock />} color="from-indigo-600/20 to-transparent border-indigo-500/20" textColor="text-indigo-400" />
-        <StatCard label="Manutenção" value={maintenanceCount} icon={<Hammer />} color="from-orange-600/20 to-transparent border-orange-500/20" textColor="text-orange-400" />
+        <StatCard 
+            label="Total no Catálogo" 
+            value={stats.total} 
+            subtitle="Itens de patrimônio distintos"
+            icon={<Package />} 
+            borderColor="card-border-dark" 
+            iconBgColor="bg-slate-100 dark:bg-slate-800"
+            iconTextColor="text-slate-600 dark:text-white"
+            valueColor="text-slate-800 dark:text-white"
+        />
+        <StatCard 
+            label="Unidades Livres" 
+            value={stats.available} 
+            subtitle="Disponíveis para check-out"
+            icon={<CheckCircle />} 
+            borderColor="card-border-green" 
+            iconBgColor="bg-emerald-50 dark:bg-emerald-900/20"
+            iconTextColor="text-emerald-500"
+            valueColor="text-emerald-500"
+            secondaryValue={` / ${stats.total}`}
+        />
+        <StatCard 
+            label="Em Manutenção" 
+            value={maintenanceCount} 
+            subtitle="Inoperantes ou calibrando"
+            icon={<Hammer />} 
+            borderColor="card-border-red" 
+            iconBgColor="bg-red-50 dark:bg-red-900/20"
+            iconTextColor="text-red-500"
+            valueColor="text-red-500"
+        />
+        <StatCard 
+            label="Abaixo do Limite" 
+            value={stats.total > 0 ? (stats.available < stats.total * 0.25 ? 1 : 0) : 0} 
+            subtitle="Abaixo de 25% do estoque"
+            icon={<AlertTriangle />} 
+            borderColor="card-border-yellow" 
+            iconBgColor="bg-amber-50 dark:bg-amber-900/20"
+            iconTextColor="text-amber-500"
+            valueColor="text-amber-500"
+        />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Pie Chart Card */}
-        <div className="bg-[#14152e]/60 p-8 md:p-12 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[80px] rounded-full" />
-          <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-12 text-center relative z-10">Status de Disponibilidade</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart Card */}
+        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 relative overflow-hidden group shadow-sm">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
+                <Package size={16} />
+            </div>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white">Volume por Categoria</h3>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-white/40 mb-8 font-medium">Distribuição de unidades agrupadas</p>
 
-          <div className="h-72 w-full relative z-10">
+          <div className="h-64 w-full relative z-10" style={{ outline: 'none' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <BarChart data={categoryData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }} style={{ outline: 'none' }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(150,150,150,0.1)" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 800 }} width={100} />
+                <Tooltip 
+                  cursor={{ fill: 'transparent' }} 
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '0.5rem', color: '#fff', fontSize: '12px', outline: 'none' }} 
+                  formatter={(value: number) => [value, 'Quantidade']}
+                />
+                <Bar dataKey="value" name="Quantidade" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12}>
+                    {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={
+                        index % 4 === 0 ? '#10b981' : 
+                        index % 4 === 1 ? '#6366f1' : 
+                        index % 4 === 2 ? '#f59e0b' : '#a855f7'
+                    } />
+                    ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Pie Chart Card */}
+        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[1.5rem] border border-slate-200 dark:border-slate-800 relative overflow-hidden group shadow-sm">
+          <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">Saúde e Estado Geral</h3>
+          <p className="text-xs text-slate-500 dark:text-white/40 mb-8 font-medium">Classificação métrica das unidades</p>
+
+          <div className="h-64 w-full relative z-10" style={{ outline: 'none' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart style={{ outline: 'none' }}>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
                   innerRadius={70}
                   outerRadius={100}
-                  paddingAngle={8}
+                  paddingAngle={5}
                   dataKey="value"
                   stroke="none"
                 >
-                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                  {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} style={{ outline: 'none' }} />)}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1c1d3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', padding: '1rem' }}
-                  itemStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '0.5rem', color: '#fff', outline: 'none' }} 
+                  formatter={(value: number) => [value, 'Quantidade']}
                 />
               </PieChart>
             </ResponsiveContainer>
+            
+            {/* Center Text inside Donut */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-[900] text-slate-800 dark:text-white">{stats.total}</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">Estoque Total</span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-8 mt-8 relative z-10">
+          <div className="flex flex-wrap justify-center gap-6 mt-6 relative z-10">
             {pieData.map(item => (
-              <div key={item.name} className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/50">{item.name}</span>
-                <span className="text-[12px] font-black text-white ml-2">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bar Chart Card */}
-        <div className="bg-[#14152e]/60 p-8 md:p-12 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/5 blur-[80px] rounded-full" />
-          <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-12 text-center relative z-10">Ativos por Categoria</h3>
-
-          <div className="h-72 w-full relative z-10">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: 900 }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: 900 }}
-                />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                  contentStyle={{ backgroundColor: '#1c1d3a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem', padding: '1rem' }}
-                />
-                <Bar dataKey="value" fill="#6366f1" radius={[8, 8, 0, 0]} barSize={40}>
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#6366f1' : '#818cf8'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3 mt-8 relative z-10">
-            {categoryData.map((cat) => (
-              <div key={cat.name} className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                <span className="text-white/20">{getCategoryIcon(cat.name)}</span>
-                <span className="text-[9px] font-black uppercase text-white/40">{cat.name}</span>
-                <span className="text-[10px] font-black text-indigo-400 ml-1">{cat.value}</span>
+              <div key={item.name} className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">{item.name}</span>
+                <span className="text-[11px] font-black text-slate-700 dark:text-white ml-1">{item.value}</span>
               </div>
             ))}
           </div>
@@ -223,12 +228,22 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onBack, userEmail, 
   );
 };
 
-const StatCard = ({ label, value, icon, color, textColor = "text-white" }: { label: string, value: number, icon: React.ReactNode, color: string, textColor?: string }) => (
-  <div className={`p-8 md:p-10 rounded-[2.5rem] border bg-gradient-to-br transition-all flex flex-col items-center text-center shadow-2xl group hover:scale-[1.02] active:scale-[0.98] duration-300 ${color}`}>
-    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 text-white/20 group-hover:text-white/60 group-hover:bg-white/10 transition-all duration-500">
-      {React.cloneElement(icon as any, { size: 24 })}
+const StatCard = ({ label, value, secondaryValue = '', subtitle, icon, borderColor, iconBgColor, iconTextColor, valueColor }: any) => (
+  <div className={`p-6 rounded-2xl bg-white dark:bg-slate-900 border-y border-r border-y-slate-200 border-r-slate-200 dark:border-y-white/5 dark:border-r-white/5 transition-all flex flex-col justify-between shadow-sm group hover:-translate-y-1 active:translate-y-0 duration-300 relative overflow-hidden ${borderColor}`}>
+    <div className="flex justify-between items-start mb-4">
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">{label}</p>
+        <div className="flex items-baseline">
+            <p className={`text-3xl font-[900] tracking-tighter leading-none ${valueColor}`}>{value}</p>
+            {secondaryValue && <span className="text-sm font-bold text-slate-400 dark:text-white/30 ml-1">{secondaryValue}</span>}
+        </div>
+      </div>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBgColor} ${iconTextColor}`}>
+        {React.cloneElement(icon as any, { size: 20 })}
+      </div>
     </div>
-    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 mb-2">{label}</p>
-    <p className={`text-4xl md:text-5xl font-[900] tracking-tighter leading-none ${textColor}`}>{value}</p>
+    <div className="text-[10px] font-semibold text-slate-400 dark:text-white/30">
+        {subtitle}
+    </div>
   </div>
 );

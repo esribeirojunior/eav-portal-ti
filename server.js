@@ -8,12 +8,13 @@ import { exec, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Carrega o .env do mesmo diretório do server.js (dentro do ASAR em produção)
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Configuração da OpenAI
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key_to_prevent_crash' });
 const DEFAULT_DATA_DIR = path.join(__dirname, 'data');
 const DATA_DIR = process.env.USER_DATA_PATH 
   ? path.join(process.env.USER_DATA_PATH, 'data') 
@@ -1258,23 +1259,29 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-const server = app.listen(PORT, '0.0.0.0');
+export const serverReady = new Promise((resolve, reject) => {
+  // Alterado para 0.0.0.0 para permitir acesso na rede local (LAN)
+  const server = app.listen(PORT, '0.0.0.0');
 
-server.on('listening', () => {
-  const actualPort = server.address().port;
-  console.log(`[Server] Rodando na porta ${actualPort}`);
-  global.expressServerPort = actualPort;
-});
+  server.on('listening', () => {
+    const actualPort = server.address().port;
+    console.log(`[Server] Rodando na porta ${actualPort}`);
+    global.expressServerPort = actualPort;
+    resolve(actualPort);
+  });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.warn(`[Server] Porta ${PORT} já está ocupada.`);
-    // Em caso de porta ocupada, aloca qualquer porta livre disponível
-    if (PORT !== 0 && PORT !== '0') {
-      console.log(`[Server] Tentando alocar qualquer outra porta livre...`);
-      server.listen(0, '0.0.0.0');
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`[Server] Porta ${PORT} já está ocupada.`);
+      if (PORT !== 0 && PORT !== '0') {
+        console.log(`[Server] Tentando alocar qualquer outra porta livre...`);
+        server.listen(0, '0.0.0.0');
+      } else {
+        reject(err);
+      }
+    } else {
+      console.error('[Server] Erro no servidor:', err);
+      reject(err);
     }
-  } else {
-    console.error('[Server] Erro no servidor:', err);
-  }
+  });
 });

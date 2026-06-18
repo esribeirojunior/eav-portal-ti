@@ -62,24 +62,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userEmail, onLogout })
                         onClick={() => setIsOpen(false)}
                     />
 
-                    {/* Menu */}
-                    <div className="absolute right-0 mt-2 w-72 bg-[#14152e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in duration-200">
+                    {/* Menu - Agora abre para CIMA (bottom-full mb-2) para não cair para fora da tela */}
+                    <div className="absolute left-0 bottom-full mb-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
                         {/* Header do Menu */}
-                        <div className="p-4 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border-b border-white/5">
+                        <div className="p-4 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-600/20 dark:to-purple-600/20 border-b border-slate-200 dark:border-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
                                     <span className="text-white font-black text-base">{getInitials(userEmail)}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-white text-sm font-bold truncate">{userEmail.split('@')[0]}</p>
-                                    <p className="text-white/40 text-xs font-medium truncate">@{getDomain(userEmail)}</p>
+                                    <p className="text-slate-800 dark:text-white text-sm font-bold truncate">{userEmail.split('@')[0]}</p>
+                                    <p className="text-slate-500 dark:text-white/40 text-xs font-medium truncate">@{getDomain(userEmail)}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Informações */}
                         <div className="p-4 space-y-2">
-                            <div className="flex items-center gap-2 text-white/60 text-xs">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-white/60 text-xs">
                                 <Mail size={14} />
                                 <span className="font-medium truncate">{userEmail}</span>
                             </div>
@@ -90,7 +90,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userEmail, onLogout })
                         </div>
 
                         {/* Ações */}
-                        <div className="p-2 border-t border-white/5">
+                        <div className="p-2 border-t border-slate-200 dark:border-white/5">
                             <button
                                 onClick={() => {
                                     setIsOpen(false);

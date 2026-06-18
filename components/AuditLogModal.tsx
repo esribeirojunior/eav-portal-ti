@@ -88,7 +88,7 @@ export const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose })
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-3xl bg-black/60">
-            <div className="bg-[#14152e] w-full max-w-5xl h-[85vh] rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-slate-900 w-full max-w-5xl h-[85vh] rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
 
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-[#1a1c35]/50">

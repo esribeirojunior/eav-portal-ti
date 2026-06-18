@@ -124,8 +124,8 @@ EAV`;
     };
 
     return (
-        <div className="fixed inset-0 bg-[#0c0d21]/80 backdrop-blur-xl z-[60] flex items-center justify-center p-2 sm:p-6 animate-fade-in overflow-y-auto">
-            <div className="bg-[#14152e] w-full max-w-2xl rounded-[2rem] sm:rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative my-auto">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl z-[60] flex items-center justify-center p-2 sm:p-6 animate-fade-in overflow-y-auto">
+            <div className="bg-slate-900 w-full max-w-2xl rounded-[2rem] sm:rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] relative my-auto">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500" />
 
                 <div className="p-6 sm:p-10 space-y-6 sm:space-y-8">

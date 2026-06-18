@@ -206,7 +206,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block bg-[#14152e]/60 p-8 rounded-[2.5rem] border border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.98] relative overflow-hidden h-full"
+                                    className="block bg-slate-900/60 p-8 rounded-[2.5rem] border border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.98] relative overflow-hidden h-full"
                                 >
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-indigo-500/10 transition-colors" />
 
@@ -253,7 +253,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
             {/* Modal de Cadastro */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-lg bg-[#0c0d21] rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="w-full max-w-lg bg-slate-950 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-emerald-900/20 to-slate-900">
                             <div className="text-left">
                                 <h3 className="text-2xl font-black text-white uppercase tracking-tight text-left">Novo Atalho</h3>

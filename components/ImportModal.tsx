@@ -337,7 +337,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="bg-[#14152e] w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh] relative">
+            <div className="bg-slate-900 w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl flex flex-col max-h-[90vh] relative">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center">
                     <h2 className="text-xl font-black text-white uppercase tracking-wider">Importar Inventário</h2>
                     <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
@@ -386,7 +386,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                             {previewData.length > 0 && (
                                 <div className="bg-black/20 rounded-xl p-4 max-h-64 overflow-y-auto border border-white/5">
                                     <table className="w-full text-left text-xs">
-                                        <thead className="text-white/40 uppercase tracking-wider sticky top-0 bg-[#14152e]">
+                                        <thead className="text-white/40 uppercase tracking-wider sticky top-0 bg-slate-900">
                                             <tr>
                                                 <th className="pb-3 text-left">TAG</th>
                                                 <th className="pb-3 text-left">Modelo</th>

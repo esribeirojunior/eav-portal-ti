@@ -195,9 +195,9 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     }, [tasks, filterStatus]);
 
     return (
-        <div className="flex h-screen bg-[#0c0d21] text-white overflow-hidden">
+        <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
             {/* Sidebar / List */}
-            <div className={`w-full md:w-[450px] flex flex-col border-r border-white/5 bg-[#0c0d21] transform transition-transform duration-300 ${selectedTask ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-full md:w-[450px] flex flex-col border-r border-white/5 bg-slate-950 transform transition-transform duration-300 ${selectedTask ? 'hidden md:flex' : 'flex'}`}>
                 {/* Header */}
                 <div className="p-6 border-b border-white/5 space-y-6">
                     <div className="flex items-center gap-4">
@@ -291,7 +291,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                     )}
                 </div>
                 {/* Footer in Sidebar */}
-                <div className="p-4 border-t border-white/5 text-center no-print bg-[#0c0d21]">
+                <div className="p-4 border-t border-white/5 text-center no-print bg-slate-950">
                     <p className="text-white/10 text-[8px] uppercase tracking-[0.25em] font-black">
                         Escola Americana &copy; 2026 - v2.0 by Erisson Ribeiro
                     </p>
@@ -299,7 +299,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
             </div>
 
             {/* Details / Comments */}
-            <div className={`flex-1 bg-[#0c0d21] flex-col ${selectedTask ? 'flex' : 'hidden md:flex'}`}>
+            <div className={`flex-1 bg-slate-950 flex-col ${selectedTask ? 'flex' : 'hidden md:flex'}`}>
                 {selectedTask ? (
                     <>
                         {/* Detail Header */}

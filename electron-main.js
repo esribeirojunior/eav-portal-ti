@@ -13,31 +13,7 @@ process.env.USER_DATA_PATH = app.getPath('userData');
 // Define a porta do Express: 3001 em dev (com proxy do Vite), 3000 em prod
 process.env.PORT = isDev ? '3001' : '3000';
 
-// Inicia o servidor backend Express com logs de erro
-import('./server.js').catch(err => {
-    console.error("Erro ao iniciar o servidor Express:", err);
-    try {
-        const logPath = path.join(app.getPath('userData'), 'backend-error.log');
-        fs.writeFileSync(logPath, `${new Date().toISOString()}\n${err.stack || err.toString()}`);
-    } catch (e) {
-        // ignore
-    }
-});
-
-// Helper para aguardar que o servidor Express inicialize e defina a porta de escuta
-function waitForPort() {
-    return new Promise((resolve) => {
-        const check = () => {
-            if (global.expressServerPort) {
-                resolve(global.expressServerPort);
-            } else {
-                setTimeout(check, 50);
-            }
-        };
-        check();
-    });
-}
-
+// Helper definitions
 async function createWindow() {
     const win = new BrowserWindow({
         width: 1280,
@@ -52,14 +28,36 @@ async function createWindow() {
     });
 
     if (isDev) {
-        // Em desenvolvimento, carrega o servidor do Vite (HTTPS)
+        // Em desenvolvimento, carrega o servidor do Vite (HTTPS) e inicia o backend na 3001
+        import('./server.js').catch(console.error);
         win.loadURL('https://localhost:3000');
     } else {
-        // Em produção, carrega o Express local na porta dinâmica onde ele conseguiu alocar
-        const port = await waitForPort();
-        console.log(`[Electron] Carregando o backend local na porta ${port}...`);
-        win.loadURL(`http://localhost:${port}`);
+        // Em produção, carrega o Express local
+        try {
+            const { serverReady } = await import('./server.js');
+            const port = await serverReady;
+            console.log(`[Electron] Carregando o backend local na porta ${port}...`);
+            win.loadURL(`http://127.0.0.1:${port}`);
+        } catch (error) {
+            console.error("Erro ao iniciar o servidor backend:", error);
+            try {
+                const logPath = path.join(app.getPath('userData'), 'backend-crash.log');
+                fs.writeFileSync(logPath, error.stack || error.toString());
+            } catch (e) {}
+            win.webContents.openDevTools();
+            // Tenta carregar mesmo assim na 3000 para forçar erro visível
+            win.loadURL(`http://127.0.0.1:3000`);
+        }
     }
+
+    win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        const errorLog = `Failed to load: ${validatedURL}\nError Code: ${errorCode}\nDescription: ${errorDescription}\n`;
+        console.error(errorLog);
+        try {
+            const logPath = path.join(app.getPath('userData'), 'load-error.log');
+            fs.appendFileSync(logPath, `${new Date().toISOString()}\n${errorLog}`);
+        } catch (e) {}
+    });
 
     win.on('page-title-updated', (e) => {
         e.preventDefault(); // Impede alteração de título da janela
