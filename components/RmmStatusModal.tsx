@@ -108,10 +108,11 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
   const testPing = async () => {
     setPingStatus('pinging');
     try {
+      const targetIp = specs.ip && specs.ip !== 'N/A' ? specs.ip : null;
       const res = await fetch('/api/agent/ping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hostname: specs.hostname || device.tag })
+        body: JSON.stringify({ hostname: specs.hostname || device.tag, ip: targetIp })
       });
       const data = await res.json();
       if (data.online) {
@@ -128,11 +129,9 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
   const openRemoteDesktop = async () => {
     try {
       const targetIp = specs.ip && specs.ip !== 'N/A' ? specs.ip : specs.hostname;
-      await fetch('/api/remote-control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: targetIp })
-      });
+      // Arquitetura Web: Em vez de disparar no servidor (o que abriria a tela la no servidor),
+      // pedimos ao navegador local do usuario para abrir o aplicativo VNC instalado nele.
+      window.location.href = `vnc://${targetIp}`;
     } catch (e) {
       console.error("Erro ao iniciar acesso remoto", e);
     }

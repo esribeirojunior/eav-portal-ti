@@ -11,10 +11,10 @@ if %errorLevel% NEQ 0 (
 
 echo ===================================================
 echo Iniciando o Agente de Sincronizacao (Modo Administrador)...
+echo Servidor Central EAV: 10.158.0.4
 echo ===================================================
 
-set /p SERVER_IP="Digite o IP do PC onde o EAV Equipamentos esta aberto (ex: 192.168.1.50) ou ENTER para local: "
-if "%SERVER_IP%"=="" set SERVER_IP=127.0.0.1
+set SERVER_IP=10.158.0.4
 
 :: Tenta rodar o script powershell ignorando a politica de bloqueio do Windows
 powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0agent-sync.ps1" -ServerIP "%SERVER_IP%"

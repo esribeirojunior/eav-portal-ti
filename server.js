@@ -33,7 +33,7 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 
 // Se estiver rodando no Electron, copia os arquivos padrão do ASAR para a pasta gravável
 if (process.env.USER_DATA_PATH && fs.existsSync(DEFAULT_DATA_DIR)) {
-  const filesToCopy = ['inventario.xlsx', 'google-credentials.json', 'tutorials.json'];
+  const filesToCopy = ['tutorials.json'];
   filesToCopy.forEach(file => {
     const src = path.join(DEFAULT_DATA_DIR, file);
     const dest = path.join(DATA_DIR, file);
@@ -101,319 +101,42 @@ function processBase64Fields(obj) {
   }
 }
 
-// --- EXCEL & GOOGLE SHEETS DATABASE SYSTEM ---
-import XLSX from 'xlsx';
-import { google } from 'googleapis';
+// --- SQLITE DATABASE SYSTEM ---
+import Database from 'better-sqlite3';
 
-const EXCEL_PATH = path.join(DATA_DIR, 'inventario.xlsx');
-const GOOGLE_CREDS_PATH = path.join(DATA_DIR, 'google-credentials.json');
-const SPREADSHEET_ID = '1uNLKLitQLRCf1bwVZ9Gy-VnZttUp7HybYxMypFaz0Yg';
+const DB_PATH = path.join(DATA_DIR, 'inventario.db');
 
-let sheetsClient = null;
+const db = new Database(DB_PATH, { verbose: null });
 
-function getSheetsClient() {
-  if (sheetsClient) return sheetsClient;
-  if (!fs.existsSync(GOOGLE_CREDS_PATH)) {
-    return null;
-  }
-  try {
-    const creds = JSON.parse(fs.readFileSync(GOOGLE_CREDS_PATH, 'utf-8'));
-    const auth = new google.auth.JWT({
-      email: creds.client_email,
-      key: creds.private_key.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    });
-    sheetsClient = google.sheets({ version: 'v4', auth });
-    console.log("[GoogleSheets] Cliente da API inicializado com sucesso!");
-    return sheetsClient;
-  } catch (err) {
-    console.error("[GoogleSheets] Erro ao inicializar cliente da API:", err);
-    return null;
-  }
+function initSQLiteDB() {
+  db.pragma('journal_mode = WAL');
+  
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT);
+    CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
+    CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
+    CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
+    CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
+    CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
+  `);
+
+  // O banco já está populado! Não precisamos mais importar planilhas do Excel offline.
 }
 
-async function initGoogleSheetsDB() {
-  const client = getSheetsClient();
-  if (!client) return;
-
-  try {
-    const metadata = await client.spreadsheets.get({
-      spreadsheetId: SPREADSHEET_ID
-    });
-    const sheetNames = metadata.data.sheets.map(s => s.properties.title);
-    
-    const requiredSheets = ['devices', 'assignments', 'department', 'shortcuts', 'authorized_users', 'audit_logs'];
-    const requests = [];
-
-    for (const sheet of requiredSheets) {
-      if (!sheetNames.includes(sheet)) {
-        console.log(`[GoogleSheets] Criando aba faltante: ${sheet}`);
-        requests.push({
-          addSheet: {
-            properties: { title: sheet }
-          }
-        });
-      }
-    }
-
-    if (requests.length > 0) {
-      await client.spreadsheets.batchUpdate({
-        spreadsheetId: SPREADSHEET_ID,
-        requestBody: { requests }
-      });
-      console.log("[GoogleSheets] Abas criadas com sucesso!");
-      
-      // Escreve os cabeçalhos padrão nelas
-      for (const sheet of requiredSheets) {
-        if (!sheetNames.includes(sheet)) {
-          const headers = getHeadersForSheet(sheet);
-          const depts = sheet === 'department' ? [
-            ['id', 'name'],
-            ['ti-dept-id-1', 'TI'],
-            ['ti-dept-id-2', 'DIRETORIA'],
-            ['ti-dept-id-3', 'SECRETARIA'],
-            ['ti-dept-id-4', 'COORDENAÇÃO'],
-            ['ti-dept-id-5', 'DOCENTES'],
-            ['ti-dept-id-6', 'DISCENTES'],
-            ['ti-dept-id-7', 'MANUTENÇÃO'],
-            ['ti-dept-id-8', 'FINANCEIRO'],
-            ['ti-dept-id-9', 'SUPRIMENTOS'],
-            ['ti-dept-id-10', 'RH'],
-            ['ti-dept-id-11', 'DP'],
-            ['ti-dept-id-12', 'ADMISSIONS'],
-            ['ti-dept-id-13', 'MARKETING'],
-            ['ti-dept-id-14', 'GUARITA']
-          ] : null;
-          
-          const shortcuts = sheet === 'shortcuts' ? [
-            ['id', 'title', 'description', 'url', 'icon_name', 'color', 'campus'],
-            ['s1', 'BenQ DMS', 'Gestão de Telas Interativas e Projetores', 'https://dms.benq.com/', 'Monitor', 'bg-orange-500', 'Todos'],
-            ['s2', 'Google Admin', 'Gestão de Contas, Chromebooks e Políticas', 'https://admin.google.com/', 'Globe', 'bg-blue-600', 'Todos'],
-            ['s3', 'Meraki Dashboard', 'Infraestrutura de Rede e Wi-Fi', 'https://dashboard.meraki.com/', 'Globe', 'bg-emerald-600', 'Todos'],
-            ['s4', 'Suporte Microsoft', 'Portal de Administração Microsoft 365', 'https://admin.microsoft.com/', 'Cloud', 'bg-indigo-600', 'Todos']
-          ] : null;
-
-          const authUsers = sheet === 'authorized_users' ? [
-            ['id', 'email', 'created_at'],
-            ['u1', 'erisson.junior@escolaamericana.com.br', new Date().toISOString()],
-            ['u2', 'admin@teste.local', new Date().toISOString()]
-          ] : null;
-
-          const values = depts || shortcuts || authUsers || [headers];
-
-          await client.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${sheet}!A1`,
-            valueInputOption: 'USER_ENTERED',
-            requestBody: { values }
-          });
-        }
-      }
-    }
-  } catch (err) {
-    console.error("[GoogleSheets] Erro ao inicializar banco de dados no Google Sheets:", err);
-  }
-}
-
-function getHeadersForSheet(sheetName) {
-  switch (sheetName) {
-    case 'devices': return ['id', 'tag', 'serial_number', 'model', 'type', 'status', 'condition', 'last_seen', 'created_at'];
-    case 'assignments': return ['id', 'device_id', 'user_name', 'department_id', 'assigned_at', 'returned_at', 'return_photo_url', 'user_role', 'grade', 'campus'];
-    case 'department': return ['id', 'name'];
-    case 'shortcuts': return ['id', 'title', 'description', 'url', 'icon_name', 'color', 'campus'];
-    case 'authorized_users': return ['id', 'email', 'created_at'];
-    case 'audit_logs': return ['id', 'user_email', 'action', 'details', 'resource_type', 'resource_id', 'created_at'];
-    default: return ['id'];
-  }
-}
-
-function jsonTo2DArray(data, sheetName) {
-  const headers = getHeadersForSheet(sheetName);
-  if (!data || data.length === 0) {
-    return [headers];
-  }
-  const uniqueKeys = Array.from(new Set([...headers, ...Object.keys(data[0] || {})]));
-  const rows = data.map(item => uniqueKeys.map(key => item[key] ?? ''));
-  return [uniqueKeys, ...rows];
-}
-
-function valuesToJSON(values) {
-  if (!values || values.length === 0) return [];
-  const headers = values[0];
-  return values.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((header, index) => {
-      obj[header] = row[index] ?? '';
-    });
-    return obj;
-  });
-}
-
-// --- CACHE PARA EVITAR EXCESSO DE REQUISIÇÕES AO GOOGLE SHEETS ---
-const dbCache = {};
-const CACHE_TTL = 15000; // 15 segundos de cache
+initSQLiteDB();
 
 async function readDBTable(sheetName) {
-  // Verifica cache primeiro
-  const cached = dbCache[sheetName];
-  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-    return cached.data;
-  }
-
-  const client = getSheetsClient();
-  if (client) {
-    try {
-      await initGoogleSheetsDB();
-      const response = await client.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A:Z`
-      });
-      const values = response.data.values;
-      const result = valuesToJSON(values);
-      // Salva no cache
-      dbCache[sheetName] = { data: result, timestamp: Date.now() };
-      return result;
-    } catch (e) {
-      console.error(`[GoogleSheets] Erro ao ler tabela ${sheetName}:`, e);
-      // Se tem cache antigo, usa ele em vez de quebrar
-      if (cached) {
-        console.log(`[GoogleSheets] Usando cache antigo para ${sheetName}`);
-        return cached.data;
-      }
-      throw e;
-    }
-  }
-  return readExcelTable(sheetName);
-}
-
-async function writeDBTable(sheetName, data) {
-  // Atualiza o cache local imediatamente ao gravar
-  dbCache[sheetName] = { data, timestamp: Date.now() };
-
-  const client = getSheetsClient();
-  if (client) {
-    try {
-      await initGoogleSheetsDB();
-      const values = jsonTo2DArray(data, sheetName);
-      
-      // 1. Grava os novos dados primeiro para garantir que a operação é válida
-      await client.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A1`,
-        valueInputOption: 'USER_ENTERED',
-        requestBody: { values }
-      });
-
-      // 2. Se a gravação teve sucesso, limpa apenas as linhas antigas excedentes no final
-      await client.spreadsheets.values.clear({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A${values.length + 1}:Z`
-      });
-
-      return;
-    } catch (e) {
-      console.error(`[GoogleSheets] Erro ao gravar tabela ${sheetName}:`, e);
-      throw e; // Lança o erro para que a operação falhe visivelmente
-    }
-  }
-  writeExcelTable(sheetName, data);
-}
-
-// Inicializa a planilha de banco de dados Excel local se não existir (Fallback)
-function initExcelDB() {
-  if (!fs.existsSync(EXCEL_PATH)) {
-    console.log("[ExcelDB] Criando nova planilha de inventário...");
-    const wb = XLSX.utils.book_new();
-    
-    const depts = [
-      { id: 'ti-dept-id-1', name: 'TI' },
-      { id: 'ti-dept-id-2', name: 'DIRETORIA' },
-      { id: 'ti-dept-id-3', name: 'SECRETARIA' },
-      { id: 'ti-dept-id-4', name: 'COORDENAÇÃO' },
-      { id: 'ti-dept-id-5', name: 'DOCENTES' },
-      { id: 'ti-dept-id-6', name: 'DISCENTES' },
-      { id: 'ti-dept-id-7', name: 'MANUTENÇÃO' },
-      { id: 'ti-dept-id-8', name: 'FINANCEIRO' },
-      { id: 'ti-dept-id-9', name: 'SUPRIMENTOS' },
-      { id: 'ti-dept-id-10', name: 'RH' },
-      { id: 'ti-dept-id-11', name: 'DP' },
-      { id: 'ti-dept-id-12', name: 'ADMISSIONS' },
-      { id: 'ti-dept-id-13', name: 'MARKETING' },
-      { id: 'ti-dept-id-14', name: 'GUARITA' }
-    ];
-    
-    const shortcuts = [
-      { id: 's1', title: 'BenQ DMS', description: 'Gestão de Telas Interativas e Projetores', url: 'https://dms.benq.com/', icon_name: 'Monitor', color: 'bg-orange-500', campus: 'Todos' },
-      { id: 's2', title: 'Google Admin', description: 'Gestão de Contas, Chromebooks e Políticas', url: 'https://admin.google.com/', icon_name: 'Globe', color: 'bg-blue-600', campus: 'Todos' },
-      { id: 's3', title: 'Meraki Dashboard', description: 'Infraestrutura de Rede e Wi-Fi', url: 'https://dashboard.meraki.com/', icon_name: 'Globe', color: 'bg-emerald-600', campus: 'Todos' },
-      { id: 's4', title: 'Suporte Microsoft', description: 'Portal de Administração Microsoft 365', url: 'https://admin.microsoft.com/', icon_name: 'Cloud', color: 'bg-indigo-600', campus: 'Todos' }
-    ];
-
-    const authorizedUsers = [
-      { id: 'u1', email: 'erisson.junior@escolaamericana.com.br', password: '123456', created_at: new Date().toISOString() },
-      { id: 'u2', email: 'admin@teste.local', password: 'admin123', created_at: new Date().toISOString() }
-    ];
-
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([]), 'devices');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([]), 'assignments');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(depts), 'department');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shortcuts), 'shortcuts');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(authorizedUsers), 'authorized_users');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([]), 'audit_logs');
-    
-    XLSX.writeFile(wb, EXCEL_PATH);
-  } else {
-    // Caso a planilha já exista, garante que a aba authorized_users existe
-    try {
-      const wb = XLSX.readFile(EXCEL_PATH);
-      let updated = false;
-
-      if (!wb.Sheets['authorized_users']) {
-        console.log("[ExcelDB] Aba 'authorized_users' ausente na planilha existente. Criando...");
-        const authorizedUsers = [
-          { id: 'u1', email: 'erisson.junior@escolaamericana.com.br', password: '123456', created_at: new Date().toISOString() },
-          { id: 'u2', email: 'admin@teste.local', password: 'admin123', created_at: new Date().toISOString() }
-        ];
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(authorizedUsers), 'authorized_users');
-        updated = true;
-      }
-
-      if (updated) {
-        XLSX.writeFile(wb, EXCEL_PATH);
-        console.log("[ExcelDB] Planilha existente atualizada com a aba de usuários autorizados.");
-      }
-    } catch (err) {
-      console.error("[ExcelDB] Erro ao verificar/atualizar abas da planilha existente:", err);
-    }
-  }
-}
-
-function readExcelTable(sheetName) {
   try {
-    initExcelDB();
-    const wb = XLSX.readFile(EXCEL_PATH);
-    const sheet = wb.Sheets[sheetName];
-    if (!sheet) return [];
-    return XLSX.utils.sheet_to_json(sheet);
-  } catch (e) {
-    console.error(`Erro ao ler tabela ${sheetName}:`, e);
+    return db.prepare(`SELECT * FROM ${sheetName}`).all();
+  } catch(e) {
+    console.error(`Erro lendo ${sheetName}:`, e);
     return [];
   }
 }
 
-function writeExcelTable(sheetName, data) {
-  try {
-    initExcelDB();
-    const wb = XLSX.readFile(EXCEL_PATH);
-    const newSheet = XLSX.utils.json_to_sheet(data);
-    wb.Sheets[sheetName] = newSheet;
-    XLSX.writeFile(wb, EXCEL_PATH);
-  } catch (e) {
-    console.error(`Erro ao gravar tabela ${sheetName}:`, e);
-    throw e;
-  }
-}
+// Removida a função writeDBTable pois ela recriava tabelas inteiras o que é anti-padrão no SQLite
 
+const dbConnection = db;
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
 const ACTIVE_SESSIONS = new Set();
 
@@ -438,229 +161,99 @@ function authenticateToken(req, res, next) {
 
 // Endpoint de Banco de Dados simulado
 app.post('/api/db', authenticateToken, async (req, res) => {
-  // Processa campos que contenham imagens Base64 para salvar no disco local
   processBase64Fields(req.body);
-
   const { table, filters = {}, ilikeCol, ilikeVal, insertData, updateData, isDelete, isUpsert, orderCol, orderAsc, isSingle } = req.body;
 
-  // Proteção da tabela de credenciais (authorized_users)
-  if (table === 'authorized_users') {
-    if (insertData || updateData || isDelete || isUpsert) {
-      return res.status(403).json({ data: null, error: { message: 'Acesso negado para modificar a tabela de usuários.' } });
-    }
-    try {
-      const data = await readDBTable('authorized_users');
-      // Filtra senhas antes de responder
-      const sanitized = data.map(u => ({
-        id: u.id,
-        email: u.email,
-        created_at: u.created_at
-      }));
-      let filtered = sanitized;
-      for (const [col, val] of Object.entries(filters)) {
-        filtered = filtered.filter(item => String(item[col] ?? '') === String(val ?? ''));
-      }
-      return res.json({ data: isSingle ? (filtered[0] || null) : filtered, error: null });
-    } catch (err) {
-      return res.status(500).json({ data: null, error: { message: err.message } });
-    }
+  if (table === 'authorized_users' && (insertData || updateData || isDelete || isUpsert)) {
+    return res.status(403).json({ error: { message: 'Acesso negado.' } });
   }
-  
-  const clientName = getSheetsClient() ? 'GoogleSheets' : 'ExcelDB';
-  console.log(`[${clientName}] Requisição na tabela: ${table} | Operação: ${insertData ? (isUpsert ? 'UPSERT' : 'INSERT') : updateData ? 'UPDATE' : isDelete ? 'DELETE' : 'SELECT'}`);
 
   try {
-    // 1. SELECT (Querying)
-    if (!insertData && !updateData && !isDelete && !isUpsert) {
-      if (table === 'devices') {
-        const devices = await readDBTable('devices');
-        const assignments = await readDBTable('assignments');
-        const departments = await readDBTable('department');
-
-        const data = devices.map(dev => {
-          const devAssigns = assignments
-            .filter(a => String(a.device_id) === String(dev.id))
-            .map(a => {
-              const dept = departments.find(d => String(d.id) === String(a.department_id));
-              return {
-                id: a.id,
-                device_id: a.device_id,
-                user_name: a.user_name,
-                department_id: a.department_id,
-                department: dept ? { name: dept.name } : null,
-                user_role: a.user_role || 'Colaborador',
-                grade: a.grade || '',
-                assigned_at: a.assigned_at,
-                returned_at: a.returned_at || null,
-                return_photo_url: a.return_photo_url || null,
-                campus: a.campus || ''
-              };
-            });
-
-          return {
-            ...dev,
-            assignments: devAssigns
-          };
-        });
-
-        // Apply filters
-        let filtered = data;
-        for (const [col, val] of Object.entries(filters)) {
-          filtered = filtered.filter(item => String(item[col] ?? '') === String(val ?? ''));
-        }
-
-        // Apply ilike filter if present
-        if (ilikeCol && ilikeVal) {
-          const searchTerm = ilikeVal.replace(/%/g, '').toLowerCase().trim();
-          filtered = filtered.filter(item => {
-            const itemVal = String(item[ilikeCol] ?? '').toLowerCase().trim();
-            return itemVal.includes(searchTerm);
-          });
-        }
-
-        // Apply sorting
-        if (orderCol) {
-          filtered.sort((a, b) => {
-            const valA = (a[orderCol] || '').toString();
-            const valB = (b[orderCol] || '').toString();
-            return orderAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-          });
-        }
-
-        return res.json({ data: isSingle ? (filtered[0] || null) : filtered, error: null });
-      }
-
-      // Default tables
-      const data = await readDBTable(table);
-      let filtered = data;
-      for (const [col, val] of Object.entries(filters)) {
-        filtered = filtered.filter(item => String(item[col] ?? '') === String(val ?? ''));
-      }
-
-      // Apply ilike filter if present
-      if (ilikeCol && ilikeVal) {
-        const searchTerm = ilikeVal.replace(/%/g, '').toLowerCase().trim();
-        filtered = filtered.filter(item => {
-          const itemVal = String(item[ilikeCol] ?? '').toLowerCase().trim();
-          return itemVal.includes(searchTerm);
-        });
-      }
-
-      if (orderCol) {
-        filtered.sort((a, b) => {
-          const valA = (a[orderCol] || '').toString();
-          const valB = (b[orderCol] || '').toString();
-          return orderAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        });
-      }
-
-      return res.json({ data: isSingle ? (filtered[0] || null) : filtered, error: null });
+    let whereClause = '';
+    const params = [];
+    const filterKeys = Object.keys(filters);
+    
+    if (filterKeys.length > 0) {
+      whereClause = 'WHERE ' + filterKeys.map(k => `${k} = ?`).join(' AND ');
+      params.push(...filterKeys.map(k => filters[k]));
+    }
+    
+    if (ilikeCol && ilikeVal) {
+      whereClause += (whereClause ? ' AND ' : 'WHERE ') + `${ilikeCol} LIKE ?`;
+      params.push(`%${ilikeVal.replace(/%/g, '')}%`);
     }
 
-    // 2. INSERT
-    if (insertData && !isUpsert) {
-      const rows = await readDBTable(table);
-      const newItems = Array.isArray(insertData) ? insertData : [insertData];
-      
-      const inserted = newItems.map(item => ({
-        id: item.id || Math.random().toString(36).substring(2, 9),
-        ...item,
-        created_at: item.created_at || new Date().toISOString()
-      }));
-
-      rows.push(...inserted);
-      await writeDBTable(table, rows);
-      sendRealtimeUpdate(table);
-
-      return res.json({ data: isSingle ? inserted[0] : inserted, error: null });
-    }
-
-    // 3. UPSERT
-    if (insertData && isUpsert) {
-      const rows = await readDBTable(table);
-      const newItems = Array.isArray(insertData) ? insertData : [insertData];
-      const results = [];
-
-      for (const item of newItems) {
-        let index = -1;
-        if (table === 'devices') {
-          index = rows.findIndex(r => String(r.tag ?? '').trim().toLowerCase() === String(item.tag ?? '').trim().toLowerCase());
-        } else {
-          index = rows.findIndex(r => String(r.id ?? '') === String(item.id ?? ''));
-        }
-
-        const upserted = {
-          id: index >= 0 ? rows[index].id : (item.id || Math.random().toString(36).substring(2, 9)),
-          ...item,
-          updated_at: new Date().toISOString()
-        };
-
-        if (index >= 0) {
-          rows[index] = { ...rows[index], ...upserted };
-        } else {
-          rows.push(upserted);
-        }
-        results.push(upserted);
-      }
-
-      await writeDBTable(table, rows);
-      sendRealtimeUpdate(table);
-      return res.json({ data: isSingle ? results[0] : results, error: null });
-    }
-
-    // 4. UPDATE
-    if (updateData) {
-      const rows = await readDBTable(table);
-      const updatedItems = [];
-
-      const newRows = rows.map(item => {
-        let match = true;
-        for (const [col, val] of Object.entries(filters)) {
-          if (String(item[col] ?? '') !== String(val ?? '')) {
-            match = false;
-            break;
-          }
-        }
-
-        if (match) {
-          const updated = { ...item, ...updateData };
-          updatedItems.push(updated);
-          return updated;
-        }
-        return item;
-      });
-
-      await writeDBTable(table, newRows);
-      sendRealtimeUpdate(table);
-      return res.json({ data: isSingle ? updatedItems[0] : updatedItems, error: null });
-    }
-
-    // 5. DELETE
     if (isDelete) {
-      const rows = await readDBTable(table);
-      const newRows = rows.filter(item => {
-        let match = true;
-        for (const [col, val] of Object.entries(filters)) {
-          if (String(item[col] ?? '') === String(val ?? '')) {
-            match = false;
-            break;
-          }
-        }
-        return match;
-      });
-
-      await writeDBTable(table, newRows);
+      const info = dbConnection.prepare(`DELETE FROM ${table} ${whereClause}`).run(...params);
       sendRealtimeUpdate(table);
       return res.json({ data: null, error: null });
     }
 
-  } catch (err) {
-    console.error(`Erro ao processar operação no banco local (${table}):`, err);
-    let message = err.message;
-    if (err.code === 'EBUSY') {
-      message = 'A planilha data/inventario.xlsx está aberta em outro programa (como o Excel). Por favor, feche-a para salvar as alterações.';
+    if (updateData) {
+      const updateKeys = Object.keys(updateData);
+      const setClause = updateKeys.map(k => `${k} = ?`).join(', ');
+      const updateParams = updateKeys.map(k => updateData[k]);
+      dbConnection.prepare(`UPDATE ${table} SET ${setClause} ${whereClause}`).run(...updateParams, ...params);
+      sendRealtimeUpdate(table);
+      const updatedData = dbConnection.prepare(`SELECT * FROM ${table} ${whereClause}`).all(...params);
+      return res.json({ data: isSingle ? updatedData[0] : updatedData, error: null });
     }
-    return res.status(500).json({ data: null, error: { message } });
+
+    if (insertData) {
+      const newItems = Array.isArray(insertData) ? insertData : [insertData];
+      const results = [];
+      dbConnection.transaction(() => {
+        for (const item of newItems) {
+          const finalItem = { ...item };
+          if (!finalItem.id) finalItem.id = Math.random().toString(36).substring(2, 9);
+          if (!finalItem.created_at && !isUpsert) finalItem.created_at = new Date().toISOString();
+          
+          let conflictClause = '';
+          if (isUpsert) {
+             const updateCols = Object.keys(finalItem).filter(k => k !== 'id').map(k => `${k}=excluded.${k}`).join(', ');
+             conflictClause = `ON CONFLICT(id) DO UPDATE SET ${updateCols}`;
+          }
+          
+          const keys = Object.keys(finalItem);
+          const placeholders = keys.map(() => '?').join(', ');
+          const values = keys.map(k => finalItem[k]);
+          
+          dbConnection.prepare(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders}) ${conflictClause}`).run(...values);
+          results.push(finalItem);
+        }
+      })();
+      sendRealtimeUpdate(table);
+      return res.json({ data: isSingle ? results[0] : results, error: null });
+    }
+
+    let orderClause = '';
+    if (orderCol) {
+       orderClause = `ORDER BY ${orderCol} ${orderAsc ? 'ASC' : 'DESC'}`;
+    }
+    
+    let result = dbConnection.prepare(`SELECT * FROM ${table} ${whereClause} ${orderClause}`).all(...params);
+
+    if (table === 'devices') {
+      const allAssignments = dbConnection.prepare('SELECT * FROM assignments').all();
+      const allDepartments = dbConnection.prepare('SELECT * FROM department').all();
+      result = result.map(dev => {
+        const devAssigns = allAssignments
+          .filter(a => String(a.device_id) === String(dev.id))
+          .map(a => {
+            const dept = allDepartments.find(d => String(d.id) === String(a.department_id));
+            return { ...a, department: dept ? { name: dept.name } : null };
+          });
+        return { ...dev, assignments: devAssigns };
+      });
+    }
+
+    if (table === 'authorized_users') {
+      result = result.map(u => ({ id: u.id, email: u.email, created_at: u.created_at }));
+    }
+
+    return res.json({ data: isSingle ? (result[0] || null) : result, error: null });
+  } catch (err) {
+    return res.status(500).json({ error: { message: err.message } });
   }
 });
 
@@ -709,14 +302,14 @@ app.post('/api/agent/sync', async (req, res) => {
 
     if (existingIndex >= 0) {
       // Atualiza o dispositivo existente
-      devices[existingIndex] = {
-        ...devices[existingIndex],
-        status: 'Em Uso',
-        model: model || devices[existingIndex].model,
-        condition: technicalInfo,
-        last_seen: new Date().toISOString()
-      };
-      targetDevice = devices[existingIndex];
+      dbConnection.prepare('UPDATE devices SET status=?, model=?, condition=?, last_seen=? WHERE id=?').run(
+        'Em Uso', 
+        model || devices[existingIndex].model, 
+        technicalInfo, 
+        new Date().toISOString(), 
+        devices[existingIndex].id
+      );
+      targetDevice = { ...devices[existingIndex], status: 'Em Uso', model: model || devices[existingIndex].model, condition: technicalInfo, last_seen: new Date().toISOString() };
       actionStr = 'updated';
     } else {
       // Cadastra um novo dispositivo
@@ -731,12 +324,14 @@ app.post('/api/agent/sync', async (req, res) => {
         last_seen: new Date().toISOString(),
         created_at: new Date().toISOString()
       };
-      devices.push(newDevice);
+      
+      const keys = Object.keys(newDevice);
+      const placeholders = keys.map(() => '?').join(', ');
+      dbConnection.prepare(`INSERT INTO devices (${keys.join(', ')}) VALUES (${placeholders})`).run(...keys.map(k => newDevice[k]));
       targetDevice = newDevice;
       actionStr = 'created';
     }
     
-    await writeDBTable('devices', devices);
     sendRealtimeUpdate('devices');
 
     // ============================================
@@ -759,7 +354,7 @@ app.post('/api/agent/sync', async (req, res) => {
         
         // Se a máquina estiver com outro usuário, encerra o empréstimo antigo
         if (currentAssign.user_name.toLowerCase() !== cleanUsername.toLowerCase()) {
-          assignments[activeAssignmentIndex].returned_at = new Date().toISOString();
+          dbConnection.prepare('UPDATE assignments SET returned_at=? WHERE id=?').run(new Date().toISOString(), currentAssign.id);
           needsNewAssignment = true;
         }
       } else {
@@ -777,16 +372,18 @@ app.post('/api/agent/sync', async (req, res) => {
           id: Math.random().toString(36).substring(2, 9),
           device_id: targetDevice.id,
           user_name: cleanUsername,
-          department_id: lastDepartment || 'ti-dept-id-triagem', // TRIAGEM como fallback para maquinas virgens
+          department_id: lastDepartment || 'ti-dept-id-triagem',
           assigned_at: new Date().toISOString(),
           returned_at: '',
           return_photo_url: '',
-          user_role: 'Colaborador', // Padrão
+          user_role: 'Colaborador',
           grade: '',
-          campus: lastCampus || 'Aeroporto' // Aeroporto como fallback
+          campus: lastCampus || 'Aeroporto',
+          created_at: new Date().toISOString()
         };
-        assignments.push(newAssignment);
-        await writeDBTable('assignments', assignments);
+        const aKeys = Object.keys(newAssignment);
+        const aPlaceholders = aKeys.map(() => '?').join(', ');
+        dbConnection.prepare(`INSERT INTO assignments (${aKeys.join(', ')}) VALUES (${aPlaceholders})`).run(...aKeys.map(k => newAssignment[k]));
         sendRealtimeUpdate('assignments');
       }
     }
@@ -800,11 +397,11 @@ app.post('/api/agent/sync', async (req, res) => {
 
 // Endpoint de Ping do RMM
 app.post('/api/agent/ping', authenticateToken, (req, res) => {
-  const { hostname } = req.body;
-  if (!hostname) return res.status(400).json({ error: 'Hostname necessário para o Ping.' });
+  const { hostname, ip } = req.body;
+  if (!hostname && !ip) return res.status(400).json({ error: 'Hostname ou IP necessário para o Ping.' });
 
-  // Pega o hostname real que o front enviou (sem tentar adivinhar prefixos, pois o Windows pode ter o EAV no nome)
-  const targetHost = hostname;
+  // Dá prioridade para o IP se disponível (evita falha de resolução DNS)
+  const targetHost = ip || hostname;
 
   console.log(`[Ping] Disparando ping na rede para: ${targetHost}...`);
 
@@ -842,160 +439,6 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
   vncProcess.unref();
 
   return res.json({ success: true, message: `Conexão VNC disparada para ${ip}` });
-});
-
-// Endpoint to import data from legacy Google Sheet structure to EAV format
-app.post('/api/import-google-legacy', authenticateToken, async (req, res) => {
-  const client = getSheetsClient();
-  if (!client) {
-    return res.status(400).json({ error: 'Google Sheets credentials not configured. Por favor, coloque o arquivo data/google-credentials.json.' });
-  }
-
-  try {
-    await initGoogleSheetsDB();
-    
-    // Get sheets metadata to find the name of the first sheet (legacy data)
-    const metadata = await client.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-    const firstSheetName = metadata.data.sheets[0].properties.title;
-    
-    // Don't import if the first sheet is one of the system sheets
-    if (['devices', 'assignments', 'department', 'shortcuts', 'audit_logs'].includes(firstSheetName)) {
-      return res.status(400).json({ error: `A primeira aba (${firstSheetName}) já é uma aba do sistema. Nenhuma importação necessária.` });
-    }
-
-    const response = await client.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${firstSheetName}!A:G`
-    });
-
-    const rows = response.data.values;
-    if (!rows || rows.length < 2) {
-      return res.status(400).json({ error: 'Nenhum dado encontrado na aba legada.' });
-    }
-
-    // Detect headers row
-    let headerRowIndex = 0;
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].includes('Campus') || rows[i].includes('Departamento') || rows[i].includes('Usuário')) {
-        headerRowIndex = i;
-        break;
-      }
-    }
-
-    const headers = rows[headerRowIndex].map(h => String(h || '').trim());
-    const dataRows = rows.slice(headerRowIndex + 1);
-
-    const campusIdx = headers.indexOf('Campus');
-    const deptIdx = headers.indexOf('Departamento');
-    const userIdx = headers.indexOf('Usuário');
-    const deviceTypeIdx = headers.indexOf('Dispositivo');
-    const modelIdx = headers.indexOf('Modelo');
-    const serialIdx = headers.indexOf('Service Tag');
-
-    if (userIdx === -1 || deviceTypeIdx === -1) {
-      return res.status(400).json({ error: 'Estrutura da aba legada inválida. Cabeçalhos esperados: Usuário, Dispositivo.' });
-    }
-
-    const existingDevices = await readDBTable('devices');
-    const existingAssignments = await readDBTable('assignments');
-
-    let importedCount = 0;
-
-    for (const row of dataRows) {
-      if (!row[userIdx] && !row[deviceTypeIdx]) continue; // Skip empty rows
-
-      const user = String(row[userIdx] || '').trim();
-      const rawType = String(row[deviceTypeIdx] || '').trim();
-      const rawModel = modelIdx !== -1 ? String(row[modelIdx] || '').trim() : '';
-      const rawSerial = serialIdx !== -1 ? String(row[serialIdx] || '').trim() : '';
-      const campus = campusIdx !== -1 ? String(row[campusIdx] || '').trim() : '';
-      const dept = deptIdx !== -1 ? String(row[deptIdx] || '').trim() : '';
-
-      if (!rawType) continue;
-
-      // Map device type
-      let mappedType = 'Notebook';
-      if (rawType.toLowerCase().includes('macbook')) mappedType = 'MacBook';
-      else if (rawType.toLowerCase().includes('ipad') || rawType.toLowerCase().includes('tablet')) mappedType = 'Tablet';
-      else if (rawType.toLowerCase().includes('mouse')) mappedType = 'Mouse';
-      else if (rawType.toLowerCase().includes('teclado')) mappedType = 'Teclado';
-      else if (rawType.toLowerCase().includes('headset') || rawType.toLowerCase().includes('fone')) mappedType = 'Headset';
-      else if (rawType.toLowerCase().includes('adaptador')) mappedType = 'Adaptador';
-      else if (rawType) mappedType = rawType;
-
-      const serial = rawSerial || `SN-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-      const tag = `EAV-${serial.toUpperCase()}`;
-      const model = rawModel || `${mappedType} Padrão`;
-      
-      const deviceId = Math.random().toString(36).substring(2, 9);
-      const isAssigned = !!user;
-
-      // Check if tag already exists in devices to avoid duplicate imports
-      if (existingDevices.some(d => String(d.tag ?? '').trim().toLowerCase() === tag.trim().toLowerCase())) {
-        continue;
-      }
-
-      // 1. Add to devices
-      const newDevice = {
-        id: deviceId,
-        tag,
-        serial_number: serial,
-        model,
-        type: mappedType,
-        status: isAssigned ? 'Em Uso' : 'Disponível',
-        condition: 'Bom',
-        created_at: new Date().toISOString()
-      };
-      existingDevices.push(newDevice);
-
-      // 2. Add to assignments if user is assigned
-      if (isAssigned) {
-        const assignId = Math.random().toString(36).substring(2, 9);
-        
-        // Find or map department
-        let deptId = 'ti-dept-id-1'; // default TI
-        const deptUpper = dept.toUpperCase();
-        if (deptUpper.includes('FINANCEIRO') || deptUpper.includes('FINANCE')) deptId = 'ti-dept-id-8';
-        else if (deptUpper.includes('SUPRIMENTOS')) deptId = 'ti-dept-id-9';
-        else if (deptUpper.includes('RH')) deptId = 'ti-dept-id-10';
-        else if (deptUpper.includes('DP') || deptUpper.includes('DEPARTAMENTO PESSOAL')) deptId = 'ti-dept-id-11';
-        else if (deptUpper.includes('ADMISSIONS') || deptUpper.includes('ADMISSAO')) deptId = 'ti-dept-id-12';
-        else if (deptUpper.includes('MARKETING') || deptUpper.includes('COMUNICACAO')) deptId = 'ti-dept-id-13';
-        else if (deptUpper.includes('GUARITA') || deptUpper.includes('PORTARIA')) deptId = 'ti-dept-id-14';
-        else if (deptUpper.includes('DIRETORIA') || deptUpper.includes('DIRETOR')) deptId = 'ti-dept-id-2';
-        else if (deptUpper.includes('SECRETARIA') || deptUpper.includes('SECRETARY')) deptId = 'ti-dept-id-3';
-        else if (deptUpper.includes('COORDENACAO') || deptUpper.includes('COORDENAÇÃO')) deptId = 'ti-dept-id-4';
-        else if (deptUpper.includes('DOCENTES') || deptUpper.includes('PROFESSOR')) deptId = 'ti-dept-id-5';
-        else if (deptUpper.includes('DISCENTES') || deptUpper.includes('ALUNO')) deptId = 'ti-dept-id-6';
-        else if (deptUpper.includes('MANUTENCAO') || deptUpper.includes('MANUTENÇÃO')) deptId = 'ti-dept-id-7';
-
-        const newAssignment = {
-          id: assignId,
-          device_id: deviceId,
-          user_name: user,
-          department_id: deptId,
-          assigned_at: new Date().toISOString(),
-          returned_at: '',
-          return_photo_url: '',
-          user_role: 'Colaborador',
-          grade: '',
-          campus: campus
-        };
-        existingAssignments.push(newAssignment);
-      }
-
-      importedCount++;
-    }
-
-    await writeDBTable('devices', existingDevices);
-    await writeDBTable('assignments', existingAssignments);
-
-    console.log(`[GoogleSheets] Importação concluída! ${importedCount} dispositivos importados.`);
-    res.json({ message: `Sucesso! Importados ${importedCount} dispositivos e configurados no sistema.`, count: importedCount });
-  } catch (err) {
-    console.error('[GoogleSheets] Falha ao importar planilha legada:', err);
-    res.status(500).json({ error: `Erro na importação: ${err.message}` });
-  }
 });
 
 // Serve os arquivos estáticos do build do React

@@ -63,11 +63,8 @@ export function Copilot() {
 
   const handleVncTrigger = async (ip: string) => {
     try {
-      await fetch('/api/remote-control', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip })
-      });
+      // Arquitetura Web: Utiliza o protocolo local vnc:// para o PC do TI abrir o Viewer
+      window.location.href = `vnc://${ip}`;
     } catch (e) {
       console.error("Erro ao iniciar acesso remoto pelo Copilot", e);
     }
