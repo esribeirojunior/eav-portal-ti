@@ -66,8 +66,9 @@ const readTutorials = () => {
 const writeTutorials = (data) => {
   fs.writeFileSync(TUTORIALS_FILE, JSON.stringify(data, null, 2), 'utf-8');
 };
+const isDocker = fs.existsSync('/.dockerenv');
+const PORT = process.env.PORT || (isDocker ? 3000 : 3001);
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
