@@ -178,6 +178,12 @@ async function syncFromGoogleSheets() {
           if (h.includes('http://')) return 'id'; // correção para atalhos
           return String(h).replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
         });
+
+        // Garante que todas as colunas existem na tabela no Postgres
+        for (const col of headers) {
+          if (col === 'id') continue;
+          await pgClient.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${col} TEXT`);
+        }
         
         const placeholders = headers.map((_, i) => `$${i + 1}`).join(', ');
         const insertQuery = `INSERT INTO ${table} (${headers.join(', ')}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`;
