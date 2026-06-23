@@ -102,12 +102,14 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
   const [pass, setPass] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(false);
+    setGoogleError(null);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -127,6 +129,48 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
       setLoading(false);
     }
   };
+
+  const handleGoogleLogin = async (response: any) => {
+    setLoading(true);
+    setError(false);
+    setGoogleError(null);
+    try {
+      const { data, error } = await (supabase.auth as any).signInWithGoogle(response.credential);
+      if (error) throw error;
+      if (data.user) {
+        onLogin(data.user.email);
+      }
+    } catch (err: any) {
+      console.error("Erro no login do Google:", err);
+      setGoogleError(err.message || "E-mail da conta Google não autorizado.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogle = () => {
+      if ((window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.initialize({
+          client_id: "219719535721-26k832m63t27fpik9cionsnje45mp0du.apps.googleusercontent.com",
+          callback: handleGoogleLogin
+        });
+        (window as any).google.accounts.id.renderButton(
+          document.getElementById("google-signin-btn"),
+          { 
+            theme: "outline", 
+            size: "large", 
+            width: 380, 
+            shape: "pill",
+            text: "signin_with"
+          }
+        );
+      } else {
+        setTimeout(initGoogle, 200);
+      }
+    };
+    initGoogle();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#ffffff] overflow-hidden font-sans select-none">
@@ -228,6 +272,12 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
               </div>
             )}
 
+            {googleError && (
+              <div className="text-center bg-red-50 border border-red-100 rounded-lg py-2 px-3">
+                <p className="text-red-600 text-[10px] font-bold uppercase tracking-wider">{googleError}</p>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -242,6 +292,14 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
                 </>
               )}
             </button>
+
+            <div className="flex items-center my-4">
+              <div className="flex-1 h-[1px] bg-slate-200" />
+              <span className="mx-4 text-slate-400 text-[10px] font-black uppercase tracking-widest">ou</span>
+              <div className="flex-1 h-[1px] bg-slate-200" />
+            </div>
+
+            <div id="google-signin-btn" className="w-full flex justify-center mt-3 min-h-[44px]"></div>
           </form>
 
           {/* Links adicionais */}

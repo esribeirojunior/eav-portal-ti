@@ -140,6 +140,26 @@ export const supabase = {
                 return { data: { user: null }, error: { message: err.message || 'Erro de conexão com o servidor' } };
             }
         },
+        signInWithGoogle: async (credential: string) => {
+            try {
+                const response = await fetch('/api/auth/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential })
+                });
+                const result = await response.json();
+                if (response.ok && result.user) {
+                    if (typeof window !== 'undefined' && result.token) {
+                        localStorage.setItem('auth_token', result.token);
+                    }
+                    return { data: { user: result.user }, error: null };
+                } else {
+                    return { data: { user: null }, error: { message: result.error || 'Erro na autenticação' } };
+                }
+            } catch (err: any) {
+                return { data: { user: null }, error: { message: err.message || 'Erro de conexão com o servidor' } };
+            }
+        },
         signInWithOAuth: async (options?: any) => {
             return { data: {}, error: null };
         },

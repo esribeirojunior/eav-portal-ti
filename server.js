@@ -8,6 +8,7 @@ import { exec, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -741,6 +742,56 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) {
     console.error('Erro no login local:', err);
     return res.status(500).json({ error: 'Erro interno no servidor ao autenticar.' });
+  }
+});
+
+// Endpoint de Autenticação com Google Login (GSI)
+const googleClient = new OAuth2Client();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '219719535721-26k832m63t27fpik9cionsnje45mp0du.apps.googleusercontent.com';
+
+app.post('/api/auth/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'Token de credencial do Google é obrigatório.' });
+  }
+
+  try {
+    // Valida o ID Token enviado pelo Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    const email = payload['email'];
+    
+    if (!email) {
+      return res.status(401).json({ error: 'Não foi possível ler o e-mail da conta Google.' });
+    }
+
+    // Verifica se o e-mail está na lista de usuários autorizados no banco
+    const users = await readDBTable('authorized_users');
+    const user = users.find(u => String(u.email || '').toLowerCase().trim() === String(email).toLowerCase().trim());
+
+    if (!user) {
+      return res.status(401).json({ error: `O e-mail ${email} não está autorizado a acessar a Central de TI.` });
+    }
+
+    console.log(`[Auth Google] Login bem-sucedido para: ${email}`);
+    const token = crypto.randomUUID();
+    ACTIVE_SESSIONS.add(token);
+
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: payload['name'] || user.email.split('@')[0]
+      },
+      token: token
+    });
+  } catch (err) {
+    console.error('Erro na autenticação do Google:', err);
+    return res.status(401).json({ error: 'Autenticação do Google falhou.' });
   }
 });
 
