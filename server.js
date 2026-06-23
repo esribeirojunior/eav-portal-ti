@@ -579,6 +579,10 @@ app.get('/api/monitcall', (req, res) => {
   proxyReq.end();
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // --- INFRAESTRUTURA DE ATUALIZAÇÃO EM TEMPO REAL (SSE) ---
 let clients = [];
 
