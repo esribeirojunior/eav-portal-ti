@@ -1,0 +1,12 @@
+.git
+node_modules
+dist
+dist-electron
+build
+app-stderr.log
+app-stdout.log
+recovered_app.txt
+replace.txt
+target.txt
+logs/
+data/google-credentials.json

@@ -66,8 +66,8 @@ const readTutorials = () => {
 const writeTutorials = (data) => {
   fs.writeFileSync(TUTORIALS_FILE, JSON.stringify(data, null, 2), 'utf-8');
 };
-const isDocker = fs.existsSync('/.dockerenv');
-const PORT = process.env.PORT || (isDocker ? 3000 : 3001);
+const isDev = fs.existsSync(path.join(__dirname, '.git'));
+const PORT = process.env.PORT || (isDev ? 3001 : 3000);
 const app = express();
 
 app.use(express.json({ limit: '50mb' }));
