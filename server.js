@@ -7,7 +7,6 @@ import crypto from 'crypto';
 import { exec, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -117,107 +116,6 @@ function convertPlaceholders(sql) {
   return sql.replace(/\?/g, () => `$${index++}`);
 }
 
-async function syncFromGoogleSheets() {
-  console.log('[Sync] Iniciando sincronização automática do Google Sheets para o PostgreSQL...');
-  
-  let creds;
-  if (process.env.GOOGLE_CREDENTIALS_JSON) {
-    try {
-      creds = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-    } catch (e) {
-      console.error('[Sync] Erro ao parsear GOOGLE_CREDENTIALS_JSON:', e.message);
-      return;
-    }
-  } else {
-    // Tenta ler do arquivo local (para desenvolvimento)
-    const localCredsPath = path.join(__dirname, 'data', 'google-credentials.json');
-    if (fs.existsSync(localCredsPath)) {
-      try {
-        creds = JSON.parse(fs.readFileSync(localCredsPath, 'utf-8'));
-      } catch (e) {
-        console.error('[Sync] Erro ao ler arquivo local google-credentials.json:', e.message);
-        return;
-      }
-    } else {
-      console.log('[Sync] Credenciais do Google Sheets não encontradas (nem GOOGLE_CREDENTIALS_JSON nem arquivo local). Pulando sincronização.');
-      return;
-    }
-  }
-
-  try {
-    const auth = new google.auth.JWT({
-      email: creds.client_email,
-      key: creds.private_key.replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets']
-    });
-    
-    const client = google.sheets({ version: 'v4', auth });
-    const SPREADSHEET_ID = '1uNLKLitQLRCf1bwVZ9Gy-VnZttUp7HybYxMypFaz0Yg';
-    
-    // Busca todas as abas da planilha de forma dinâmica
-    console.log('[Sync] Buscando abas disponíveis no Google Sheets...');
-    const spreadsheet = await client.spreadsheets.get({
-      spreadsheetId: SPREADSHEET_ID
-    });
-    const tables = spreadsheet.data.sheets.map(s => s.properties.title);
-    console.log(`[Sync] Abas encontradas: ${tables.join(', ')}`);
-    
-    const pgClient = await pool.connect();
-    try {
-      await pgClient.query('BEGIN');
-      for (const table of tables) {
-        // Garante que a tabela existe no Postgres antes de qualquer operação
-        await pgClient.query(`CREATE TABLE IF NOT EXISTS ${table} (id TEXT PRIMARY KEY)`);
-
-        console.log(`[Sync] Baixando dados para tabela: ${table}...`);
-        const res = await client.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${table}!A:Z`
-        });
-        const rows = res.data.values || [];
-        if (rows.length < 2) continue;
-        
-        // Limpar tabela
-        await pgClient.query(`DELETE FROM ${table}`);
-        
-        const rawHeaders = rows[0];
-        const dataRows = rows.slice(1);
-        
-        // Tratar headers
-        const headers = rawHeaders.map((h, i) => {
-          if (!h) return `col_${i}`;
-          if (h.includes('http://')) return 'id'; // correção para atalhos
-          return String(h).replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
-        });
-
-        // Garante que todas as colunas existem na tabela no Postgres
-        for (const col of headers) {
-          if (col === 'id') continue;
-          await pgClient.query(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${col} TEXT`);
-        }
-        
-        const placeholders = headers.map((_, i) => `$${i + 1}`).join(', ');
-        const insertQuery = `INSERT INTO ${table} (${headers.join(', ')}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`;
-        
-        for (const row of dataRows) {
-          const values = headers.map((_, i) => row[i] == null ? '' : String(row[i]));
-          await pgClient.query(insertQuery, values);
-        }
-        console.log(`[Sync] Tabela ${table} sincronizada com ${dataRows.length} registros.`);
-      }
-      await pgClient.query('COMMIT');
-      console.log('[Sync] Sincronização concluída com sucesso!');
-    } catch (err) {
-      await pgClient.query('ROLLBACK');
-      console.error('[Sync] Erro durante a transação de sincronização:', err);
-    } finally {
-      pgClient.release();
-    }
-  } catch (err) {
-    console.error('[Sync] Erro na sincronização com Google Sheets:', err);
-  }
-}
-
 async function initPostgresDB() {
   try {
     await pool.query(`
@@ -230,11 +128,51 @@ async function initPostgresDB() {
     `);
     console.log('[PostgreSQL] Banco de dados inicializado com sucesso.');
     
-    // Auto-popula o banco de dados do Google Sheets se estiver vazio
+    // Auto-popula departamentos padrão se o banco de dados estiver vazio
     const checkRes = await pool.query("SELECT COUNT(*) FROM department");
     if (parseInt(checkRes.rows[0].count) === 0) {
-      console.log('[PostgreSQL] Banco vazio detectado. Sincronizando com Google Sheets...');
-      await syncFromGoogleSheets();
+      console.log('[PostgreSQL] Banco vazio detectado. Criando departamentos padrão...');
+      const defaultDepts = ['TI', 'Diretoria', 'Secretaria', 'Coordenação', 'Docentes', 'Discentes', 'Manutenção'];
+      for (const dept of defaultDepts) {
+        const id = Math.random().toString(36).substring(2, 9);
+        await pool.query("INSERT INTO department (id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING", [id, dept]);
+      }
+    }
+
+    // Auto-popula usuários autorizados padrão se estiver vazio
+    const checkUsers = await pool.query("SELECT COUNT(*) FROM authorized_users");
+    if (parseInt(checkUsers.rows[0].count) === 0) {
+      console.log('[PostgreSQL] Criando usuários padrão para acesso...');
+      const defaultUsers = [
+        'erisson.junior@escolaamericana.com.br',
+        'gustavo.giesbrecht@escolaamericana.com.br'
+      ];
+      for (const email of defaultUsers) {
+        const id = Math.random().toString(36).substring(2, 9);
+        await pool.query(
+          "INSERT INTO authorized_users (id, email, password, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
+          [id, email, 'eav@123', new Date().toISOString()]
+        );
+      }
+    }
+
+    // Auto-popula atalhos padrão se estiver vazio
+    const checkShortcuts = await pool.query("SELECT COUNT(*) FROM shortcuts");
+    if (parseInt(checkShortcuts.rows[0].count) === 0) {
+      console.log('[PostgreSQL] Criando atalhos padrão...');
+      const defaultShortcuts = [
+        { title: 'BenQ DMS', description: 'Gestão de Telas Interativas e Projetores', url: 'https://dms.benq.com/', icon: 'Monitor', color: 'bg-orange-500' },
+        { title: 'Google Admin', description: 'Gestão de Contas, Chromebooks e Políticas', url: 'https://admin.google.com/', icon: 'Globe', color: 'bg-blue-600' },
+        { title: 'Meraki Dashboard', description: 'Infraestrutura de Rede e Wi-Fi', url: 'https://dashboard.meraki.com/', icon: 'Globe', color: 'bg-emerald-600' },
+        { title: 'Suporte Microsoft', description: 'Portal de Administração Microsoft 365', url: 'https://admin.microsoft.com/', icon: 'Cloud', color: 'bg-indigo-600' }
+      ];
+      for (const sc of defaultShortcuts) {
+        const id = Math.random().toString(36).substring(2, 9);
+        await pool.query(
+          "INSERT INTO shortcuts (id, title, description, url, icon_name, color) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+          [id, sc.title, sc.description, sc.url, sc.icon, sc.color]
+        );
+      }
     }
   } catch (err) {
     console.error('[PostgreSQL] Erro ao inicializar banco de dados:', err);
@@ -578,15 +516,7 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
   return res.json({ success: true, message: `Conexão VNC disparada para ${ip}` });
 });
 
-// Endpoint administrativo para forçar sincronização do Google Sheets
-app.post('/api/admin/sync-sheets', authenticateToken, async (req, res) => {
-  try {
-    await syncFromGoogleSheets();
-    return res.json({ success: true, message: 'Banco de dados sincronizado com sucesso a partir do Google Sheets!' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Erro durante a sincronização: ' + err.message });
-  }
-});
+
 
 // Serve os arquivos estáticos do build do React
 app.use(express.static(path.join(__dirname, 'dist')));
