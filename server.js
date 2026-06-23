@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { exec, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
+import { google } from 'googleapis';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,42 +102,140 @@ function processBase64Fields(obj) {
   }
 }
 
-// --- SQLITE DATABASE SYSTEM ---
-import Database from 'better-sqlite3';
+// --- POSTGRES DATABASE SYSTEM ---
+import pg from 'pg';
+const { Pool } = pg;
 
-const DB_PATH = path.join(DATA_DIR, 'inventario.db');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
-const db = new Database(DB_PATH, { verbose: null });
-
-function initSQLiteDB() {
-  db.pragma('journal_mode = WAL');
-  
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT);
-    CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
-    CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
-    CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
-    CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
-    CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
-  `);
-
-  // O banco já está populado! Não precisamos mais importar planilhas do Excel offline.
+// Função utilitária para converter placeholders '?' (SQLite) para '$1, $2' (PostgreSQL)
+function convertPlaceholders(sql) {
+  let index = 1;
+  return sql.replace(/\?/g, () => `$${index++}`);
 }
 
-initSQLiteDB();
+async function syncFromGoogleSheets() {
+  console.log('[Sync] Iniciando sincronização automática do Google Sheets para o PostgreSQL...');
+  
+  let creds;
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    try {
+      creds = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    } catch (e) {
+      console.error('[Sync] Erro ao parsear GOOGLE_CREDENTIALS_JSON:', e.message);
+      return;
+    }
+  } else {
+    // Tenta ler do arquivo local (para desenvolvimento)
+    const localCredsPath = path.join(__dirname, 'data', 'google-credentials.json');
+    if (fs.existsSync(localCredsPath)) {
+      try {
+        creds = JSON.parse(fs.readFileSync(localCredsPath, 'utf-8'));
+      } catch (e) {
+        console.error('[Sync] Erro ao ler arquivo local google-credentials.json:', e.message);
+        return;
+      }
+    } else {
+      console.log('[Sync] Credenciais do Google Sheets não encontradas (nem GOOGLE_CREDENTIALS_JSON nem arquivo local). Pulando sincronização.');
+      return;
+    }
+  }
+
+  try {
+    const auth = new google.auth.JWT({
+      email: creds.client_email,
+      key: creds.private_key.replace(/\\n/g, '\n'),
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    });
+    
+    const client = google.sheets({ version: 'v4', auth });
+    const SPREADSHEET_ID = '1uNLKLitQLRCf1bwVZ9Gy-VnZttUp7HybYxMypFaz0Yg';
+    const tables = ['devices', 'assignments', 'department', 'shortcuts', 'audit_logs', 'authorized_users'];
+    
+    const pgClient = await pool.connect();
+    try {
+      await pgClient.query('BEGIN');
+      for (const table of tables) {
+        console.log(`[Sync] Baixando dados para tabela: ${table}...`);
+        const res = await client.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${table}!A:Z`
+        });
+        const rows = res.data.values || [];
+        if (rows.length < 2) continue;
+        
+        // Limpar tabela
+        await pgClient.query(`DELETE FROM ${table}`);
+        
+        const rawHeaders = rows[0];
+        const dataRows = rows.slice(1);
+        
+        // Tratar headers
+        const headers = rawHeaders.map((h, i) => {
+          if (!h) return `col_${i}`;
+          if (h.includes('http://')) return 'id'; // correção para atalhos
+          return String(h).replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+        });
+        
+        const placeholders = headers.map((_, i) => `$${i + 1}`).join(', ');
+        const insertQuery = `INSERT INTO ${table} (${headers.join(', ')}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`;
+        
+        for (const row of dataRows) {
+          const values = headers.map((_, i) => row[i] == null ? '' : String(row[i]));
+          await pgClient.query(insertQuery, values);
+        }
+        console.log(`[Sync] Tabela ${table} sincronizada com ${dataRows.length} registros.`);
+      }
+      await pgClient.query('COMMIT');
+      console.log('[Sync] Sincronização concluída com sucesso!');
+    } catch (err) {
+      await pgClient.query('ROLLBACK');
+      console.error('[Sync] Erro durante a transação de sincronização:', err);
+    } finally {
+      pgClient.release();
+    }
+  } catch (err) {
+    console.error('[Sync] Erro na sincronização com Google Sheets:', err);
+  }
+}
+
+async function initPostgresDB() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
+      CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
+      CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
+    `);
+    console.log('[PostgreSQL] Banco de dados inicializado com sucesso.');
+    
+    // Auto-popula o banco de dados do Google Sheets se estiver vazio
+    const checkRes = await pool.query("SELECT COUNT(*) FROM department");
+    if (parseInt(checkRes.rows[0].count) === 0) {
+      console.log('[PostgreSQL] Banco vazio detectado. Sincronizando com Google Sheets...');
+      await syncFromGoogleSheets();
+    }
+  } catch (err) {
+    console.error('[PostgreSQL] Erro ao inicializar banco de dados:', err);
+  }
+}
+
+initPostgresDB();
 
 async function readDBTable(sheetName) {
   try {
-    return db.prepare(`SELECT * FROM ${sheetName}`).all();
+    const res = await pool.query(`SELECT * FROM ${sheetName}`);
+    return res.rows;
   } catch(e) {
     console.error(`Erro lendo ${sheetName}:`, e);
     return [];
   }
 }
 
-// Removida a função writeDBTable pois ela recriava tabelas inteiras o que é anti-padrão no SQLite
-
-const dbConnection = db;
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
 const ACTIVE_SESSIONS = new Set();
 
@@ -184,7 +283,8 @@ app.post('/api/db', authenticateToken, async (req, res) => {
     }
 
     if (isDelete) {
-      const info = dbConnection.prepare(`DELETE FROM ${table} ${whereClause}`).run(...params);
+      const sql = convertPlaceholders(`DELETE FROM ${table} ${whereClause}`);
+      await pool.query(sql, params);
       sendRealtimeUpdate(table);
       return res.json({ data: null, error: null });
     }
@@ -193,16 +293,21 @@ app.post('/api/db', authenticateToken, async (req, res) => {
       const updateKeys = Object.keys(updateData);
       const setClause = updateKeys.map(k => `${k} = ?`).join(', ');
       const updateParams = updateKeys.map(k => updateData[k]);
-      dbConnection.prepare(`UPDATE ${table} SET ${setClause} ${whereClause}`).run(...updateParams, ...params);
+      const sql = convertPlaceholders(`UPDATE ${table} SET ${setClause} ${whereClause}`);
+      await pool.query(sql, [...updateParams, ...params]);
       sendRealtimeUpdate(table);
-      const updatedData = dbConnection.prepare(`SELECT * FROM ${table} ${whereClause}`).all(...params);
-      return res.json({ data: isSingle ? updatedData[0] : updatedData, error: null });
+      
+      const selectSql = convertPlaceholders(`SELECT * FROM ${table} ${whereClause}`);
+      const updatedData = await pool.query(selectSql, params);
+      return res.json({ data: isSingle ? updatedData.rows[0] : updatedData.rows, error: null });
     }
 
     if (insertData) {
       const newItems = Array.isArray(insertData) ? insertData : [insertData];
       const results = [];
-      dbConnection.transaction(() => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
         for (const item of newItems) {
           const finalItem = { ...item };
           if (!finalItem.id) finalItem.id = Math.random().toString(36).substring(2, 9);
@@ -218,10 +323,17 @@ app.post('/api/db', authenticateToken, async (req, res) => {
           const placeholders = keys.map(() => '?').join(', ');
           const values = keys.map(k => finalItem[k]);
           
-          dbConnection.prepare(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders}) ${conflictClause}`).run(...values);
+          const sql = convertPlaceholders(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders}) ${conflictClause}`);
+          await client.query(sql, values);
           results.push(finalItem);
         }
-      })();
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
       sendRealtimeUpdate(table);
       return res.json({ data: isSingle ? results[0] : results, error: null });
     }
@@ -231,11 +343,15 @@ app.post('/api/db', authenticateToken, async (req, res) => {
        orderClause = `ORDER BY ${orderCol} ${orderAsc ? 'ASC' : 'DESC'}`;
     }
     
-    let result = dbConnection.prepare(`SELECT * FROM ${table} ${whereClause} ${orderClause}`).all(...params);
+    const selectSql = convertPlaceholders(`SELECT * FROM ${table} ${whereClause} ${orderClause}`);
+    const selectRes = await pool.query(selectSql, params);
+    let result = selectRes.rows;
 
     if (table === 'devices') {
-      const allAssignments = dbConnection.prepare('SELECT * FROM assignments').all();
-      const allDepartments = dbConnection.prepare('SELECT * FROM department').all();
+      const allAssignmentsRes = await pool.query('SELECT * FROM assignments');
+      const allDepartmentsRes = await pool.query('SELECT * FROM department');
+      const allAssignments = allAssignmentsRes.rows;
+      const allDepartments = allDepartmentsRes.rows;
       result = result.map(dev => {
         const devAssigns = allAssignments
           .filter(a => String(a.device_id) === String(dev.id))
@@ -302,13 +418,14 @@ app.post('/api/agent/sync', async (req, res) => {
 
     if (existingIndex >= 0) {
       // Atualiza o dispositivo existente
-      dbConnection.prepare('UPDATE devices SET status=?, model=?, condition=?, last_seen=? WHERE id=?').run(
+      const sql = convertPlaceholders('UPDATE devices SET status=?, model=?, condition=?, last_seen=? WHERE id=?');
+      await pool.query(sql, [
         'Em Uso', 
         model || devices[existingIndex].model, 
         technicalInfo, 
         new Date().toISOString(), 
         devices[existingIndex].id
-      );
+      ]);
       targetDevice = { ...devices[existingIndex], status: 'Em Uso', model: model || devices[existingIndex].model, condition: technicalInfo, last_seen: new Date().toISOString() };
       actionStr = 'updated';
     } else {
@@ -327,7 +444,8 @@ app.post('/api/agent/sync', async (req, res) => {
       
       const keys = Object.keys(newDevice);
       const placeholders = keys.map(() => '?').join(', ');
-      dbConnection.prepare(`INSERT INTO devices (${keys.join(', ')}) VALUES (${placeholders})`).run(...keys.map(k => newDevice[k]));
+      const sql = convertPlaceholders(`INSERT INTO devices (${keys.join(', ')}) VALUES (${placeholders})`);
+      await pool.query(sql, keys.map(k => newDevice[k]));
       targetDevice = newDevice;
       actionStr = 'created';
     }
@@ -354,7 +472,8 @@ app.post('/api/agent/sync', async (req, res) => {
         
         // Se a máquina estiver com outro usuário, encerra o empréstimo antigo
         if (currentAssign.user_name.toLowerCase() !== cleanUsername.toLowerCase()) {
-          dbConnection.prepare('UPDATE assignments SET returned_at=? WHERE id=?').run(new Date().toISOString(), currentAssign.id);
+          const sql = convertPlaceholders('UPDATE assignments SET returned_at=? WHERE id=?');
+          await pool.query(sql, [new Date().toISOString(), currentAssign.id]);
           needsNewAssignment = true;
         }
       } else {
@@ -383,7 +502,8 @@ app.post('/api/agent/sync', async (req, res) => {
         };
         const aKeys = Object.keys(newAssignment);
         const aPlaceholders = aKeys.map(() => '?').join(', ');
-        dbConnection.prepare(`INSERT INTO assignments (${aKeys.join(', ')}) VALUES (${aPlaceholders})`).run(...aKeys.map(k => newAssignment[k]));
+        const sql = convertPlaceholders(`INSERT INTO assignments (${aKeys.join(', ')}) VALUES (${aPlaceholders})`);
+        await pool.query(sql, aKeys.map(k => newAssignment[k]));
         sendRealtimeUpdate('assignments');
       }
     }
@@ -439,6 +559,16 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
   vncProcess.unref();
 
   return res.json({ success: true, message: `Conexão VNC disparada para ${ip}` });
+});
+
+// Endpoint administrativo para forçar sincronização do Google Sheets
+app.post('/api/admin/sync-sheets', authenticateToken, async (req, res) => {
+  try {
+    await syncFromGoogleSheets();
+    return res.json({ success: true, message: 'Banco de dados sincronizado com sucesso a partir do Google Sheets!' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erro durante a sincronização: ' + err.message });
+  }
 });
 
 // Serve os arquivos estáticos do build do React
