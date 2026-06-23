@@ -153,12 +153,22 @@ async function syncFromGoogleSheets() {
     
     const client = google.sheets({ version: 'v4', auth });
     const SPREADSHEET_ID = '1uNLKLitQLRCf1bwVZ9Gy-VnZttUp7HybYxMypFaz0Yg';
-    const tables = ['devices', 'assignments', 'department', 'shortcuts', 'audit_logs', 'authorized_users'];
+    
+    // Busca todas as abas da planilha de forma dinâmica
+    console.log('[Sync] Buscando abas disponíveis no Google Sheets...');
+    const spreadsheet = await client.spreadsheets.get({
+      spreadsheetId: SPREADSHEET_ID
+    });
+    const tables = spreadsheet.data.sheets.map(s => s.properties.title);
+    console.log(`[Sync] Abas encontradas: ${tables.join(', ')}`);
     
     const pgClient = await pool.connect();
     try {
       await pgClient.query('BEGIN');
       for (const table of tables) {
+        // Garante que a tabela existe no Postgres antes de qualquer operação
+        await pgClient.query(`CREATE TABLE IF NOT EXISTS ${table} (id TEXT PRIMARY KEY)`);
+
         console.log(`[Sync] Baixando dados para tabela: ${table}...`);
         const res = await client.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
