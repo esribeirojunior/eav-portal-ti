@@ -808,17 +808,7 @@ const App: React.FC = () => {
 
             {/* --- MAIN CONTENT AREA --- */}
             <main className="flex-1 overflow-y-auto bg-[#f4f7fc] dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors">
-              {subView === 'dashboard' && (
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="absolute top-0 left-0 w-full h-full object-cover opacity-30 pointer-events-none z-0"
-                >
-                  <source src="/login-bg.mp4" type="video/mp4" />
-                </video>
-              )}
+
               <div className="max-w-[1400px] mx-auto animate-premium relative z-10">
                 {/* --- HEADER SUPERIOR INVENTÁRIO/DASHBOARD --- */}
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10">
