@@ -157,10 +157,9 @@ else {
     elseif (Test-Path $vncExe32) { $vncPath = $vncExe32 }
 
     if ($vncPath) {
-        Write-Host "TightVNC Server encontrado. Reiniciando o servico para aplicar as alteracoes..." -ForegroundColor Yellow
-        Stop-Service -Name "tvnserver" -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 2
+        Write-Host "TightVNC Server encontrado. Parando o processo e reiniciando o servico..." -ForegroundColor Yellow
         Get-Process -Name "tvnserver" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
         Start-Service -Name "tvnserver" -ErrorAction SilentlyContinue
         & $vncPath -controlservice -reload
         Write-Host "Servico do TightVNC Server reiniciado e atualizado." -ForegroundColor Green
