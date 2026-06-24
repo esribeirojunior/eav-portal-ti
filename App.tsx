@@ -553,8 +553,8 @@ const App: React.FC = () => {
     try {
       const headers = ['TAG', 'Serial Number', 'Modelo', 'Tipo', 'Categoria', 'Status', 'Responsavel', 'Setor', 'Campus', 'Observacao'];
       const rows = devices.map(d => [
-        d.tag,
-        d.serialNumber || '',
+        d.tag || '',
+        d.serial_number || d.serialNumber || '',
         d.model || '',
         d.type || '',
         d.category || '',
@@ -565,14 +565,16 @@ const App: React.FC = () => {
         d.condition || ''
       ].map(val => `"${String(val).replace(/"/g, '""')}"`));
       
-      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const encodedUri = encodeURI(csvContent);
+      const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", url);
       link.setAttribute("download", `inventario_export_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
       logAuditAction(userEmail, 'EXPORTAÇÃO', `Exportou o inventário completo para CSV.`, 'SYSTEM', 'export');
       showNotification("Lista exportada com sucesso!");
