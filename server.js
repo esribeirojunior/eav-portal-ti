@@ -750,8 +750,8 @@ app.post('/api/ai/chat', async (req, res) => {
   const { message, history = [] } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória' });
   
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'Chave do Gemini não configurada no servidor.' });
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'Chave da OpenAI não configurada no servidor.' });
   }
 
   try {
