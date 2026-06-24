@@ -106,28 +106,43 @@ else {
         Enable-NetFirewallRule -Name "CoreNet-Diag-ICMP4-EchoRequest-In" -ErrorAction SilentlyContinue | Out-Null
     } catch {}
 
-    # Aplicando politicas de Seguranca e Permissao do VNC no Registro
+    # Helper functions to safely write registry values
+    function Set-RegValueBinary {
+        param ([string]$regPath, [string]$Name, [byte[]]$Value)
+        if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+        Remove-ItemProperty -Path $regPath -Name $Name -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -Path $regPath -Name $Name -Value $Value -PropertyType Binary -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    function Set-RegValueDWord {
+        param ([string]$regPath, [string]$Name, [int]$Value)
+        if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+        Remove-ItemProperty -Path $regPath -Name $Name -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -Path $regPath -Name $Name -Value $Value -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    function Set-RegValueString {
+        param ([string]$regPath, [string]$Name, [string]$Value)
+        if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+        Remove-ItemProperty -Path $regPath -Name $Name -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -Path $regPath -Name $Name -Value $Value -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+
     Write-Host "Aplicando politicas de Seguranca e Permissao do TightVNC Server..." -ForegroundColor Yellow
-    $regPath = "HKLM:\SOFTWARE\TightVNC\Server"
-    if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
-
-    # Configurações do Servidor
-    New-ItemProperty -Path $regPath -Name "QuerySetting" -Value 2 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "QueryAccept" -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "QueryTimeout" -Value 30 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "QueryAction" -Value 0 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "QueryAllowNoActiveLogon" -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "UseVncAuthentication" -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "UseControlAuthentication" -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    
-    # Injetando Senha do VNC (eav@2017) de forma binária
+    $paths = @("HKLM:\SOFTWARE\TightVNC\Server", "HKLM:\SOFTWARE\WOW6432Node\TightVNC\Server")
     $passwordBytes = [byte[]](238, 97, 46, 47, 17, 62, 169, 125)
-    New-ItemProperty -Path $regPath -Name "Password" -Value $passwordBytes -PropertyType Binary -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -Path $regPath -Name "ControlPassword" -Value $passwordBytes -PropertyType Binary -Force -ErrorAction SilentlyContinue | Out-Null
 
-    # IpAccessControl: "0.0.0.0-255.255.255.255:2" -> Requer confirmacao do usuario
-    New-ItemProperty -Path $regPath -Name "IpAccessControl" -PropertyType String -Value "0.0.0.0-255.255.255.255:2" -Force | Out-Null
-    Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro." -ForegroundColor Green
+    foreach ($path in $paths) {
+        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 2
+        Set-RegValueDWord -regPath $path -Name "QueryAccept" -Value 1
+        Set-RegValueDWord -regPath $path -Name "QueryTimeout" -Value 30
+        Set-RegValueDWord -regPath $path -Name "QueryAction" -Value 0
+        Set-RegValueDWord -regPath $path -Name "QueryAllowNoActiveLogon" -Value 1
+        Set-RegValueDWord -regPath $path -Name "UseVncAuthentication" -Value 1
+        Set-RegValueDWord -regPath $path -Name "UseControlAuthentication" -Value 1
+        Set-RegValueBinary -regPath $path -Name "Password" -Value $passwordBytes
+        Set-RegValueBinary -regPath $path -Name "ControlPassword" -Value $passwordBytes
+        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:2"
+    }
+    Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro (WOW64 e Nativo)." -ForegroundColor Green
 
     # Liberar porta do VNC (5900) e Ping no Firewall
     Write-Host "Liberando VNC (Porta 5900) e Ping (ICMPv4) no Firewall..." -ForegroundColor Yellow
@@ -142,7 +157,10 @@ else {
     elseif (Test-Path $vncExe32) { $vncPath = $vncExe32 }
 
     if ($vncPath) {
-        Write-Host "TightVNC Server encontrado. Reiniciando o servico..." -ForegroundColor Yellow
+        Write-Host "TightVNC Server encontrado. Reiniciando o servico para aplicar as alteracoes..." -ForegroundColor Yellow
+        Stop-Service -Name "tvnserver" -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+        Get-Process -Name "tvnserver" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Service -Name "tvnserver" -ErrorAction SilentlyContinue
         & $vncPath -controlservice -reload
         Write-Host "Servico do TightVNC Server reiniciado e atualizado." -ForegroundColor Green
