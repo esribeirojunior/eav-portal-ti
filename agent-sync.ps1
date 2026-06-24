@@ -145,7 +145,7 @@ else {
     # Adiciona também o HKCU do processo atual (Administrador/Elevado)
     $paths += "HKCU:\Software\TightVNC\Server"
     
-    $passwordBytes = [byte[]](245, 19, 44, 151, 131, 175, 111, 58)
+    $passwordBytes = [byte[]](24, 46, 45, 156, 85, 106, 201, 7)
 
     foreach ($path in $paths) {
         Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 0
