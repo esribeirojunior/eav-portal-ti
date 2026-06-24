@@ -53,6 +53,11 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
     const [importing, setImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [departments, setDepartments] = useState<any[]>([]);
+    const [importResult, setImportResult] = useState<{
+        successCount: number;
+        failCount: number;
+        duplicates: { tag: string; reason: string }[];
+    } | null>(null);
 
     React.useEffect(() => {
         const fetchDepts = async () => {
@@ -122,6 +127,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
         setError(null);
         let successCount = 0;
         let failCount = 0;
+        const duplicatesList: { tag: string; reason: string }[] = [];
 
         try {
             console.log("Iniciando importação de", previewData.length, "linhas");
@@ -218,6 +224,10 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 if (deviceError || !deviceData) {
                     console.error("Erro ao salvar device:", tag, deviceError);
                     failCount++;
+                    duplicatesList.push({
+                        tag,
+                        reason: deviceError?.message || 'Já cadastrado ou erro na gravação.'
+                    });
                     continue;
                 }
 
@@ -326,7 +336,11 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
 
             setDepartments(currentDepts); // Atualiza estado global após o loop
             console.log(`Importação concluída: ${successCount} sucessos, ${failCount} falhas`);
-            onSuccess();
+            setImportResult({
+                successCount,
+                failCount,
+                duplicates: duplicatesList
+            });
         } catch (err) {
             console.error("Erro critico na importacao:", err);
             setError("Erro ao processar importação.");
@@ -346,7 +360,44 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 </div>
 
                 <div className="p-8 flex-1 overflow-y-auto">
-                    {!file ? (
+                    {importResult ? (
+                        <div className="space-y-6 text-white animate-in fade-in duration-200">
+                            <div className="flex flex-col items-center justify-center text-center p-6 bg-white/5 rounded-2xl border border-white/10">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                                    importResult.failCount === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                                }`}>
+                                    <CheckCircle2 size={40} />
+                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-wider">Importação Finalizada</h3>
+                                <p className="text-white/40 text-sm mt-1">O processamento da planilha foi concluído.</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-center">
+                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-1">Cadastrados com Sucesso</span>
+                                    <span className="text-3xl font-black text-white">{importResult.successCount}</span>
+                                </div>
+                                <div className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl text-center">
+                                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest block mb-1">Ignorados / Duplicados</span>
+                                    <span className="text-3xl font-black text-white">{importResult.failCount}</span>
+                                </div>
+                            </div>
+
+                            {importResult.duplicates.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-black uppercase tracking-wider text-rose-400/80">Itens Ignorados (Duplicados):</h4>
+                                    <div className="bg-black/20 border border-white/5 rounded-xl max-h-48 overflow-y-auto p-4 space-y-2">
+                                        {importResult.duplicates.map((dup, i) => (
+                                            <div key={i} className="flex justify-between items-center text-xs border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                                <span className="font-mono text-white/90 font-bold">{dup.tag}</span>
+                                                <span className="text-rose-400 font-semibold text-[10px] uppercase tracking-wider">{dup.reason}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : !file ? (
                         <div
                             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                             onDragLeave={() => setDragging(false)}
@@ -458,17 +509,34 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 </div>
 
                 <div className="p-6 border-t border-white/10 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-6 py-3 text-white/60 hover:text-white font-bold text-sm uppercase tracking-wider">
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={handleImport}
-                        disabled={!file || importing || previewData.length === 0}
-                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center gap-2"
-                    >
-                        {importing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-                        {importing ? 'Importando...' : 'Confirmar Importação'}
-                    </button>
+                    {importResult ? (
+                        <button
+                            onClick={() => {
+                                setFile(null);
+                                setPreviewData([]);
+                                setImportResult(null);
+                                onSuccess();
+                                onClose();
+                            }}
+                            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all"
+                        >
+                            Concluir
+                        </button>
+                    ) : (
+                        <>
+                            <button onClick={onClose} className="px-6 py-3 text-white/60 hover:text-white font-bold text-sm uppercase tracking-wider">
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleImport}
+                                disabled={!file || importing || previewData.length === 0}
+                                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-black text-sm uppercase tracking-wider flex items-center gap-2"
+                            >
+                                {importing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                                {importing ? 'Importando...' : 'Confirmar Importação'}
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

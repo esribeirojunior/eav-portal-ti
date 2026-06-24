@@ -337,36 +337,19 @@ app.post('/api/db', authenticateToken, async (req, res) => {
             }
             
             if (existingDevice) {
-              if (isUpsert) {
-                // Transforma o INSERT em UPDATE para este item específico
-                const updateCols = Object.keys(finalItem)
-                  .filter(k => k !== 'id' && k !== 'created_at')
-                  .map((k, i) => `${k} = $${i + 1}`);
-                const updateValues = Object.keys(finalItem)
-                  .filter(k => k !== 'id' && k !== 'created_at')
-                  .map(k => finalItem[k]);
-                
-                updateValues.push(existingDevice.id);
-                const updateSql = `UPDATE devices SET ${updateCols.join(', ')} WHERE id = $${updateValues.length}`;
-                await client.query(updateSql, updateValues);
-                
-                results.push({ ...existingDevice, ...finalItem, id: existingDevice.id });
-                continue;
-              } else {
-                // Bloqueia inserções comuns duplicadas
-                await client.query('ROLLBACK');
-                client.release();
-                
-                const isTagDup = itemTag && existingDevice.tag && existingDevice.tag.toLowerCase() === itemTag.toLowerCase();
-                const field = isTagDup ? 'Nº de Patrimônio (Tag)' : 'Nº de Série (Service Tag)';
-                const value = isTagDup ? existingDevice.tag : existingDevice.serial_number;
-                
-                return res.status(400).json({
-                  error: {
-                    message: `Não é possível cadastrar. Já existe um dispositivo com este ${field}: "${value}".`
-                  }
-                });
-              }
+              // Bloqueia e retorna erro informando que o item já existe (mesmo para upserts)
+              await client.query('ROLLBACK');
+              client.release();
+              
+              const isTagDup = itemTag && existingDevice.tag && existingDevice.tag.toLowerCase() === itemTag.toLowerCase();
+              const field = isTagDup ? 'Nº de Patrimônio (Tag)' : 'Nº de Série (Service Tag)';
+              const value = isTagDup ? existingDevice.tag : existingDevice.serial_number;
+              
+              return res.status(400).json({
+                error: {
+                  message: `Já existe um dispositivo com este ${field}: "${value}".`
+                }
+              });
             }
           }
           
