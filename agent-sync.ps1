@@ -148,7 +148,7 @@ else {
     $passwordBytes = [byte[]](24, 46, 45, 156, 85, 106, 201, 7)
 
     foreach ($path in $paths) {
-        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 2
+        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 0
         Set-RegValueDWord -regPath $path -Name "QueryAccept" -Value 1
         Set-RegValueDWord -regPath $path -Name "QueryTimeout" -Value 30
         Set-RegValueDWord -regPath $path -Name "QueryAction" -Value 0
@@ -157,7 +157,7 @@ else {
         Set-RegValueDWord -regPath $path -Name "UseControlAuthentication" -Value 1
         Set-RegValueBinary -regPath $path -Name "Password" -Value $passwordBytes
         Set-RegValueBinary -regPath $path -Name "ControlPassword" -Value $passwordBytes
-        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:2"
+        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:0"
     }
     Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro (Todos os perfis)." -ForegroundColor Green
 
