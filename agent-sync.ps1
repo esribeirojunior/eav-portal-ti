@@ -81,8 +81,12 @@ start "" "$vncViewerPath" %IP% -password=eav2017
         if (-not (Test-Path $iconPath)) { New-Item -Path $iconPath -Force | Out-Null }
         Set-Item -Path $iconPath -Value "`"$vncViewerPath`",0" -Force
 
-        $cmdPath = Join-Path $regPath "shell\open\command"
-        if (-not (Test-Path $cmdPath)) { New-Item -Path $cmdPath -Force -Recurse | Out-Null }
+        $shellPath = Join-Path $regPath "shell"
+        if (-not (Test-Path $shellPath)) { New-Item -Path $shellPath -Force | Out-Null }
+        $openPath = Join-Path $shellPath "open"
+        if (-not (Test-Path $openPath)) { New-Item -Path $openPath -Force | Out-Null }
+        $cmdPath = Join-Path $openPath "command"
+        if (-not (Test-Path $cmdPath)) { New-Item -Path $cmdPath -Force | Out-Null }
         Set-Item -Path $cmdPath -Value "`"$launcherPath`" `"%1`"" -Force
 
         Write-Host "Protocolo vnc:// registrado com sucesso no Registro do Windows!" -ForegroundColor Green
