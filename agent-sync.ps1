@@ -65,7 +65,7 @@ echo =======================================
 echo Iniciando TightVNC Viewer...
 echo Conectando a: %IP%
 echo =======================================
-start "" "$vncViewerPath" %IP% -password=eav@2017
+start "" "$vncViewerPath" %IP% -password=eav2017
 "@
     Set-Content -Path $launcherPath -Value $launcherContent -Force
     Write-Host "Script auxiliar de VNC criado: $launcherPath" -ForegroundColor Green
@@ -145,7 +145,7 @@ else {
     # Adiciona também o HKCU do processo atual (Administrador/Elevado)
     $paths += "HKCU:\Software\TightVNC\Server"
     
-    $passwordBytes = [byte[]](196, 234, 188, 58, 191, 0, 0, 80)
+    $passwordBytes = [byte[]](245, 19, 44, 151, 131, 175, 111, 58)
 
     foreach ($path in $paths) {
         Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 0
