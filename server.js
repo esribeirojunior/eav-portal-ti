@@ -246,6 +246,50 @@ app.post('/api/db', authenticateToken, async (req, res) => {
     }
 
     if (updateData) {
+      if (table === 'devices') {
+        const tag = updateData.tag;
+        const serial = updateData.serial_number;
+        
+        if (tag || serial) {
+          // Descobre o ID do dispositivo sendo atualizado para não se validar contra si mesmo
+          const selectSql = convertPlaceholders(`SELECT id FROM devices ${whereClause}`);
+          const selectRes = await pool.query(selectSql, params);
+          const currentId = selectRes.rows[0]?.id;
+
+          const checks = [];
+          const queryParams = [];
+          let idx = 1;
+          
+          if (tag) {
+            checks.push(`LOWER(tag) = LOWER($${idx++})`);
+            queryParams.push(tag.trim());
+          }
+          if (serial) {
+            checks.push(`(serial_number IS NOT NULL AND serial_number <> '' AND LOWER(serial_number) = LOWER($${idx++}))`);
+            queryParams.push(serial.trim());
+          }
+          
+          let checkSql = `SELECT id, tag, serial_number FROM devices WHERE (${checks.join(' OR ')})`;
+          if (currentId) {
+            checkSql += ` AND id <> $${idx++}`;
+            queryParams.push(currentId);
+          }
+          
+          const dupRes = await pool.query(checkSql, queryParams);
+          if (dupRes.rows.length > 0) {
+            const dup = dupRes.rows[0];
+            const isTagDup = tag && dup.tag && dup.tag.toLowerCase() === tag.trim().toLowerCase();
+            const field = isTagDup ? 'Nº de Patrimônio (Tag)' : 'Nº de Série (Service Tag)';
+            const value = isTagDup ? dup.tag : dup.serial_number;
+            return res.status(400).json({ 
+              error: { 
+                message: `Não é possível salvar. Já existe um dispositivo cadastrado com este ${field}: "${value}".` 
+              } 
+            });
+          }
+        }
+      }
+
       const updateKeys = Object.keys(updateData);
       const setClause = updateKeys.map(k => `${k} = ?`).join(', ');
       const updateParams = updateKeys.map(k => updateData[k]);
@@ -266,6 +310,66 @@ app.post('/api/db', authenticateToken, async (req, res) => {
         await client.query('BEGIN');
         for (const item of newItems) {
           const finalItem = { ...item };
+          
+          if (table === 'devices') {
+            const itemTag = finalItem.tag ? finalItem.tag.trim() : null;
+            const itemSerial = finalItem.serial_number ? finalItem.serial_number.trim() : null;
+            
+            let existingDevice = null;
+            if (itemTag || itemSerial) {
+              const checks = [];
+              const checkParams = [];
+              let idx = 1;
+              if (itemTag) {
+                checks.push(`LOWER(tag) = LOWER($${idx++})`);
+                checkParams.push(itemTag);
+              }
+              if (itemSerial) {
+                checks.push(`(serial_number IS NOT NULL AND serial_number <> '' AND LOWER(serial_number) = LOWER($${idx++}))`);
+                checkParams.push(itemSerial);
+              }
+              
+              const checkSql = `SELECT * FROM devices WHERE ${checks.join(' OR ')}`;
+              const dupRes = await client.query(checkSql, checkParams);
+              if (dupRes.rows.length > 0) {
+                existingDevice = dupRes.rows[0];
+              }
+            }
+            
+            if (existingDevice) {
+              if (isUpsert) {
+                // Transforma o INSERT em UPDATE para este item específico
+                const updateCols = Object.keys(finalItem)
+                  .filter(k => k !== 'id' && k !== 'created_at')
+                  .map((k, i) => `${k} = $${i + 1}`);
+                const updateValues = Object.keys(finalItem)
+                  .filter(k => k !== 'id' && k !== 'created_at')
+                  .map(k => finalItem[k]);
+                
+                updateValues.push(existingDevice.id);
+                const updateSql = `UPDATE devices SET ${updateCols.join(', ')} WHERE id = $${updateValues.length}`;
+                await client.query(updateSql, updateValues);
+                
+                results.push({ ...existingDevice, ...finalItem, id: existingDevice.id });
+                continue;
+              } else {
+                // Bloqueia inserções comuns duplicadas
+                await client.query('ROLLBACK');
+                client.release();
+                
+                const isTagDup = itemTag && existingDevice.tag && existingDevice.tag.toLowerCase() === itemTag.toLowerCase();
+                const field = isTagDup ? 'Nº de Patrimônio (Tag)' : 'Nº de Série (Service Tag)';
+                const value = isTagDup ? existingDevice.tag : existingDevice.serial_number;
+                
+                return res.status(400).json({
+                  error: {
+                    message: `Não é possível cadastrar. Já existe um dispositivo com este ${field}: "${value}".`
+                  }
+                });
+              }
+            }
+          }
+          
           if (!finalItem.id) finalItem.id = Math.random().toString(36).substring(2, 9);
           if (!finalItem.created_at && !isUpsert) finalItem.created_at = new Date().toISOString();
           
