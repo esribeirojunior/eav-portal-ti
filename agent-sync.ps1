@@ -128,7 +128,7 @@ else {
 
     Write-Host "Aplicando politicas de Seguranca e Permissao do TightVNC Server..." -ForegroundColor Yellow
     $paths = @("HKLM:\SOFTWARE\TightVNC\Server", "HKLM:\SOFTWARE\WOW6432Node\TightVNC\Server")
-    $passwordBytes = [byte[]](238, 97, 46, 47, 17, 62, 169, 125)
+    $passwordBytes = [byte[]](196, 234, 188, 58, 191, 0, 0, 80)
 
     foreach ($path in $paths) {
         Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 2
