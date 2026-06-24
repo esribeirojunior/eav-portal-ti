@@ -128,10 +128,27 @@ else {
 
     Write-Host "Aplicando politicas de Seguranca e Permissao do TightVNC Server..." -ForegroundColor Yellow
     $paths = @("HKLM:\SOFTWARE\TightVNC\Server", "HKLM:\SOFTWARE\WOW6432Node\TightVNC\Server")
+    
+    # Adiciona o HKCU do usuário ativo logado mapeando o SID dele
+    try {
+        $currentUser = (Get-WmiObject -Class Win32_ComputerSystem).UserName
+        if ($currentUser) {
+            $userParts = $currentUser -split "\\"
+            $justUsername = $userParts[-1]
+            $userSid = (New-Object System.Security.Principal.NTAccount($justUsername)).Translate([System.Security.Principal.SecurityIdentifier]).Value
+            if ($userSid) {
+                $paths += "Registry::HKEY_USERS\$userSid\Software\TightVNC\Server"
+            }
+        }
+    } catch {}
+    
+    # Adiciona também o HKCU do processo atual (Administrador/Elevado)
+    $paths += "HKCU:\Software\TightVNC\Server"
+    
     $passwordBytes = [byte[]](196, 234, 188, 58, 191, 0, 0, 80)
 
     foreach ($path in $paths) {
-        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 2
+        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 0
         Set-RegValueDWord -regPath $path -Name "QueryAccept" -Value 1
         Set-RegValueDWord -regPath $path -Name "QueryTimeout" -Value 30
         Set-RegValueDWord -regPath $path -Name "QueryAction" -Value 0
@@ -140,9 +157,9 @@ else {
         Set-RegValueDWord -regPath $path -Name "UseControlAuthentication" -Value 1
         Set-RegValueBinary -regPath $path -Name "Password" -Value $passwordBytes
         Set-RegValueBinary -regPath $path -Name "ControlPassword" -Value $passwordBytes
-        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:2"
+        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:0"
     }
-    Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro (WOW64 e Nativo)." -ForegroundColor Green
+    Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro (Todos os perfis)." -ForegroundColor Green
 
     # Liberar porta do VNC (5900) e Ping no Firewall
     Write-Host "Liberando VNC (Porta 5900) e Ping (ICMPv4) no Firewall..." -ForegroundColor Yellow
@@ -157,12 +174,25 @@ else {
     elseif (Test-Path $vncExe32) { $vncPath = $vncExe32 }
 
     if ($vncPath) {
-        Write-Host "TightVNC Server encontrado. Parando o processo e reiniciando o servico..." -ForegroundColor Yellow
+        Write-Host "TightVNC Server encontrado. Parando servico para aplicar configuracoes..." -ForegroundColor Yellow
+        
+        # Para o serviço de forma limpa se estiver rodando
+        Stop-Service -Name "tvnserver" -Force -ErrorAction SilentlyContinue
+        
+        # Garante o registro do TightVNC como serviço do Windows
+        & $vncPath -install | Out-Null
+        
+        # Garante a finalização de qualquer processo órfão
         Get-Process -Name "tvnserver" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 2
+        
+        Write-Host "Iniciando servico do TightVNC Server..." -ForegroundColor Yellow
+        # Inicia o serviço
         Start-Service -Name "tvnserver" -ErrorAction SilentlyContinue
+        
+        # Recarrega as configurações para garantir a leitura do registro recém-modificado
         & $vncPath -controlservice -reload
-        Write-Host "Servico do TightVNC Server reiniciado e atualizado." -ForegroundColor Green
+        Write-Host "Servico do TightVNC Server registrado, reiniciado e atualizado." -ForegroundColor Green
     } else {
         Write-Host "[AVISO] tvnserver.exe nao encontrado. Certifique-se de instalar o TightVNC Server manualmente para aplicar as configuracoes!" -ForegroundColor Yellow
     }
