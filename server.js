@@ -348,7 +348,8 @@ app.post('/api/agent/sync', async (req, res) => {
     uptime_days,
     wifi_ssid,
     battery_health,
-    monitors
+    monitors,
+    campus
   } = req.body;
 
   if (!serial_number && !hostname) {
@@ -418,12 +419,12 @@ app.post('/api/agent/sync', async (req, res) => {
       const activeAssignmentIndex = assignments.findIndex(a => a.device_id === targetDevice.id && !a.returned_at);
       
       let needsNewAssignment = false;
-      let lastCampus = '';
+      let lastCampus = campus || '';
       let lastDepartment = '';
 
       if (activeAssignmentIndex >= 0) {
         const currentAssign = assignments[activeAssignmentIndex];
-        lastCampus = currentAssign.campus || '';
+        if (!lastCampus) lastCampus = currentAssign.campus || '';
         lastDepartment = currentAssign.department_id || '';
         
         // Se a máquina estiver com outro usuário, encerra o empréstimo antigo
@@ -431,12 +432,16 @@ app.post('/api/agent/sync', async (req, res) => {
           const sql = convertPlaceholders('UPDATE assignments SET returned_at=? WHERE id=?');
           await pool.query(sql, [new Date().toISOString(), currentAssign.id]);
           needsNewAssignment = true;
+        } else if (campus && currentAssign.campus !== campus) {
+          // Se o campus mudou e o usuário é o mesmo, atualiza o campus do empréstimo ativo
+          const sql = convertPlaceholders('UPDATE assignments SET campus=? WHERE id=?');
+          await pool.query(sql, [campus, currentAssign.id]);
         }
       } else {
         // Encontrar os dados da última atribuição (histórico) para herdar o departamento
         const pastAssignments = assignments.filter(a => a.device_id === targetDevice.id).sort((a,b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime());
         if (pastAssignments.length > 0) {
-          lastCampus = pastAssignments[pastAssignments.length - 1].campus || '';
+          if (!lastCampus) lastCampus = pastAssignments[pastAssignments.length - 1].campus || '';
           lastDepartment = pastAssignments[pastAssignments.length - 1].department_id || '';
         }
         needsNewAssignment = true;
