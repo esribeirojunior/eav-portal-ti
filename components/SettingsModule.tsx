@@ -71,15 +71,31 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const handleRoleChange = async (id: string, newRole: string) => {
         try {
-            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            console.log(`[DEBUG] Tentando mudar cargo de ${id} para ${newRole}`);
+            
+            // Atualiza o estado da tela imediatamente para o usuário não ficar esperando (Optimistic UI Update)
+            setUsers(prevUsers => prevUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
+            
+            const { data, error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            console.log(`[DEBUG] Resposta do Banco:`, { data, error });
+            
             if (error) {
                 alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
+                fetchUsers(); // Reverte a tela em caso de erro
                 return;
             }
+            
+            // Verifica se o banco realmente retornou o novo cargo
+            if (data && data.length > 0 && data[0].role !== newRole) {
+                console.error(`[DEBUG CRÍTICO] O banco de dados confirmou sucesso mas não salvou o dado! Retornou:`, data[0]);
+                alert('Atenção: O banco de dados processou a ordem, mas não salvou o cargo. Isso é um erro interno do PostgreSQL.');
+            }
+            
             fetchUsers();
         } catch (error: any) {
             console.error('Erro ao atualizar cargo', error);
             alert('Erro na requisição: ' + error.message);
+            fetchUsers(); // Reverte a tela
         }
     };
 
