@@ -677,7 +677,7 @@ const App: React.FC = () => {
       localStorage.setItem('user_authenticated', 'true');
       localStorage.setItem('user_email', email.toLowerCase());
       
-      const { data } = await supabase.from('authorized_users').select('role').eq('email', email.toLowerCase()).maybeSingle();
+      const { data } = await supabase.from('authorized_users').select('role').ilike('email', email).maybeSingle();
       const role = data?.role || 'admin';
       setUserRole(role);
       localStorage.setItem('user_role', role);
