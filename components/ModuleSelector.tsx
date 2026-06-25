@@ -18,8 +18,11 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
             <aside className="w-[220px] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen shadow-sm transition-colors duration-300">
                 {/* Logo Area */}
                 <div className="p-6 pb-2">
-                    <h1 className="text-xl font-[900] text-slate-800 dark:text-white tracking-tight uppercase">TI Central</h1>
-                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Portal Corporativo</p>
+                    <h1 className="text-lg text-slate-800 dark:text-white uppercase flex items-center gap-1.5">
+                        <span className="font-[900] text-blue-600 tracking-tighter">TI</span>
+                        <span className="font-semibold tracking-widest opacity-80">CENTRAL</span>
+                    </h1>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">Portal Corporativo</p>
                 </div>
 
                 {/* Nav Menu */}
