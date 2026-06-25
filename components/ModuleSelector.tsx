@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, ShieldCheck, LogOut, ListTodo, BookOpen, Beaker, ExternalLink, Activity } from 'lucide-react';
+import { Box, ExternalLink, Beaker, Activity, LogOut, ChevronRight, LayoutGrid, Settings, UserCircle, Circle } from 'lucide-react';
 
 interface ModuleSelectorProps {
     onSelectModule: (module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab') => void;
@@ -8,184 +8,171 @@ interface ModuleSelectorProps {
 }
 
 export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSelectorProps) => {
-    // Lista de administradores - idealmente isso viria de uma coluna 'role' no banco de dados
     const ADMIN_EMAILS = ['erisson.junior@escolaamericana.com.br'];
     const isAdmin = userEmail ? ADMIN_EMAILS.includes(userEmail.toLowerCase()) : false;
 
     return (
-        <div className="min-h-screen bg-[var(--bg-deep)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Background Ambience */}
-            <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-indigo-600/5 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] left-[-10%] w-[800px] h-[800px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0c0d21] flex text-slate-800 dark:text-slate-200 font-sans transition-colors duration-300">
+            
+            {/* SIDEBAR */}
+            <aside className="w-[220px] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen shadow-sm transition-colors duration-300">
+                {/* Logo Area */}
+                <div className="p-6 pb-2">
+                    <h1 className="text-xl font-[900] text-slate-800 dark:text-white tracking-tight uppercase">TI Central</h1>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Portal Corporativo</p>
+                </div>
 
-            <div className="z-10 w-full max-w-5xl space-y-12 animate-premium">
-
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="text-center md:text-left space-y-4">
-                        <h1 className="text-4xl md:text-6xl font-[1000] text-white tracking-tighter uppercase leading-[0.85]">
-                            Portal de Sistemas <br /><span className="text-indigo-500">TI Central</span>
-                        </h1>
-                        <p className="text-white/30 text-[10px] font-black tracking-[0.4em] uppercase">
-                            Infraestrutura & Gestão • {userEmail || 'Administrador'}
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center gap-2 px-6 py-4 bg-white/5 hover:bg-rose-500/10 hover:text-rose-500 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 active:scale-95"
-                    >
-                        <LogOut size={16} />
-                        <span>Sair da Conta</span>
+                {/* Nav Menu */}
+                <div className="px-4 py-6 flex-1 space-y-1">
+                    <p className="px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Navegação</p>
+                    
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 text-sm font-semibold transition-colors">
+                        <LayoutGrid size={18} />
+                        Módulos
+                    </button>
+                    
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition-colors">
+                        <Settings size={18} />
+                        Ajustes
                     </button>
                 </div>
 
-                {/* Modules Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-
-                    {/* Módulo ATIVO: Gestão de Ativos */}
-                    <button
-                        onClick={() => onSelectModule('assets')}
-                        className="group relative overflow-hidden glass-card p-8 md:p-10 rounded-[3rem] transition-all text-left hover:translate-y-[-8px] hover:shadow-indigo-500/10 active:scale-[0.98]"
-                    >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 blur-[60px] rounded-full group-hover:bg-indigo-600/20 transition-all" />
-
-                        <div className="relative z-10 space-y-8">
-                            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-900/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                                <Box size={32} />
-                            </div>
-
-                            <div>
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-indigo-400 transition-colors">
-                                    Gestão de <br />Ativos
-                                </h3>
-                                <p className="text-white/40 text-[11px] font-medium leading-relaxed italic">
-                                    Inventário inteligente, empréstimos e controle de hardware.
-                                </p>
-                            </div>
-
-                            <div className="pt-4 flex items-center gap-3 text-indigo-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
-                                <span>Acessar</span>
-                                <div className="h-[1px] flex-1 bg-indigo-500/20" />
-                            </div>
+                {/* Footer User */}
+                <div className="p-4 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+                    <div className="flex items-center gap-3 mb-4 px-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                            {userEmail ? userEmail.substring(0, 2).toUpperCase() : 'TI'}
                         </div>
-                    </button>
-
-                    {/* Módulo ATIVO: Centro de Atalhos */}
-                    <button
-                        onClick={() => onSelectModule('links')}
-                        className="group relative overflow-hidden glass-card p-8 md:p-10 rounded-[3rem] transition-all text-left hover:translate-y-[-8px] hover:shadow-emerald-500/10 active:scale-[0.98]"
-                    >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/10 blur-[60px] rounded-full group-hover:bg-emerald-600/20 transition-all" />
-
-                        <div className="relative z-10 space-y-8">
-                            <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-900/30 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500">
-                                <ExternalLink size={32} />
-                            </div>
-
-                            <div>
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-emerald-400 transition-colors">
-                                    Centro de <br />Atalhos
-                                </h3>
-                                <p className="text-white/40 text-[11px] font-medium leading-relaxed italic">
-                                    Plataformas de gestão externa e ferramentas de suporte.
-                                </p>
-                            </div>
-
-                            <div className="pt-4 flex items-center gap-3 text-emerald-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
-                                <span>Acessar</span>
-                                <div className="h-[1px] flex-1 bg-emerald-500/20" />
-                            </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{userEmail ? userEmail.split('@')[0] : 'Administrador'}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Equipe de TI</p>
                         </div>
-                    </button>
-
-
-
-                    {/* Módulo ATIVO: Dev Lab */}
+                    </div>
                     <button
-                        onClick={() => onSelectModule('lab')}
-                        className="group relative overflow-hidden glass-card p-8 md:p-10 rounded-[3rem] transition-all text-left hover:translate-y-[-8px] hover:shadow-cyan-500/10 active:scale-[0.98]"
+                        onClick={onLogout}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors uppercase tracking-widest"
                     >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-600/10 blur-[60px] rounded-full group-hover:bg-cyan-600/20 transition-all" />
-
-                        <div className="relative z-10 space-y-8">
-                            <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-cyan-900/30 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                                <Beaker size={32} />
-                            </div>
-
-                            <div>
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-cyan-400 transition-colors">
-                                    TI Beta <br />Lab
-                                </h3>
-                                <p className="text-white/40 text-[11px] font-medium leading-relaxed italic">
-                                    Projetos em produção e integrações reais de campus.
-                                </p>
-                            </div>
-
-                            <div className="pt-4 flex items-center gap-3 text-cyan-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
-                                <span>Acessar</span>
-                                <div className="h-[1px] flex-1 bg-cyan-500/20" />
-                            </div>
-                        </div>
+                        <LogOut size={14} />
+                        Sair
                     </button>
+                </div>
+            </aside>
 
-                    {/* Módulo AUDITORIA: Somente para Erisson */}
-                    {isAdmin ? (
-                        <button
-                            onClick={() => onSelectModule('audit')}
-                            className="group relative overflow-hidden glass-card p-8 md:p-10 rounded-[3rem] transition-all text-left hover:translate-y-[-8px] hover:shadow-purple-500/10 active:scale-[0.98]"
-                        >
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 blur-[60px] rounded-full group-hover:bg-purple-600/20 transition-all" />
+            {/* MAIN AREA */}
+            <main className="flex-1 p-8 md:p-12 overflow-y-auto">
+                <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Visão Geral</h2>
+                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                                    <Circle size={8} className="fill-current" /> Online
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Acesse e gerencie os recursos e ferramentas da infraestrutura.</p>
+                        </div>
+                    </div>
 
-                            <div className="relative z-10 space-y-8">
-                                <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-purple-900/30 group-hover:scale-110 transition-all duration-500">
-                                    <Activity size={32} />
-                                </div>
-
+                    {/* Módulos Principais */}
+                    <div className="space-y-4">
+                        <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Módulos Principais</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            
+                            {/* Gestão de Ativos (Featured) */}
+                            <button 
+                                onClick={() => onSelectModule('assets')}
+                                className="group bg-white dark:bg-slate-900 border-[1.5px] border-blue-500 rounded-[1.5rem] p-6 text-left transition-all hover:shadow-lg hover:-translate-y-1 hover:shadow-blue-500/10 flex flex-col justify-between min-h-[220px]"
+                            >
                                 <div>
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 group-hover:text-purple-400 transition-colors">
-                                        Logs de <br />Auditoria
-                                    </h3>
-                                    <p className="text-white/40 text-[11px] font-medium leading-relaxed italic">
-                                        Histórico completo de ações e segurança administrativa.
+                                    <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                                        <Box size={24} />
+                                    </div>
+                                    <h4 className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">Gestão de Ativos</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        Inventário inteligente, empréstimos e controle de hardware.
                                     </p>
                                 </div>
-
-                                <div className="pt-4 flex items-center gap-3 text-purple-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
-                                    <span>Verificar</span>
-                                    <div className="h-[1px] flex-1 bg-purple-500/20" />
+                                <div className="mt-6 flex items-center text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest group-hover:gap-2 transition-all">
+                                    Acessar <ChevronRight size={14} className="ml-1" />
                                 </div>
-                            </div>
-                        </button>
-                    ) : (
-                        /* Módulo FUTURO: Placeholder 1 */
-                        <div className="group relative overflow-hidden bg-white/[0.02] p-8 md:p-10 rounded-[3rem] border border-white/5 border-dashed transition-all text-left opacity-40">
-                            <div className="relative z-10 space-y-6 grayscale">
-                                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 shadow-lg">
-                                    <ShieldCheck size={32} />
-                                </div>
+                            </button>
 
+                            {/* Centro de Atalhos */}
+                            <button 
+                                onClick={() => onSelectModule('links')}
+                                className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[1.5rem] p-6 text-left transition-all hover:shadow-md hover:-translate-y-1 hover:border-teal-500/50 flex flex-col justify-between min-h-[220px]"
+                            >
                                 <div>
-                                    <h3 className="text-2xl font-black text-white/30 uppercase tracking-tighter mb-2">
-                                        Licenças e <br />Softwares
-                                    </h3>
-                                    <p className="text-white/20 text-[10px] font-medium leading-relaxed uppercase tracking-widest">
-                                        Em Breve
+                                    <div className="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                                        <ExternalLink size={24} />
+                                    </div>
+                                    <h4 className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">Centro de Atalhos</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        Plataformas de gestão externa e ferramentas de suporte.
                                     </p>
                                 </div>
+                                <div className="mt-6 flex items-center text-[11px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest group-hover:gap-2 transition-all">
+                                    Acessar <ChevronRight size={14} className="ml-1" />
+                                </div>
+                            </button>
+
+                            {/* TI Beta Lab */}
+                            <button 
+                                onClick={() => onSelectModule('lab')}
+                                className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[1.5rem] p-6 text-left transition-all hover:shadow-md hover:-translate-y-1 hover:border-purple-500/50 flex flex-col justify-between min-h-[220px]"
+                            >
+                                <div>
+                                    <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                                        <Beaker size={24} />
+                                    </div>
+                                    <h4 className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">TI Beta Lab</h4>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        Projetos em produção e integrações reais de campus.
+                                    </p>
+                                </div>
+                                <div className="mt-6 flex items-center text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest group-hover:gap-2 transition-all">
+                                    Acessar <ChevronRight size={14} className="ml-1" />
+                                </div>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    {/* Divisória */}
+                    <hr className="border-slate-200 dark:border-white/5" />
+
+                    {/* Monitoramento */}
+                    {isAdmin && (
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Monitoramento</h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {/* Logs de Auditoria */}
+                                <button 
+                                    onClick={() => onSelectModule('audit')}
+                                    className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[1.5rem] p-6 text-left transition-all hover:shadow-md hover:-translate-y-1 hover:border-amber-500/50 flex flex-col justify-between min-h-[220px]"
+                                >
+                                    <div>
+                                        <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                                            <Activity size={24} />
+                                        </div>
+                                        <h4 className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">Logs de Auditoria</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                            Registro de eventos e rastreamento de atividades do sistema.
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 flex items-center text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest group-hover:gap-2 transition-all">
+                                        Monitorar <ChevronRight size={14} className="ml-1" />
+                                    </div>
+                                </button>
                             </div>
                         </div>
                     )}
-
                 </div>
-
-                {/* Footer */}
-                <div className="text-center pt-10 border-t border-white/5">
-                    <p className="text-white/10 text-[9px] uppercase tracking-[0.4em] font-black">
-                        Escola Americana de Vitória &copy; 2026 - Versão 2.0 by Erisson Ribeiro
-                    </p>
-                </div>
-            </div>
+            </main>
         </div>
     );
 };
