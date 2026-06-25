@@ -219,10 +219,6 @@ app.post('/api/db', authenticateToken, async (req, res) => {
   processBase64Fields(req.body);
   const { table, filters = {}, ilikeCol, ilikeVal, insertData, updateData, isDelete, isUpsert, orderCol, orderAsc, isSingle } = req.body;
 
-  if (table === 'authorized_users' && (insertData || updateData || isDelete || isUpsert)) {
-    return res.status(403).json({ error: { message: 'Acesso negado.' } });
-  }
-
   try {
     let whereClause = '';
     const params = [];

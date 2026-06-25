@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Building2, Plus, Trash2, Shield, Search } from 'lucide-react';
+import { Users, Building2, Plus, Trash2, Shield } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface SettingsModuleProps {
     userEmail?: string;
@@ -24,12 +25,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('eav_token');
-            const res = await fetch('/api/admin/users', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const { data } = await res.json();
+            const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
             if (data) setUsers(data);
+            if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar usuários', error);
         }
@@ -37,14 +35,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchDepartments = async () => {
         try {
-            const token = localStorage.getItem('eav_token');
-            const res = await fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ table: 'department' })
-            });
-            const { data } = await res.json();
+            const { data, error } = await supabase.from('department').select('*');
             if (data) setDepartments(data);
+            if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar departamentos', error);
         }
@@ -53,18 +46,22 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const handleAddUser = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('eav_token');
-            const res = await fetch('/api/admin/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ email: newUserEmail, password: newUserPassword })
-            });
-            if (res.ok) {
+            const id = Math.random().toString(36).substring(2, 9);
+            const pwd = newUserPassword || 'eav@123';
+            
+            const { error } = await supabase.from('authorized_users').insert([{
+                id,
+                email: newUserEmail,
+                password: pwd,
+                created_at: new Date().toISOString()
+            }]);
+
+            if (!error) {
                 setNewUserEmail('');
                 setNewUserPassword('');
                 fetchUsers();
             } else {
-                alert('Erro ao adicionar usuário');
+                alert('Erro ao adicionar usuário: ' + error.message);
             }
         } catch (error) {
             console.error(error);
@@ -79,11 +76,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         if (!window.confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
 
         try {
-            const token = localStorage.getItem('eav_token');
-            await fetch(`/api/admin/users/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await supabase.from('authorized_users').delete().eq('id', id);
             fetchUsers();
         } catch (error) {
             console.error(error);
@@ -94,17 +87,17 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         e.preventDefault();
         try {
             const id = Math.random().toString(36).substring(2, 9);
-            const token = localStorage.getItem('eav_token');
-            await fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 
-                    table: 'department', 
-                    insertData: { id, name: newDepartmentName }
-                })
-            });
-            setNewDepartmentName('');
-            fetchDepartments();
+            const { error } = await supabase.from('department').insert([{
+                id,
+                name: newDepartmentName
+            }]);
+
+            if (!error) {
+                setNewDepartmentName('');
+                fetchDepartments();
+            } else {
+                console.error(error);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -114,16 +107,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         if (!window.confirm(`Tem certeza que deseja remover o setor ${name}? Isso pode afetar históricos existentes.`)) return;
         
         try {
-            const token = localStorage.getItem('eav_token');
-            await fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ 
-                    table: 'department', 
-                    isDelete: true,
-                    filters: { id }
-                })
-            });
+            await supabase.from('department').delete().eq('id', id);
             fetchDepartments();
         } catch (error) {
             console.error(error);
@@ -178,7 +162,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                             value={newUserPassword}
                                             onChange={(e) => setNewUserPassword(e.target.value)}
                                         />
-                                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
+                                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 whitespace-nowrap">
                                             <Plus size={18} /> Conceder Acesso
                                         </button>
                                     </form>
@@ -221,6 +205,11 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                     </td>
                                                 </tr>
                                             ))}
+                                            {users.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={3} className="px-6 py-8 text-center text-slate-500">Nenhum usuário encontrado.</td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
@@ -240,7 +229,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                             onChange={(e) => setNewDepartmentName(e.target.value)}
                                             required
                                         />
-                                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2">
+                                        <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 whitespace-nowrap">
                                             <Plus size={18} /> Criar Setor
                                         </button>
                                     </form>
@@ -261,6 +250,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                             </button>
                                         </div>
                                     ))}
+                                    {departments.length === 0 && (
+                                        <div className="col-span-2 text-center py-8 text-slate-500">Nenhum setor cadastrado.</div>
+                                    )}
                                 </div>
                             </div>
                         )}
