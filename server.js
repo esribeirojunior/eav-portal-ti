@@ -299,8 +299,8 @@ app.post('/api/db', authenticateToken, async (req, res) => {
       const sql = convertPlaceholders(`UPDATE ${table} SET ${setClause} ${whereClause}`);
       const updateRes = await pool.query(sql, [...updateParams, ...params]);
       
-      // Se for Postgres e nenhuma linha for alterada, retornar erro para não falhar silenciosamente
-      if (isPostgres && updateRes.rowCount === 0) {
+      // Se nenhuma linha for alterada, retornar erro para não falhar silenciosamente
+      if (updateRes.rowCount === 0) {
         return res.status(404).json({ error: { message: `Nenhum registro encontrado para atualizar. Filtros: ${JSON.stringify(filters)}` } });
       }
       
