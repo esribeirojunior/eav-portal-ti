@@ -12,10 +12,10 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
     const isAdmin = userEmail ? ADMIN_EMAILS.includes(userEmail.toLowerCase()) : false;
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#121212] flex font-sans transition-colors duration-300">
+        <div className="min-h-screen bg-[#f4f7fc] dark:bg-[#0c0d21] flex font-sans transition-colors duration-300">
             
             {/* SIDEBAR */}
-            <aside className="w-[280px] bg-[#f0f2f5] dark:bg-[#1a1a1a] border-r border-slate-200 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen transition-colors duration-300">
+            <aside className="w-[280px] bg-white dark:bg-white/5 border-r border-slate-200 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen transition-colors duration-300">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-200 dark:border-white/5">
                     <h1 className="text-[1.35rem] font-bold text-slate-900 dark:text-white tracking-tight">TI Central</h1>
@@ -29,7 +29,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
                         <p className="px-6 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">Navegação</p>
                         
                         <div className="px-3">
-                            <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-indigo-600/10 text-indigo-700 dark:text-indigo-400 font-bold shadow-sm border border-slate-200 dark:border-indigo-500/20 transition-colors">
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-600/10 text-indigo-700 dark:text-indigo-400 font-bold shadow-sm border border-indigo-100 dark:border-indigo-500/20 transition-colors">
                                 <LayoutGrid size={18} />
                                 Módulos
                             </button>
@@ -116,7 +116,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
                             {/* Gestão de Ativos (Featured) */}
                             <button 
                                 onClick={() => onSelectModule('assets')}
-                                className="group flex flex-col justify-between p-7 bg-white dark:bg-[#232323] border border-blue-600 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-900/20 min-h-[280px]"
+                                className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-blue-600 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-900/20 min-h-[280px]"
                             >
                                 <div>
                                     <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -135,7 +135,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
                             {/* Centro de Atalhos */}
                             <button 
                                 onClick={() => onSelectModule('links')}
-                                className="group flex flex-col justify-between p-7 bg-white dark:bg-[#232323] border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-green-600/50 hover:shadow-lg hover:shadow-green-900/10 min-h-[280px]"
+                                className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-green-600/50 hover:shadow-lg hover:shadow-green-900/10 min-h-[280px]"
                             >
                                 <div>
                                     <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -154,7 +154,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
                             {/* TI Beta Lab */}
                             <button 
                                 onClick={() => onSelectModule('lab')}
-                                className="group flex flex-col justify-between p-7 bg-white dark:bg-[#232323] border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-900/10 min-h-[280px]"
+                                className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-900/10 min-h-[280px]"
                             >
                                 <div>
                                     <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -184,7 +184,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
                                 {/* Logs de Auditoria */}
                                 <button 
                                     onClick={() => onSelectModule('audit')}
-                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-[#232323] border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-orange-600/50 hover:shadow-lg hover:shadow-orange-900/10 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-orange-600/50 hover:shadow-lg hover:shadow-orange-900/10 min-h-[280px]"
                                 >
                                     <div>
                                         <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
