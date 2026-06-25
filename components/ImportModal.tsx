@@ -178,6 +178,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
 
                 if (lowerType.includes('macbook')) type = DeviceType.MACBOOK;
                 else if (lowerType.includes('chromebook')) type = DeviceType.CHROMEBOOK;
+                else if (lowerType.includes('notebook') || lowerType.includes('laptop')) type = DeviceType.NOTEBOOK;
                 else if (lowerType.includes('monitor') || lowerType.includes('tela')) type = DeviceType.MONITOR;
                 else if (lowerType.includes('headset') || lowerType.includes('fone')) type = DeviceType.HEADSET;
                 else if (lowerType.includes('mouse')) type = DeviceType.MOUSE;
