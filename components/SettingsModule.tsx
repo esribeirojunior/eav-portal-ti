@@ -53,6 +53,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                 id,
                 email: newUserEmail,
                 password: pwd,
+                role: 'admin',
                 created_at: new Date().toISOString()
             }]);
 
@@ -65,6 +66,15 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
             }
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleRoleChange = async (id: string, newRole: string) => {
+        try {
+            await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            fetchUsers();
+        } catch (error) {
+            console.error('Erro ao atualizar cargo', error);
         }
     };
 
@@ -190,9 +200,15 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                         )}
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Admin
-                                                        </span>
+                                                        <select 
+                                                            value={u.role || 'admin'} 
+                                                            onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                                                            className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs rounded-lg px-2 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                        >
+                                                            <option value="superadmin">Super Admin</option>
+                                                            <option value="admin">Administrador</option>
+                                                            <option value="viewer">Somente Leitura</option>
+                                                        </select>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <button 

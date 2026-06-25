@@ -125,6 +125,10 @@ async function initPostgresDB() {
       CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
       CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
+      
+      -- Add role column if it doesn't exist (ignore error if it does)
+      pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'").catch(() => {});
+      pool.query("UPDATE authorized_users SET role = 'superadmin' WHERE email = 'erisson.junior@escolaamericana.com.br'").catch(() => {});
       CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
     `);
     console.log('[PostgreSQL] Banco de dados inicializado com sucesso.');

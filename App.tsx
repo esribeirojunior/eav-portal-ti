@@ -366,6 +366,10 @@ const App: React.FC = () => {
   const [userEmail, setUserEmail] = useState<string>(() => {
     return localStorage.getItem('user_email') || '';
   });
+  
+  const [userRole, setUserRole] = useState<string>(() => {
+    return localStorage.getItem('user_role') || 'admin';
+  });
 
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
@@ -667,11 +671,17 @@ const App: React.FC = () => {
   };
 
   if (!isAuthenticated && !sharedTutorialId) return (
-    <LoginScreen onLogin={(email) => { 
+    <LoginScreen onLogin={async (email) => { 
       setIsAuthenticated(true);
       setUserEmail(email.toLowerCase());
       localStorage.setItem('user_authenticated', 'true');
       localStorage.setItem('user_email', email.toLowerCase());
+      
+      const { data } = await supabase.from('authorized_users').select('role').eq('email', email.toLowerCase()).maybeSingle();
+      const role = data?.role || 'admin';
+      setUserRole(role);
+      localStorage.setItem('user_role', role);
+      
       fetchDevices();
     }} />
   );
@@ -776,19 +786,21 @@ const App: React.FC = () => {
               </div>
 
               {/* Ações Rápidas */}
-              <div className="px-6 mb-8">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Ações Rápidas</p>
-                <div className="space-y-2">
-                  <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
-                    <Plus size={18} />
-                    Novo Ativo
-                  </button>
-                  <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
-                    <Cable size={18} />
-                    Entrega Rápida
-                  </button>
+              {userRole !== 'viewer' && (
+                <div className="px-6 mb-8">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Ações Rápidas</p>
+                  <div className="space-y-2">
+                    <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                      <Plus size={18} />
+                      Novo Ativo
+                    </button>
+                    <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                      <Cable size={18} />
+                      Entrega Rápida
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Perfil e Voltar (Rodapé da Sidebar) */}
               <div className="mt-auto p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
@@ -1019,6 +1031,7 @@ const App: React.FC = () => {
           }}
           onLogout={handleLogout}
           userEmail={userEmail}
+          userRole={userRole}
         />
       )}
 
