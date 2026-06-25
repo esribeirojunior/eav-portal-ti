@@ -753,6 +753,46 @@ app.delete('/api/tutorials/:id', authenticateToken, (req, res) => {
   res.status(204).end();
 });
 
+// --- SETTINGS ENDPOINTS ---
+
+app.get('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, email, created_at FROM authorized_users ORDER BY created_at DESC');
+    res.json({ data: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/users', authenticateToken, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email obrigatorio' });
+    const id = Math.random().toString(36).substring(2, 9);
+    const pwd = password || 'eav@123';
+    
+    const check = await pool.query('SELECT * FROM authorized_users WHERE email = $1', [email]);
+    if (check.rows.length > 0) return res.status(400).json({ error: 'Usuario ja existe' });
+
+    await pool.query(
+      "INSERT INTO authorized_users (id, email, password, created_at) VALUES ($1, $2, $3, $4)",
+      [id, email, pwd, new Date().toISOString()]
+    );
+    res.json({ data: { id, email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM authorized_users WHERE id = $1', [req.params.id]);
+    res.json({ data: 'ok' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Endpoint de Login Local Offline (Valida contra a aba authorized_users da planilha)
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;

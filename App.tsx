@@ -17,6 +17,7 @@ import { TasksModule } from './components/TasksModule';
 import { VaultModule } from './components/VaultModule';
 import { TutorialsModule } from './components/TutorialsModule';
 import DevLabModule from './components/DevLabModule';
+import { SettingsModule } from './components/SettingsModule';
 import { AuditLogModal } from './components/AuditLogModal';
 import { UserProfile } from './components/UserProfile';
 import { Copilot } from './components/Copilot';
@@ -393,7 +394,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   // --- STATE: Controle de Módulos ---
-  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab'>('selector');
+  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings'>('selector');
 
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
@@ -1012,7 +1013,7 @@ const App: React.FC = () => {
 
       {currentModule === 'selector' && (
         <ModuleSelector
-          onSelectModule={(module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab') => {
+          onSelectModule={(module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => {
             if (module === 'audit') setIsAuditModalOpen(true);
             else setCurrentModule(module);
           }}
@@ -1056,6 +1057,18 @@ const App: React.FC = () => {
         />
       )}
  
+      {currentModule === 'settings' && (
+        <div className="flex w-full h-screen overflow-hidden bg-[#f4f7fc] dark:bg-[#0c0d21] transition-colors relative">
+           <SettingsModule userEmail={userEmail} />
+           <button 
+              onClick={() => setCurrentModule('selector')}
+              className="absolute top-6 right-6 p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm hover:shadow-md transition-all z-50"
+           >
+              Voltar ao Início
+           </button>
+        </div>
+      )}
+
       {isAuditModalOpen && (
         <AuditLogModal
           isOpen={isAuditModalOpen}
