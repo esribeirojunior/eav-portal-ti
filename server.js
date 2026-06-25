@@ -320,19 +320,22 @@ app.post('/api/db', authenticateToken, async (req, res) => {
               const checks = [];
               const checkParams = [];
               let idx = 1;
-              if (itemTag) {
+              const isPlaceholderTag = (t) => !t || t.toLowerCase() === 'n/a' || t.toLowerCase() === 'na' || t === '-' || t === '--';
+              if (itemTag && !isPlaceholderTag(itemTag)) {
                 checks.push(`LOWER(tag) = LOWER($${idx++})`);
                 checkParams.push(itemTag);
               }
-              if (itemSerial) {
+              if (itemSerial && !isPlaceholderTag(itemSerial)) {
                 checks.push(`(serial_number IS NOT NULL AND serial_number <> '' AND LOWER(serial_number) = LOWER($${idx++}))`);
                 checkParams.push(itemSerial);
               }
               
-              const checkSql = `SELECT * FROM devices WHERE ${checks.join(' OR ')}`;
-              const dupRes = await client.query(checkSql, checkParams);
-              if (dupRes.rows.length > 0) {
-                existingDevice = dupRes.rows[0];
+              if (checks.length > 0) {
+                const checkSql = `SELECT * FROM devices WHERE ${checks.join(' OR ')}`;
+                const dupRes = await client.query(checkSql, checkParams);
+                if (dupRes.rows.length > 0) {
+                  existingDevice = dupRes.rows[0];
+                }
               }
             }
             
@@ -354,7 +357,10 @@ app.post('/api/db', authenticateToken, async (req, res) => {
           }
           
           if (!finalItem.id) finalItem.id = Math.random().toString(36).substring(2, 9);
-          if (!finalItem.created_at && !isUpsert) finalItem.created_at = new Date().toISOString();
+          const tablesWithoutCreatedAt = ['department', 'shortcuts', 'audit_logs'];
+          if (!finalItem.created_at && !isUpsert && !tablesWithoutCreatedAt.includes(table)) {
+              finalItem.created_at = new Date().toISOString();
+          }
           
           let conflictClause = '';
           if (isUpsert) {
@@ -373,9 +379,9 @@ app.post('/api/db', authenticateToken, async (req, res) => {
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK');
-        throw err;
-      } finally {
         client.release();
+        console.error("Erro na query SQL:", err);
+        return res.status(500).json({ error: { message: err.message } });
       }
       sendRealtimeUpdate(table);
       return res.json({ data: isSingle ? results[0] : results, error: null });
