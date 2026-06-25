@@ -25,19 +25,8 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchUsers = async () => {
         try {
-            // Tenta forçar a criação da coluna antes de buscar para garantir que ela exista
-            await fetch('/api/admin/force-role').catch(() => {});
-            
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
-            console.log("[DEBUG] fetchUsers retornou:", data);
-            
-            // Debug Extremo na Tela
-            if (data) {
-                const rolesText = data.map(u => `${u.email}: ${u.role}`).join('\n');
-                alert(`O BANCO ESTÁ RESPONDENDO COM ESTES CARGOS:\n\n${rolesText}`);
-                setUsers(data);
-            }
-            
+            if (data) setUsers(data);
             if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar usuários', error);
@@ -82,24 +71,15 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const handleRoleChange = async (id: string, newRole: string) => {
         try {
-            console.log(`[DEBUG] Tentando mudar cargo de ${id} para ${newRole}`);
-            
             // Atualiza o estado da tela imediatamente para o usuário não ficar esperando (Optimistic UI Update)
             setUsers(prevUsers => prevUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
             
-            const { data, error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
-            console.log(`[DEBUG] Resposta do Banco:`, { data, error });
+            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
             
             if (error) {
                 alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
                 fetchUsers(); // Reverte a tela em caso de erro
                 return;
-            }
-            
-            // Verifica se o banco realmente retornou o novo cargo
-            if (data && data.length > 0 && data[0].role !== newRole) {
-                console.error(`[DEBUG CRÍTICO] O banco de dados confirmou sucesso mas não salvou o dado! Retornou:`, data[0]);
-                alert('Atenção: O banco de dados processou a ordem, mas não salvou o cargo. Isso é um erro interno do PostgreSQL.');
             }
             
             fetchUsers();
