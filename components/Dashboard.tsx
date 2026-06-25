@@ -66,7 +66,8 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
   // 3. Distribuição por Campus (Álvares vs Aeroporto)
   const alvaresCount = devices.filter(d => d.currentAssignment?.campus === 'Álvares').length;
   const aeroportoCount = devices.filter(d => d.currentAssignment?.campus === 'Aeroporto').length;
-  const inStockNoCampus = stats.total - alvaresCount - aeroportoCount;
+  const ambosCount = devices.filter(d => d.currentAssignment?.campus === 'Álvares / Aeroporto').length;
+  const inStockNoCampus = stats.total - alvaresCount - aeroportoCount - ambosCount;
 
   // 4. Setores/Departamentos com Mais Equipamentos Ativos
   const deptMap: Record<string, number> = {};
@@ -224,6 +225,20 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                 <div 
                   className="h-full bg-emerald-500 rounded-full transition-all duration-1000" 
                   style={{ width: `${stats.total > 0 ? (aeroportoCount / stats.total) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Ambos os Campi */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                <span className="flex items-center gap-1.5"><Building2 size={14} className="text-purple-500" /> Álvares / Aeroporto</span>
+                <span>{ambosCount} ativos ({stats.total > 0 ? Math.round((ambosCount / stats.total) * 100) : 0}%)</span>
+              </div>
+              <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-purple-500 rounded-full transition-all duration-1000" 
+                  style={{ width: `${stats.total > 0 ? (ambosCount / stats.total) * 100 : 0}%` }}
                 />
               </div>
             </div>

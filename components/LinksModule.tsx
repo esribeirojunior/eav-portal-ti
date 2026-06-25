@@ -15,7 +15,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [selectedCampus, setSelectedCampus] = useState<'Todos' | 'Álvares' | 'Aeroporto'>('Todos');
+    const [selectedCampus, setSelectedCampus] = useState<'Todos' | 'Álvares' | 'Aeroporto' | 'Álvares / Aeroporto'>('Todos');
 
     // Form State
     const [title, setTitle] = useState('');
@@ -150,7 +150,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                 <div className="flex items-center gap-3 animate-in fade-in duration-300">
                     <span className="text-[10px] font-black uppercase text-white/30 tracking-widest">Campus:</span>
                     <div className="flex gap-2">
-                        {(['Todos', 'Álvares', 'Aeroporto'] as const).map((cp) => (
+                        {(['Todos', 'Álvares', 'Aeroporto', 'Álvares / Aeroporto'] as const).map((cp) => (
                             <button
                                 key={cp}
                                 onClick={() => setSelectedCampus(cp)}
@@ -306,6 +306,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                                         <option value="Todos" className="bg-slate-800 text-white">Todos</option>
                                         <option value="Álvares" className="bg-slate-800 text-white">Álvares</option>
                                         <option value="Aeroporto" className="bg-slate-800 text-white">Aeroporto</option>
+                                        <option value="Álvares / Aeroporto" className="bg-slate-800 text-white">Álvares / Aeroporto</option>
                                     </select>
                                 </div>
                             </div>

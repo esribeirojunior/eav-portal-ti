@@ -240,7 +240,17 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                     const userEmail = getRowValue(row, ['email', 'e-mail', 'correio']);
 
                     const userDeptName = getRowValue(row, ['departamento', 'setor', 'local', 'area', 'department', 'secao']);
-                    const campusVal = getRowValue(row, ['campus', 'unidade', 'predio', 'filial']);
+                    let campusVal = getRowValue(row, ['campus', 'unidade', 'predio', 'filial']) || 'Álvares';
+                
+                    // Normaliza o nome do campus para evitar falhas no filtro e nos gráficos
+                    const campusNormalized = campusVal.toLowerCase().replace(/\s/g, '');
+                    if (campusNormalized.includes('aeroporto/alvares') || campusNormalized.includes('alvares/aeroporto') || (campusNormalized.includes('alvares') && campusNormalized.includes('aeroporto'))) {
+                        campusVal = 'Álvares / Aeroporto';
+                    } else if (campusNormalized.includes('aeroporto')) {
+                        campusVal = 'Aeroporto';
+                    } else if (campusNormalized.includes('alvares') || campusNormalized.includes('álvares')) {
+                        campusVal = 'Álvares';
+                    }
 
                     let deptId = null;
                     if (userDeptName) {
