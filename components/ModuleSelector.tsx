@@ -17,14 +17,10 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail }: ModuleSe
             {/* SIDEBAR */}
             <aside className="w-[280px] bg-white dark:bg-white/5 border-r border-slate-200 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen transition-colors duration-300">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-200 dark:border-white/5 flex flex-col gap-4">
-                    <div className="w-32">
+                <div className="p-6 border-b border-slate-200 dark:border-white/5 flex flex-col items-center justify-center min-h-[100px]">
+                    <div className="w-48">
                         <img src="/logo.png" alt="EAV Logo" className="w-full h-auto block dark:hidden" />
                         <img src="/logo-branco.png" alt="EAV Logo" className="w-full h-auto hidden dark:block" />
-                    </div>
-                    <div>
-                        <h1 className="text-[1.35rem] font-bold text-slate-900 dark:text-white tracking-tight leading-none">TI Central</h1>
-                        <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">Portal corporativo</p>
                     </div>
                 </div>
 
