@@ -25,6 +25,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchUsers = async () => {
         try {
+            // Tenta forçar a criação da coluna antes de buscar para garantir que ela exista
+            await fetch('/api/admin/force-role').catch(() => {});
+            
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
             console.log("[DEBUG] fetchUsers retornou:", data);
             

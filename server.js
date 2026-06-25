@@ -231,6 +231,16 @@ app.get('/api/admin/fix-roles', async (req, res) => {
   }
 });
 
+// Endpoint Forçar Recriação da Coluna
+app.get('/api/admin/force-role', async (req, res) => {
+  try {
+    await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'");
+    res.json({ success: true, message: "Coluna criada com sucesso!" });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+});
+
 // Endpoint de Banco de Dados simulado
 app.post('/api/db', authenticateToken, async (req, res) => {
   processBase64Fields(req.body);
