@@ -221,6 +221,16 @@ function authenticateToken(req, res, next) {
   next();
 }
 
+// Endpoint de Debug/Fix
+app.get('/api/admin/fix-roles', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, email, role FROM authorized_users');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint de Banco de Dados simulado
 app.post('/api/db', authenticateToken, async (req, res) => {
   processBase64Fields(req.body);
