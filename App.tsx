@@ -373,6 +373,15 @@ const App: React.FC = () => {
 
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+
+  // Garantia absoluta de Super Admin para Erisson
+  useEffect(() => {
+    if (isAuthenticated && userEmail && userEmail.toLowerCase().includes('erisson.junior') && userRole !== 'superadmin') {
+      setUserRole('superadmin');
+      localStorage.setItem('user_role', 'superadmin');
+      supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
+    }
+  }, [isAuthenticated, userEmail, userRole]);
   const [isAccessoryModalOpen, setIsAccessoryModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [assigningDevice, setAssigningDevice] = useState<Device | null>(null);
@@ -678,7 +687,15 @@ const App: React.FC = () => {
       localStorage.setItem('user_email', email.toLowerCase());
       
       const { data } = await supabase.from('authorized_users').select('role').ilike('email', email).maybeSingle();
-      const role = data?.role || 'admin';
+      let role = data?.role || 'admin';
+      
+      // Fallback de segurança garantido para o Super Admin
+      if (email.toLowerCase().includes('erisson.junior')) {
+          role = 'superadmin';
+          // Força a atualização no banco silenciosamente caso tenha falhado
+          supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', email).then(() => {});
+      }
+      
       setUserRole(role);
       localStorage.setItem('user_role', role);
       
