@@ -377,6 +377,7 @@ app.post('/api/db', authenticateToken, async (req, res) => {
           results.push(finalItem);
         }
         await client.query('COMMIT');
+        client.release();
       } catch (err) {
         await client.query('ROLLBACK');
         client.release();
