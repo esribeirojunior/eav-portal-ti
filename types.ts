@@ -40,6 +40,7 @@ export interface TechnicalInspection {
 export interface Assignment {
   id: string;
   userName: string;
+  userEmail?: string;
   userDepartment: string;
   userRole?: UserRole;
   startDate: string;

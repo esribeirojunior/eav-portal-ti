@@ -102,7 +102,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 for (let i = 0; i < Math.min(rows.length, 20); i++) {
                     const row = rows[i];
                     const rowString = JSON.stringify(row).toLowerCase();
-                    if (rowString.includes('service tag') || rowString.includes('equipamento') || rowString.includes('patrimônio') || rowString.includes('tag')) {
+                    if (rowString.includes('service tag') || rowString.includes('equipamento') || rowString.includes('patrimônio') || rowString.includes('tag') || rowString.includes('dispositivo') || rowString.includes('modelo') || rowString.includes('sn') || rowString.includes('serial')) {
                         headerRowIndex = i;
                         break;
                     }
@@ -235,6 +235,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 if (status === DeviceStatus.IN_USE) {
                     const matchedName = findFuzzyMatch(rawUserName);
                     const finalUserName = matchedName || rawUserName;
+                    
+                    const userEmail = getRowValue(row, ['email', 'e-mail', 'correio']);
 
                     const userDeptName = getRowValue(row, ['departamento', 'setor', 'local', 'area', 'department', 'secao']);
                     const campusVal = getRowValue(row, ['campus', 'unidade', 'predio', 'filial']);
@@ -290,6 +292,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                             const { error: assignError } = await supabase.from('assignments').insert({
                                 device_id: deviceData.id,
                                 user_name: finalUserName,
+                                user_email: userEmail,
                                 department_id: deptId,
                                 assigned_at: new Date().toISOString(),
                                 user_role: UserRole.COLLABORATOR,
@@ -302,6 +305,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                         const { error: assignError } = await supabase.from('assignments').insert({
                             device_id: deviceData.id,
                             user_name: finalUserName,
+                            user_email: userEmail,
                             department_id: deptId,
                             assigned_at: new Date().toISOString(),
                             user_role: UserRole.COLLABORATOR,

@@ -436,7 +436,8 @@ const App: React.FC = () => {
         const mappedHistory = (device.assignments || []).map((a: any) => ({
           id: a.id,
           userName: a.user_name,
-          userDepartment: a.department?.name || 'N/A',
+          userEmail: a.user_email,
+          userDepartment: a.department ? a.department.name : 'Outros Setores',
           userRole: a.user_role,
           userGrade: a.grade,
           startDate: a.assigned_at,
