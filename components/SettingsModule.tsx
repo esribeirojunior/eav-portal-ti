@@ -27,7 +27,14 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         try {
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
             console.log("[DEBUG] fetchUsers retornou:", data);
-            if (data) setUsers(data);
+            
+            // Debug Extremo na Tela
+            if (data) {
+                const rolesText = data.map(u => `${u.email}: ${u.role}`).join('\n');
+                alert(`O BANCO ESTÁ RESPONDENDO COM ESTES CARGOS:\n\n${rolesText}`);
+                setUsers(data);
+            }
+            
             if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar usuários', error);
