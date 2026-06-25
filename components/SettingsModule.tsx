@@ -71,10 +71,15 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const handleRoleChange = async (id: string, newRole: string) => {
         try {
-            await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            if (error) {
+                alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
+                return;
+            }
             fetchUsers();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao atualizar cargo', error);
+            alert('Erro na requisição: ' + error.message);
         }
     };
 
