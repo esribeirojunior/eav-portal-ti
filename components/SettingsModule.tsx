@@ -26,6 +26,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const fetchUsers = async () => {
         try {
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
+            console.log("[DEBUG] fetchUsers retornou:", data);
             if (data) setUsers(data);
             if (error) console.error(error);
         } catch (error) {
