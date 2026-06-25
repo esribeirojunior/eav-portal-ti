@@ -169,7 +169,7 @@ export function Copilot() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Pergunte sobre os ativos..."
-                className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
+                className="flex-1 bg-slate-100 text-slate-800 placeholder:text-slate-400 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
                 disabled={isLoading}
               />
               <button 
