@@ -26,11 +26,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const fetchUsers = async () => {
         try {
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
-            if (data) {
-                // SUPER DEBUG 2
-                alert('RESPOSTA DO SERVIDOR (FETCH USERS):\n' + JSON.stringify(data, null, 2));
-                setUsers(data);
-            }
+            if (data) setUsers(data);
             if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar usuários', error);
@@ -78,11 +74,8 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
             // Atualiza o estado da tela imediatamente para o usuário não ficar esperando (Optimistic UI Update)
             setUsers(prevUsers => prevUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
             
-            const { data, error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
             
-            // SUPER DEBUG
-            alert('RESPOSTA DO SERVIDOR (UPDATE):\n' + JSON.stringify(data, null, 2));
-
             if (error) {
                 alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
                 fetchUsers(); // Reverte a tela em caso de erro
