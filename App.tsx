@@ -934,6 +934,7 @@ const App: React.FC = () => {
                     onMaintenance={handleMaintenance}
                     onDelete={handleDeleteDevice}
                     onRefresh={fetchDevices}
+                    userRole={userRole}
                   />
                 )}
               </div>
