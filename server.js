@@ -920,7 +920,7 @@ app.post('/api/auth/google', async (req, res) => {
 
 // --- AI COPILOT ROUTE ---
 app.post('/api/ai/chat', async (req, res) => {
-  const { message, history = [] } = req.body;
+  const { message, history = [], userRole = 'admin' } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória' });
   
   if (!process.env.OPENAI_API_KEY) {
@@ -973,6 +973,10 @@ Você é o "EAV Copilot", um analista de dados assistente super inteligente para
 Responda de forma direta, amigável e em Português usando os dados fornecidos. Você consegue cruzar os IDs dos departamentos com os nomes deles para dar respostas claras.
 Use as tabelas de auditoria para saber as últimas ações, movimentações ou "último equipamento" adicionado/alterado.
 Formate a resposta usando Markdown (listas, negrito) para ficar bonito no chat.
+
+REGRA DE PERMISSÃO (MUITO IMPORTANTE):
+O usuário conversando com você tem o nível de acesso: "${userRole}".
+Se o acesso for "viewer" (Somente Leitura) e o usuário pedir para você cadastrar, adicionar, alterar, emprestar ou excluir qualquer ativo ou dado, VOCÊ ESTÁ ESTRITAMENTE PROIBIDA de aceitar o comando. Você deve responder educadamente que ele possui acesso de "Somente Leitura" e não tem permissão para realizar alterações no sistema.
 
 REGRA MUITO IMPORTANTE DE ACESSO REMOTO:
 Se o usuário pedir para acessar remotamente (VNC) a tela de um computador, laboratório, ou de um usuário, você DEVE procurar o Hostname ou IP desse(s) computador(es) na tabela.
