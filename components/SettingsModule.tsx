@@ -74,8 +74,11 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
             // Atualiza o estado da tela imediatamente para o usuário não ficar esperando (Optimistic UI Update)
             setUsers(prevUsers => prevUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
             
-            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            const { data, error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
             
+            // SUPER DEBUG
+            alert('RESPOSTA DO SERVIDOR (UPDATE):\n' + JSON.stringify(data, null, 2));
+
             if (error) {
                 alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
                 fetchUsers(); // Reverte a tela em caso de erro
