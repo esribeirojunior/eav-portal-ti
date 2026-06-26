@@ -26,7 +26,11 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const fetchUsers = async () => {
         try {
             const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
-            if (data) setUsers(data);
+            if (data) {
+                // SUPER DEBUG 2
+                alert('RESPOSTA DO SERVIDOR (FETCH USERS):\n' + JSON.stringify(data, null, 2));
+                setUsers(data);
+            }
             if (error) console.error(error);
         } catch (error) {
             console.error('Erro ao buscar usuários', error);
