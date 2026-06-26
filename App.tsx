@@ -960,6 +960,7 @@ const App: React.FC = () => {
                     onLogout={handleLogout}
                     onImportClick={() => setIsImportModalOpen(true)}
                     onExportClick={handleExportCSV}
+                    userRole={userRole}
                   />
                 ) : (
                   <DeviceList

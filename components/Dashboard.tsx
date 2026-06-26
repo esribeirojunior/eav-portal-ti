@@ -45,9 +45,10 @@ interface Props {
   onLogout: () => void;
   onImportClick?: () => void;
   onExportClick?: () => void;
+  userRole?: string;
 }
 
-export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onExportClick }) => {
+export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onExportClick, userRole }) => {
   const maintenanceCount = devices.filter(d => d.status === DeviceStatus.MAINTENANCE).length;
 
   // 1. Dados do Gráfico de Saúde e Estado Geral
@@ -123,20 +124,24 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
           <p className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest mt-1">Visão analítica completa do inventário</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button 
-            onClick={onImportClick}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-500 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-white rounded-2xl transition-all text-[11px] font-black uppercase tracking-widest shadow-sm active:scale-95"
-          >
-            <FileUp size={16} />
-            Importar
-          </button>
-          <button 
-            onClick={onExportClick}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95"
-          >
-            <FileDown size={16} />
-            Exportar CSV
-          </button>
+          {userRole !== 'viewer' && (
+            <>
+              <button 
+                onClick={onImportClick}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-indigo-500 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 text-slate-700 dark:text-white rounded-2xl transition-all text-[11px] font-black uppercase tracking-widest shadow-sm active:scale-95"
+              >
+                <FileUp size={16} />
+                Importar
+              </button>
+              <button 
+                onClick={onExportClick}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl transition-all text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95"
+              >
+                <FileDown size={16} />
+                Exportar CSV
+              </button>
+            </>
+          )}
         </div>
       </div>
 
