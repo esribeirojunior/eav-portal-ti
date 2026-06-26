@@ -374,12 +374,22 @@ const App: React.FC = () => {
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
-  // Garantia absoluta de Super Admin para Erisson
+  // Garantia absoluta de Super Admin para Erisson e sincronização de cargos para os demais
   useEffect(() => {
-    if (isAuthenticated && userEmail && userEmail.toLowerCase().includes('erisson.junior') && userRole !== 'superadmin') {
-      setUserRole('superadmin');
-      localStorage.setItem('user_role', 'superadmin');
-      supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
+    if (isAuthenticated && userEmail) {
+      if (userEmail.toLowerCase().includes('erisson.junior') && userRole !== 'superadmin') {
+        setUserRole('superadmin');
+        localStorage.setItem('user_role', 'superadmin');
+        supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
+      } else {
+        // Busca o cargo atualizado do banco de dados em segundo plano para qualquer outro usuário
+        supabase.from('authorized_users').select('role').ilike('email', userEmail).maybeSingle().then(({ data }) => {
+          if (data && data.role && data.role !== userRole) {
+            setUserRole(data.role);
+            localStorage.setItem('user_role', data.role);
+          }
+        });
+      }
     }
   }, [isAuthenticated, userEmail, userRole]);
   const [isAccessoryModalOpen, setIsAccessoryModalOpen] = useState(false);
