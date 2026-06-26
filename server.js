@@ -131,6 +131,9 @@ async function initPostgresDB() {
       try { await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'"); } catch (e) {}
       try { await pool.query("UPDATE authorized_users SET role = 'superadmin' WHERE email ILIKE 'erisson.junior@escolaamericana.com.br'"); } catch (e) {}
       
+      // Add modules column if it doesn't exist
+      try { await pool.query(`ALTER TABLE authorized_users ADD COLUMN modules TEXT DEFAULT '["assets","links","audit","tasks","vault","tutorials","lab"]'`); } catch (e) {}
+      
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
     `);
@@ -444,7 +447,7 @@ app.post('/api/db', authenticateToken, async (req, res) => {
 
     if (table === 'authorized_users') {
       // Retorna as informações seguras do usuário, incluindo o cargo (role) e excluindo a senha (password)
-      result = result.map(u => ({ id: u.id, email: u.email, role: u.role, created_at: u.created_at }));
+      result = result.map(u => ({ id: u.id, email: u.email, role: u.role, modules: u.modules, created_at: u.created_at }));
     }
 
     return res.json({ data: isSingle ? (result[0] || null) : result, error: null });
@@ -787,7 +790,7 @@ app.delete('/api/tutorials/:id', authenticateToken, (req, res) => {
 
 app.get('/api/admin/users', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, email, role, created_at FROM authorized_users ORDER BY created_at DESC');
+    const result = await pool.query('SELECT id, email, role, modules, created_at FROM authorized_users ORDER BY created_at DESC');
     res.json({ data: result.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -801,15 +804,16 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
     const id = Math.random().toString(36).substring(2, 9);
     const pwd = password || 'eav@123';
     const userRole = role || 'admin';
+    const defaultModules = '["assets","links","audit","tasks","vault","tutorials","lab"]';
     
     const check = await pool.query('SELECT * FROM authorized_users WHERE email = $1', [email]);
     if (check.rows.length > 0) return res.status(400).json({ error: 'Usuario ja existe' });
 
     await pool.query(
-      "INSERT INTO authorized_users (id, email, password, role, created_at) VALUES ($1, $2, $3, $4, $5)",
-      [id, email, pwd, userRole, new Date().toISOString()]
+      "INSERT INTO authorized_users (id, email, password, role, modules, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
+      [id, email, pwd, userRole, defaultModules, new Date().toISOString()]
     );
-    res.json({ data: { id, email, role: userRole } });
+    res.json({ data: { id, email, role: userRole, modules: defaultModules } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -851,6 +855,7 @@ app.post('/api/auth/login', async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
+        modules: user.modules,
         name: user.email.split('@')[0]
       },
       token: token
@@ -902,6 +907,7 @@ app.post('/api/auth/google', async (req, res) => {
         id: user.id,
         email: user.email,
         role: user.role,
+        modules: user.modules,
         name: payload['name'] || user.email.split('@')[0]
       },
       token: token

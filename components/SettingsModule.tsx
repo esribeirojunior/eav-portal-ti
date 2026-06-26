@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Building2, Plus, Trash2, Shield } from 'lucide-react';
+import { Users, Building2, Plus, Trash2, Shield, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { ModulePermissionsModal } from './ModulePermissionsModal';
 
 interface SettingsModuleProps {
     userEmail?: string;
@@ -13,6 +14,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const [users, setUsers] = useState<any[]>([]);
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserPassword, setNewUserPassword] = useState('');
+    const [configuringUser, setConfiguringUser] = useState<any>(null);
     
     // Departments state
     const [departments, setDepartments] = useState<any[]>([]);
@@ -196,6 +198,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                             <tr>
                                                 <th className="px-6 py-4">Usuário</th>
                                                 <th className="px-6 py-4">Status</th>
+                                                <th className="px-6 py-4 text-center">Acessos</th>
                                                 <th className="px-6 py-4 text-right">Ação</th>
                                             </tr>
                                         </thead>
@@ -221,6 +224,14 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                             <option value="admin">Administrador</option>
                                                             <option value="viewer">Somente Leitura</option>
                                                         </select>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <button
+                                                            onClick={() => setConfiguringUser(u)}
+                                                            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-lg transition-colors"
+                                                        >
+                                                            <Settings2 size={14} /> Configurar
+                                                        </button>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <button 
@@ -287,6 +298,14 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Permissões de Módulos */}
+            <ModulePermissionsModal
+                isOpen={!!configuringUser}
+                onClose={() => setConfiguringUser(null)}
+                user={configuringUser}
+                onSaved={fetchUsers}
+            />
         </div>
     );
 };

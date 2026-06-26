@@ -371,6 +371,14 @@ const App: React.FC = () => {
     return localStorage.getItem('user_role') || 'admin';
   });
 
+  const [userModules, setUserModules] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user_modules') || '["assets","links","audit","tasks","vault","tutorials","lab"]');
+    } catch {
+      return ["assets","links","audit","tasks","vault","tutorials","lab"];
+    }
+  });
+
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
@@ -383,15 +391,26 @@ const App: React.FC = () => {
         supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
       } else {
         // Busca o cargo atualizado do banco de dados em segundo plano para qualquer outro usuário
-        supabase.from('authorized_users').select('role').ilike('email', userEmail).maybeSingle().then(({ data }) => {
-          if (data && data.role && data.role !== userRole) {
-            setUserRole(data.role);
-            localStorage.setItem('user_role', data.role);
+        supabase.from('authorized_users').select('role, modules').ilike('email', userEmail).maybeSingle().then(({ data }) => {
+          if (data) {
+            if (data.role && data.role !== userRole) {
+              setUserRole(data.role);
+              localStorage.setItem('user_role', data.role);
+            }
+            if (data.modules) {
+              try {
+                const parsedModules = typeof data.modules === 'string' ? JSON.parse(data.modules) : data.modules;
+                setUserModules(parsedModules);
+                localStorage.setItem('user_modules', JSON.stringify(parsedModules));
+              } catch (e) {
+                console.error("Failed to parse modules");
+              }
+            }
           }
         });
       }
     }
-  }, [isAuthenticated, userEmail, userRole]);
+  }, [isAuthenticated, userEmail, userRole, userModules]);
   const [isAccessoryModalOpen, setIsAccessoryModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [assigningDevice, setAssigningDevice] = useState<Device | null>(null);
@@ -696,7 +715,7 @@ const App: React.FC = () => {
       localStorage.setItem('user_authenticated', 'true');
       localStorage.setItem('user_email', email.toLowerCase());
       
-      const { data } = await supabase.from('authorized_users').select('role').ilike('email', email).maybeSingle();
+      const { data } = await supabase.from('authorized_users').select('role, modules').ilike('email', email).maybeSingle();
       let role = data?.role || 'admin';
       
       // Fallback de segurança garantido para o Super Admin
@@ -708,6 +727,16 @@ const App: React.FC = () => {
       
       setUserRole(role);
       localStorage.setItem('user_role', role);
+
+      if (data?.modules) {
+        try {
+          const parsedModules = typeof data.modules === 'string' ? JSON.parse(data.modules) : data.modules;
+          setUserModules(parsedModules);
+          localStorage.setItem('user_modules', JSON.stringify(parsedModules));
+        } catch (e) {
+          console.error("Failed to parse modules on login", e);
+        }
+      }
       
       fetchDevices();
     }} />
@@ -1060,6 +1089,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           userEmail={userEmail}
           userRole={userRole}
+          userModules={userModules}
         />
       )}
 
