@@ -441,19 +441,26 @@ const App: React.FC = () => {
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
 
-  // Initial Load
+  // Initial Load & Auto-Refresh Polling
   useEffect(() => {
     if (isAuthenticated) {
-      fetchDevices();
+      fetchDevices(); // Busca com loading (tela inicial)
+
+      // Polling a cada 5 segundos (Atualização Automática de Tela)
+      const interval = setInterval(() => {
+        fetchDevices(3, true); // Busca silenciosa no background
+      }, 5000);
+
+      return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
 
-  // --- FUNÇÃO FETCH DEVICES COM RETRY ---
-  const fetchDevices = async (retries = 3) => {
+  // --- FUNÇÃO FETCH DEVICES COM RETRY E SILENT ---
+  const fetchDevices = async (retries = 3, silent = false) => {
     if (isTestMode) return; // Não faz fetch no modo teste
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
-      console.log(`📡 [Fetch] Buscando dados do inventário... (Tentativas restantes: ${retries})`);
+      if (!silent) console.log(`📡 [Fetch] Buscando dados do inventário... (Tentativas restantes: ${retries})`);
       const { data: devicesData, error } = await supabase
         .from('devices')
         .select(`
@@ -505,18 +512,18 @@ const App: React.FC = () => {
         };
       });
 
-      console.log("✅ [Fetch] Dados carregados com sucesso!");
+      if (!silent) console.log("✅ [Fetch] Dados carregados com sucesso!");
       setDevices(formattedData || []);
     } catch (err) {
-      console.error(`❌ [Fetch] Erro (Tentativas restantes: ${retries}):`, err);
+      if (!silent) console.error(`❌ [Fetch] Erro (Tentativas restantes: ${retries}):`, err);
       if (retries > 0) {
-        console.log(`🔄 [Fetch] Tentando reconectar em 2 segundos...`);
-        setTimeout(() => fetchDevices(retries - 1), 2000);
+        if (!silent) console.log(`🔄 [Fetch] Tentando reconectar em 2 segundos...`);
+        setTimeout(() => fetchDevices(retries - 1, silent), 2000);
       } else {
-        showNotification("Erro de conexão persistente.");
+        if (!silent) showNotification("Erro de conexão persistente.");
       }
     } finally {
-      if (retries === 0) setLoading(false);
+      if (!silent && (retries === 0 || setDevices)) setLoading(false);
     }
   };
 

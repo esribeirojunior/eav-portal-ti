@@ -23,6 +23,13 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     useEffect(() => {
         if (activeTab === 'users') fetchUsers();
         if (activeTab === 'departments') fetchDepartments();
+
+        const interval = setInterval(() => {
+            if (activeTab === 'users') fetchUsers();
+            if (activeTab === 'departments') fetchDepartments();
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, [activeTab]);
 
     const fetchUsers = async () => {
