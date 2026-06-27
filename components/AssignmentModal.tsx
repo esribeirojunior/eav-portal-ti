@@ -26,6 +26,7 @@ interface UserSuggestion {
 export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail }: AssignmentModalProps) {
   const [loading, setLoading] = useState(false);
   const [userName, setUserName] = useState('');
+  const [assigneeEmail, setAssigneeEmail] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [userRole, setUserRole] = useState('Aluno');
   const [grade, setGrade] = useState(''); // Estado para a turma
@@ -35,6 +36,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
   // Reset form when role changes
   useEffect(() => {
     setUserName('');
+    setAssigneeEmail('');
     setDepartmentId('');
     setGrade('');
     setCampus('Álvares');
@@ -59,6 +61,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
     if (isOpen) {
       // RESET FORM
       setUserName('');
+      setAssigneeEmail('');
       setDepartmentId('');
       setUserRole('Aluno');
       setGrade('');
@@ -126,7 +129,8 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
             departmentId: assignment.department_id,
             campus: assignment.campus,
             grade: assignment.grade,
-            activeDevices: []
+            activeDevices: [],
+            email: assignment.user_email || ''
           });
         }
 
@@ -149,8 +153,9 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
     }
   };
 
-  const selectUser = (user: UserSuggestion) => {
+  const selectUser = (user: any) => {
     setUserName(user.userName);
+    if (user.email) setAssigneeEmail(user.email);
     setDepartmentId(user.departmentId); // Pre-fill department
     if (user.campus) {
       setCampus(user.campus); // Pre-fill campus
@@ -188,6 +193,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
           {
             device_id: device.id,
             user_name: userName,
+            user_email: assigneeEmail,
             department_id: departmentId,
             user_role: userRole,
             grade: userRole === 'Aluno' ? grade : null, // Salva turma apenas se for aluno
@@ -325,6 +331,21 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="space-y-2 animate-in fade-in duration-300">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">E-mail Corporativo</label>
+            <div className="relative group">
+              <input
+                type="email"
+                value={assigneeEmail}
+                onChange={(e) => setAssigneeEmail(e.target.value)}
+                className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600"
+                placeholder={`Email do ${userRole.toLowerCase()}...`}
+                required
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
             </div>
           </div>
 

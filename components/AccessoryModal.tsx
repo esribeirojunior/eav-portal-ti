@@ -23,6 +23,7 @@ interface UserSuggestion {
 export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: AccessoryModalProps) {
   const [loading, setLoading] = useState(false);
   const [userName, setUserName] = useState('');
+  const [assigneeEmail, setAssigneeEmail] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [userRole, setUserRole] = useState('Aluno');
   const [grade, setGrade] = useState('');
@@ -217,6 +218,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
   // Reset form when role changes
   useEffect(() => {
     setUserName('');
+    setAssigneeEmail('');
     setDepartmentId('');
     setGrade('');
     setCampus('Álvares');
@@ -228,6 +230,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
   useEffect(() => {
     if (isOpen) {
       setUserName('');
+      setAssigneeEmail('');
       setDepartmentId('');
       setUserRole('Aluno');
       setGrade('');
@@ -268,6 +271,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
         .from('assignments')
         .select(`
           user_name,
+          user_email,
           department_id,
           returned_at,
           device:devices (
@@ -291,7 +295,8 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
           userMap.set(name, {
             userName: name,
             departmentId: assignment.department_id,
-            activeDevices: []
+            activeDevices: [],
+            email: assignment.user_email || ''
           });
         }
 
@@ -312,8 +317,9 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
     }
   };
 
-  const selectUser = (user: UserSuggestion) => {
+  const selectUser = (user: any) => {
     setUserName(user.userName);
+    if (user.email) setAssigneeEmail(user.email);
     setDepartmentId(user.departmentId);
     setShowSuggestions(false);
   };
@@ -377,6 +383,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
           {
             device_id: deviceId,
             user_name: userName,
+            user_email: assigneeEmail,
             department_id: departmentId,
             user_role: userRole,
             grade: userRole === 'Aluno' ? grade : null,
@@ -540,6 +547,21 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="space-y-2 animate-in fade-in duration-300">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">E-mail Corporativo</label>
+              <div className="relative group">
+                <input
+                  type="email"
+                  value={assigneeEmail}
+                  onChange={(e) => setAssigneeEmail(e.target.value)}
+                  className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600"
+                  placeholder={`Email do ${userRole.toLowerCase()}...`}
+                  required
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
               </div>
             </div>
 
