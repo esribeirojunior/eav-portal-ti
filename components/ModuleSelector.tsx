@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus } from 'lucide-react';
+import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users } from 'lucide-react';
 
 interface ModuleSelectorProps {
-    onSelectModule: (module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => void;
+    onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => void;
     onLogout: () => void;
     userEmail?: string;
     userRole?: string;
@@ -44,6 +44,11 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('assets') && (
                                 <button onClick={() => onSelectModule('assets')} className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
                                     <Box size={16} /> Gestão de Ativos
+                                </button>
+                            )}
+                            {hasModule('assets') && (
+                                <button onClick={() => onSelectModule('employees')} className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
+                                    <Users size={16} /> Colaboradores
                                 </button>
                             )}
                             {hasModule('links') && (
@@ -139,6 +144,27 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                         </p>
                                     </div>
                                     <div className="mt-6 flex items-center text-[13px] font-semibold text-blue-700 dark:text-blue-500 group-hover:gap-2 transition-all">
+                                        <span className="mr-2">→</span> Acessar
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Colaboradores */}
+                            {hasModule('assets') && (
+                                <button 
+                                    onClick={() => onSelectModule('employees')}
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-indigo-600/50 hover:shadow-lg hover:shadow-indigo-900/10 min-h-[280px]"
+                                >
+                                    <div>
+                                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
+                                            <Users size={24} className="text-indigo-600" />
+                                        </div>
+                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Colaboradores</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-300 leading-relaxed font-medium">
+                                            Gestão de perfis e departamentos dos usuários de TI.
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-indigo-700 dark:text-indigo-500 group-hover:gap-2 transition-all">
                                         <span className="mr-2">→</span> Acessar
                                     </div>
                                 </button>
