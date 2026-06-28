@@ -1,4 +1,9 @@
+const fs = require('fs');
+const path = require('path');
 
+const targetFile = path.join(__dirname, 'components', 'VaultModule.tsx');
+
+const reactCode = `
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, Search, Copy, Eye, EyeOff, Loader2, ArrowLeft, Lock, Key, FileText, AlertCircle, CheckCircle2, Plus, X, Trash2, Save
@@ -43,7 +48,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
       const token = localStorage.getItem('auth_token');
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        'Authorization': token ? \`Bearer \${token}\` : ''
       };
 
       const [secretsRes, projectsRes] = await Promise.all([
@@ -77,7 +82,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
       const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/vault/secrets', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? \`Bearer \${token}\` : '' },
         body: JSON.stringify({ key: newKey, value: newValue, note: newNote, projectId: newSecretProjectId })
       });
       if (!res.ok) throw new Error('Erro ao salvar');
@@ -98,7 +103,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
       const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/vault/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? \`Bearer \${token}\` : '' },
         body: JSON.stringify({ name: newProjectName })
       });
       if (!res.ok) throw new Error('Erro ao salvar');
@@ -116,9 +121,9 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
     if (!window.confirm('Tem certeza que deseja apagar este segredo?')) return;
     try {
       const token = localStorage.getItem('auth_token');
-      await fetch(`/api/vault/secrets/${id}`, {
+      await fetch(\`/api/vault/secrets/\${id}\`, {
         method: 'DELETE',
-        headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+        headers: { 'Authorization': token ? \`Bearer \${token}\` : '' }
       });
       fetchData();
     } catch (err) {
@@ -186,7 +191,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
             <div className="space-y-1">
               <button 
                 onClick={() => setSelectedProjectId('all')}
-                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                className={\`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 \${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}\`}
               >
                 <ShieldCheck size={16} />
                 Todos os Itens
@@ -195,7 +200,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
                 <button 
                   key={project.id}
                   onClick={() => setSelectedProjectId(project.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                  className={\`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 \${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}\`}
                 >
                   <FileText size={16} />
                   {project.name}
@@ -315,7 +320,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
 
                     <div className="space-y-4">
                       <div className="relative">
-                        <div className={`w-full bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all ${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-400 dark:text-white/10 select-none blur-sm'}`}>
+                        <div className={\`w-full bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all \${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-400 dark:text-white/10 select-none blur-sm'}\`}>
                           {visibleSecrets[secret.id] ? secret.value : '••••••••••••••••••••••••'}
                         </div>
                         <button 
@@ -398,3 +403,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
 };
 
 export const VaultModule = React.memo(VaultModuleComponent);
+`;
+
+fs.writeFileSync(targetFile, reactCode, 'utf8');
+console.log('VaultModule.tsx atualizado com sucesso.');

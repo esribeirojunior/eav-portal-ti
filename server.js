@@ -104,6 +104,47 @@ function processBase64Fields(obj) {
   }
 }
 
+
+// --- VAULT MASTER KEY ---
+let VAULT_MASTER_KEY = process.env.VAULT_MASTER_KEY;
+if (!VAULT_MASTER_KEY) {
+    console.log('[Vault] VAULT_MASTER_KEY não encontrada. Gerando uma nova chave...');
+    VAULT_MASTER_KEY = crypto.randomBytes(32).toString('hex');
+    const envPath = path.join(__dirname, '.env');
+    fs.appendFileSync(envPath, '\nVAULT_MASTER_KEY=' + VAULT_MASTER_KEY + '\n');
+    process.env.VAULT_MASTER_KEY = VAULT_MASTER_KEY;
+}
+
+// Criptografia AES-256-GCM para o Cofre
+function encryptSecret(text) {
+    const iv = crypto.randomBytes(12); // GCM recomendado 12 bytes
+    const key = crypto.createHash('sha256').update(String(VAULT_MASTER_KEY)).digest('base64').substr(0, 32);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+    return iv.toString('hex') + ':' + authTag + ':' + encrypted;
+}
+
+function decryptSecret(encryptedData) {
+    try {
+        const parts = encryptedData.split(':');
+        if (parts.length !== 3) return null;
+        const iv = Buffer.from(parts[0], 'hex');
+        const authTag = Buffer.from(parts[1], 'hex');
+        const encrypted = parts[2];
+        const key = crypto.createHash('sha256').update(String(VAULT_MASTER_KEY)).digest('base64').substr(0, 32);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(authTag);
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+    } catch (err) {
+        console.error('[Vault] Erro ao descriptografar:', err);
+        return null;
+    }
+}
+
 // --- POSTGRES DATABASE SYSTEM ---
 import pg from 'pg';
 const { Pool } = pg;
@@ -126,6 +167,8 @@ async function initPostgresDB() {
       CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, user_email TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
+      CREATE TABLE IF NOT EXISTS vault_projects (id TEXT PRIMARY KEY, name TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS vault_secrets (id TEXT PRIMARY KEY, key_name TEXT, encrypted_value TEXT, note TEXT, project_id TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
     `);
       
