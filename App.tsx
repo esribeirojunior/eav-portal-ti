@@ -602,18 +602,17 @@ const App: React.FC = () => {
 
   const handleExportCSV = () => {
     try {
-      const headers = ['TAG', 'Serial Number', 'Modelo', 'Tipo', 'Categoria', 'Status', 'Responsavel', 'Setor', 'Campus', 'Observacao'];
+      const headers = ['Campus', 'Departamento', 'Usuário', 'Status', 'Dispositivo', 'Modelo', 'Service Tag', 'Email', 'Status Envio'];
       const rows = devices.map(d => [
-        d.tag || '',
-        d.serial_number || d.serialNumber || '',
-        d.model || '',
-        d.type || '',
-        d.category || '',
-        d.status || '',
-        d.currentAssignment?.userName || '',
-        d.currentAssignment?.department || '',
         d.currentAssignment?.campus || '',
-        d.condition || ''
+        d.currentAssignment?.userDepartment || '',
+        d.currentAssignment?.userName || '',
+        d.status || '',
+        d.type || '',
+        d.model || '',
+        d.tag || '',
+        d.currentAssignment?.userEmail || '',
+        ''
       ].map(val => `"${String(val).replace(/"/g, '""')}"`));
       
       const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -621,17 +620,17 @@ const App: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `inventario_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `inventario_eav_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      logAuditAction(userEmail, 'EXPORTAÇÃO', `Exportou o inventário completo para CSV.`, 'SYSTEM', 'export');
-      showNotification("Lista exportada com sucesso!");
+      logAuditAction(userEmail, 'EXPORTAÇÃO', `Exportou o inventário completo para CSV no novo formato.`, 'SYSTEM', 'export');
+      showNotification("Planilha exportada com sucesso!");
     } catch (e) {
       console.error("Erro ao exportar:", e);
-      showNotification("Erro ao exportar lista.");
+      showNotification("Erro ao exportar planilha.");
     }
   };
 
