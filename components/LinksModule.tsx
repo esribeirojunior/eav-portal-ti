@@ -34,7 +34,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
             const { data, error: sbError } = await supabase
                 .from('shortcuts')
                 .select('*')
-                .order('created_at', { ascending: true });
+                .order('title', { ascending: true });
 
             if (sbError) throw sbError;
 
