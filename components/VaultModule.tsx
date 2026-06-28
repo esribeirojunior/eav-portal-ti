@@ -135,8 +135,12 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
     });
   }, [secrets, searchQuery, selectedProjectId]);
 
-  const toggleVisibility = (id: string) => {
-    setVisibleSecrets(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleVisibility = (id: string, keyName: string) => {
+    setVisibleSecrets(prev => {
+        const isRevealing = !prev[id];
+        if (isRevealing) logVaultAction('VIEW_SECRET', id, keyName);
+        return { ...prev, [id]: isRevealing };
+    });
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -177,7 +181,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
                 <label className="text-[10px] uppercase tracking-[0.2em] font-black text-slate-700 dark:text-white/30">Projetos</label>
-                {isAdmin && (
+                {userRole === 'superadmin' && (
                     <button onClick={() => setIsProjectModalOpen(true)} className="text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 transition-colors">
                         <Plus size={14} />
                     </button>
@@ -260,8 +264,8 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
                 <p className="text-slate-700 dark:text-white/30 text-sm font-medium">Gestão centralizada de chaves e senhas de infraestrutura.</p>
               </div>
               <div className="flex items-center gap-4">
-                 {isAdmin && (
-                    <button onClick={() => setIsSecretModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+                 {userRole === 'superadmin' && (
+            <button onClick={() => setIsSecretModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-indigo-900/20">
                         <Plus size={16} /> Novo Segredo
                     </button>
                  )}
@@ -300,12 +304,12 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
                       
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => toggleVisibility(secret.id)}
+                          onClick={() => toggleVisibility(secret.id, secret.key)}
                           className="p-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-700 dark:text-white/40 hover:text-slate-900 dark:hover:text-white transition-all"
                         >
                           {visibleSecrets[secret.id] ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
-                        {isAdmin && (
+                        {userRole === 'superadmin' && (
                             <button 
                               onClick={() => handleDeleteSecret(secret.id)}
                               className="p-2.5 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-xl text-rose-500 transition-all opacity-0 group-hover:opacity-100"
@@ -322,7 +326,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
                           {visibleSecrets[secret.id] ? secret.value : '••••••••••••••••••••••••'}
                         </div>
                         <button 
-                          onClick={() => copyToClipboard(secret.value, 'Segredo')}
+                          onClick={() => copyToClipboard(secret.value, 'Segredo', secret.id, secret.key)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg active:scale-90 transition-all"
                         >
                           <Copy size={16} />

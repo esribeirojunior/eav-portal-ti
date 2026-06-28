@@ -248,25 +248,25 @@ async function readDBTable(sheetName) {
 }
 
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
-const ACTIVE_SESSIONS = new Set();
+const ACTIVE_SESSIONS = new Map();
 
 function authenticateToken(req, res, next) {
   const ip = req.ip || req.connection.remoteAddress || '';
   const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
 
-  // Permitir acesso irrestrito se a requisição vier do próprio computador (localhost)
-  if (isLocalhost) {
-    return next();
-  }
-
-  // Se vier da rede externa/local (ex: 192.168.x.x), exige token de login
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token || !ACTIVE_SESSIONS.has(token)) {
+  if (token && ACTIVE_SESSIONS.has(token)) {
+    req.user = ACTIVE_SESSIONS.get(token);
+    return next();
+  } else if (!isLocalhost) {
     return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
+  } else {
+    // Fallback para localhost bypass
+    req.user = { email: 'localhost@admin', role: 'superadmin' };
+    return next();
   }
-  next();
 }
 
 // Endpoint de Debug/Fix
@@ -919,7 +919,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     console.log(`[Auth] Login bem-sucedido para: ${email}`);
     const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.add(token);
+    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
     return res.json({ 
       user: {
         id: user.id,
@@ -1081,6 +1081,25 @@ Nova Mensagem do Usuário: ${message}
 
 
 // --- VAULT API ROUTES ---
+// --- Rota de Auditoria do Cofre ---
+app.post('/api/vault/audit', authenticateToken, async (req, res) => {
+    try {
+        const { action, secret_id, secret_name } = req.body;
+        const id = crypto.randomUUID();
+        const created_at = new Date().toISOString();
+        const user_email = req.user ? req.user.email : 'unknown';
+        const details = `Segredo: ${secret_name || secret_id}`;
+        
+        await pool.query(
+            'INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [id, user_email, action, details, 'VAULT', secret_id, created_at]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.get('/api/vault/projects', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM vault_projects ORDER BY name ASC');
@@ -1091,6 +1110,7 @@ app.get('/api/vault/projects', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/vault/projects', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar projetos.' });
     try {
         const { name } = req.body;
         const id = crypto.randomUUID();
@@ -1120,6 +1140,7 @@ app.get('/api/vault/secrets', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar segredos.' });
     try {
         const { key, value, note, projectId } = req.body;
         const id = crypto.randomUUID();
@@ -1137,6 +1158,7 @@ app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
 });
 
 app.delete('/api/vault/secrets/:id', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir segredos.' });
     try {
         await pool.query('DELETE FROM vault_secrets WHERE id = $1', [req.params.id]);
         res.json({ success: true });
