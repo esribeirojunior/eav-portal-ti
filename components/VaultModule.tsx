@@ -160,7 +160,25 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 
   const copyToClipboard = (text: string, label: string, secretId?: string, secretKey?: string) => {
     if (secretId && secretKey) logVaultAction('COPY_SECRET', secretId, secretKey);
-    navigator.clipboard.writeText(text);
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {
+        console.error('Falha no fallback de cópia', err);
+      }
+      document.body.removeChild(textArea);
+    }
+    
     setCopyFeedback(label);
     setTimeout(() => setCopyFeedback(null), 2000);
   };
