@@ -990,7 +990,7 @@ app.post('/api/auth/google', async (req, res) => {
 
     console.log(`[Auth Google] Login bem-sucedido para: ${email}`);
     const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.add(token);
+    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
 
     return res.json({
       user: {
