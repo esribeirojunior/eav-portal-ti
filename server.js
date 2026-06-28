@@ -107,11 +107,25 @@ function processBase64Fields(obj) {
 
 // --- VAULT MASTER KEY ---
 let VAULT_MASTER_KEY = process.env.VAULT_MASTER_KEY;
+const VAULT_KEY_FILE = path.join(DATA_DIR, 'vault.key');
+
 if (!VAULT_MASTER_KEY) {
-    console.log('[Vault] VAULT_MASTER_KEY não encontrada. Gerando uma nova chave...');
-    VAULT_MASTER_KEY = crypto.randomBytes(32).toString('hex');
-    const envPath = path.join(__dirname, '.env');
-    fs.appendFileSync(envPath, '\nVAULT_MASTER_KEY=' + VAULT_MASTER_KEY + '\n');
+    if (fs.existsSync(VAULT_KEY_FILE)) {
+        VAULT_MASTER_KEY = fs.readFileSync(VAULT_KEY_FILE, 'utf8').trim();
+        console.log('[Vault] VAULT_MASTER_KEY carregada do arquivo vault.key.');
+    } else {
+        console.warn('⚠️ [CRÍTICO] VAULT_MASTER_KEY não encontrada no ENV e nem no vault.key!');
+        console.warn('⚠️ Gerando uma nova chave efêmera. Se o container reiniciar, as senhas serão PERDIDAS.');
+        console.warn('⚠️ Configure a variável VAULT_MASTER_KEY no seu painel de hospedagem (ex: Coolify) imediatamente!');
+        VAULT_MASTER_KEY = crypto.randomBytes(32).toString('hex');
+        const envPath = path.join(__dirname, '.env');
+        fs.appendFileSync(envPath, '\nVAULT_MASTER_KEY=' + VAULT_MASTER_KEY + '\n');
+        try {
+            fs.writeFileSync(VAULT_KEY_FILE, VAULT_MASTER_KEY, 'utf8');
+        } catch (e) {
+            console.error('[Vault] Erro ao salvar vault.key:', e.message);
+        }
+    }
     process.env.VAULT_MASTER_KEY = VAULT_MASTER_KEY;
 }
 
