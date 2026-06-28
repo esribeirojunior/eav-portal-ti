@@ -275,7 +275,6 @@ export function DeviceList({
       {/* 📊 BARRA DE ESTATÍSTICAS (DASHBOARD COMPACTO NO TOPO - BANNER CONTÍNUO) */}
       <div className="bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2rem] p-2 animate-premium flex flex-col lg:flex-row shadow-sm">
         {[
-          { label: 'Total Setores', value: sortedSectors.length, icon: '📊', color: 'text-indigo-500' },
           { label: 'Equipamentos', value: devices.filter(d => d.status !== 'Manutenção').length, icon: '💼', color: 'text-emerald-500' },
           { label: 'Taxa Ativa', value: `${((inUseDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '✅', color: 'text-blue-500' },
           { label: 'Taxa Operacional', value: `${((availableDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '📈', color: 'text-purple-500' }
