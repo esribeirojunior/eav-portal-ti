@@ -24,6 +24,7 @@ interface EmployeeProfile {
 
 export const EmployeesModule: React.FC = () => {
   const [employees, setEmployees] = useState<EmployeeProfile[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
@@ -35,8 +36,19 @@ export const EmployeesModule: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
-    fetchEmployees();
+    const loadData = async () => {
+      const { data: deptData } = await supabase.from('department').select('*').order('name');
+      if (deptData) setDepartments(deptData);
+      
+      await fetchEmployees();
+    };
+    loadData();
   }, []);
+
+  const getDepartmentName = (id: string) => {
+    const dept = departments.find(d => String(d.id) === String(id));
+    return dept ? dept.name : id;
+  };
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -206,7 +218,7 @@ export const EmployeesModule: React.FC = () => {
                     </td>
                     <td className="py-4 px-6">
                       {emp.department_id ? (
-                        <span className="text-xs font-semibold text-slate-600">{emp.department_id}</span>
+                        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{getDepartmentName(emp.department_id)}</span>
                       ) : (
                         <span className="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-md">Sem Setor</span>
                       )}
@@ -297,13 +309,16 @@ export const EmployeesModule: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Setor / Departamento</label>
                     <div className="relative">
-                      <input
-                        type="text"
+                      <select
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
-                        placeholder="Ex: TI, Recepção, Sala dos Professores"
-                        className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
-                      />
+                        className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none"
+                      >
+                        <option value="">Selecione o Setor...</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
+                      </select>
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     </div>
                   </div>
