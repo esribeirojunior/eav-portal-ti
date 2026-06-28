@@ -295,6 +295,26 @@ app.post('/api/db', authenticateToken, async (req, res) => {
   const { table, filters = {}, ilikeCol, ilikeVal, insertData, updateData, isDelete, isUpsert, orderCol, orderAsc, isSingle } = req.body;
 
   try {
+    const isMutation = isDelete || updateData || insertData || isUpsert;
+    if (isMutation) {
+        const role = req.user ? req.user.role : 'viewer';
+        
+        // Privilege Escalation Prevention
+        if (table === 'authorized_users' && role !== 'superadmin') {
+            return res.status(403).json({ error: 'Acesso negado: Apenas Super Admins podem modificar contas de usuários.' });
+        }
+        
+        // Protect Vault and Audit logs from generic modifications
+        const readOnlyTables = ['audit_logs', 'vault_secrets', 'vault_projects'];
+        if (readOnlyTables.includes(table)) {
+            return res.status(403).json({ error: 'Operação não permitida via API genérica.' });
+        }
+        
+        // Mass Delete Prevention
+        if (isDelete && Object.keys(filters).length === 0) {
+            return res.status(400).json({ error: 'Exclusão em massa bloqueada. Forneça um filtro.' });
+        }
+    }
     let whereClause = '';
     const params = [];
     const filterKeys = Object.keys(filters);
@@ -706,7 +726,7 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
 
   console.log(`[VNC] Disparando conexão remota VNC para: ${ip}...`);
 
-  const vncPass = process.env.VNC_PASSWORD || 'eav@2017';
+  const vncPass = process.env.process.env.VNC_PASSWORD;
 
   // Usa spawn desanexado para forçar a janela a abrir como um aplicativo independente (em primeiro plano)
   const vncProcess = spawn('C:\\Program Files\\TightVNC\\tvnviewer.exe', [ip, `-password=${vncPass}`], {
