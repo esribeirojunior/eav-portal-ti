@@ -1123,6 +1123,7 @@ const App: React.FC = () => {
           userEmail={userEmail}
           userRole={userRole}
           onBack={() => setCurrentModule('selector')}
+          onLogout={handleLogout}
         />
       )}
 

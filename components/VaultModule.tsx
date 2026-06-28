@@ -9,9 +9,10 @@ interface VaultModuleProps {
   userEmail: string;
   onBack: () => void;
   userRole?: string;
+  onLogout: () => void;
 }
 
-const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, userRole }) => {
+const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, userRole, onLogout }) => {
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
