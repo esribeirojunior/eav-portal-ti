@@ -272,32 +272,7 @@ export function DeviceList({
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* 📊 BARRA DE ESTATÍSTICAS (DASHBOARD COMPACTO NO TOPO - BANNER CONTÍNUO) */}
-      <div className="bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 rounded-[2rem] p-2 animate-premium flex flex-col lg:flex-row shadow-sm">
-        {[
-          { label: 'Equipamentos', value: devices.filter(d => d.status !== 'Manutenção').length, icon: '💼', color: 'text-emerald-500' },
-          { label: 'Taxa Ativa', value: `${((inUseDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '✅', color: 'text-blue-500' },
-          { label: 'Taxa Operacional', value: `${((availableDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '📈', color: 'text-purple-500' }
-        ].map((stat, idx, arr) => (
-          <React.Fragment key={idx}>
-            <div className="flex-1 px-6 py-4 flex items-center gap-4 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl transition-all">
-              <div className={`w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-xl ${stat.color}`}>
-                {stat.icon}
-              </div>
-              <div className="text-left">
-                <p className="text-[9px] font-black text-slate-600 dark:text-white/40 uppercase tracking-widest mb-0.5">{stat.label}</p>
-                <p className="text-2xl font-[1000] text-slate-800 dark:text-white leading-tight">{stat.value}</p>
-              </div>
-            </div>
-            {idx < arr.length - 1 && (
-              <div className="hidden lg:block w-px bg-slate-200 dark:bg-white/5 my-4" />
-            )}
-            {idx < arr.length - 1 && (
-              <div className="block lg:hidden h-px bg-slate-200 dark:bg-white/5 mx-4" />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+
 
       {/* Tabs Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/5 pb-2">
