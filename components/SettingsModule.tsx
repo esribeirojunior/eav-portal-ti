@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Users, Building2, Plus, Trash2, Shield, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ModulePermissionsModal } from './ModulePermissionsModal';
+import { EmployeesModule } from './EmployeesModule';
 
 interface SettingsModuleProps {
     userEmail?: string;
 }
 
 export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'employees'>('users');
     
     // Users state
     const [users, setUsers] = useState<any[]>([]);
@@ -168,7 +169,13 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                             onClick={() => setActiveTab('departments')}
                             className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'departments' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
-                            <Building2 size={18} /> Setores e Departamentos
+                            <Building2 size={18} /> Setores
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('employees')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'employees' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                        >
+                            <Users size={18} /> Base de Colaboradores
                         </button>
                     </div>
 
@@ -300,6 +307,12 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                         <div className="col-span-2 text-center py-8 text-slate-500">Nenhum setor cadastrado.</div>
                                     )}
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'employees' && (
+                            <div className="pt-2">
+                                <EmployeesModule isEmbedded={true} />
                             </div>
                         )}
                     </div>

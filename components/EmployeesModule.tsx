@@ -22,7 +22,7 @@ interface EmployeeProfile {
   assignment_count: number;
 }
 
-export const EmployeesModule: React.FC = () => {
+export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded = false }) => {
   const [employees, setEmployees] = useState<EmployeeProfile[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +151,7 @@ export const EmployeesModule: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className={`space-y-6 animate-fade-in ${isEmbedded ? '' : 'pb-12'}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-sm p-6 rounded-3xl">
         <div className="flex items-center gap-4">

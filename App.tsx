@@ -20,7 +20,6 @@ import DevLabModule from './components/DevLabModule';
 import { SettingsModule } from './components/SettingsModule';
 import { AuditLogModal } from './components/AuditLogModal';
 import { UserProfile } from './components/UserProfile';
-import { EmployeesModule } from './components/EmployeesModule';
 import { Copilot } from './components/Copilot';
 import { logAuditAction } from './lib/supabase';
 import {
@@ -437,7 +436,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   // --- STATE: Controle de Módulos ---
-  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'employees' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings'>('selector');
+  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings'>('selector');
 
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
@@ -1107,22 +1106,6 @@ const App: React.FC = () => {
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
         />
-      )}
-
-      {currentModule === 'employees' && (
-        <div className="flex w-full h-screen overflow-hidden bg-[#f4f7fc] dark:bg-[#0c0d21] transition-colors relative">
-           <div className="flex-1 overflow-y-auto p-6 md:p-12">
-             <div className="max-w-[1400px] mx-auto z-10 pt-16 md:pt-0">
-                <EmployeesModule />
-             </div>
-           </div>
-           <button 
-              onClick={() => setCurrentModule('selector')}
-              className="absolute top-6 right-6 p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm hover:shadow-md transition-all z-50"
-           >
-              Voltar ao Início
-           </button>
-        </div>
       )}
 
       {currentModule === 'tasks' && (
