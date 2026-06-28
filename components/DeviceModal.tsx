@@ -294,15 +294,15 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                   key={item.label}
                   type="button"
                   onClick={() => setType(item.label)}
-                  className={`flex items-center gap-3 p-3.5 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${type === item.label
+                  className={`flex items-center gap-2 p-3 rounded-xl border text-[10px] sm:text-[11px] font-black uppercase tracking-wider transition-all ${type === item.label
                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20 dark:shadow-[0_0_15px_rgba(79,70,229,0.3)]'
                     : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-500 dark:text-white/40 hover:border-indigo-200 hover:text-indigo-600 dark:hover:border-white/20 dark:hover:text-white'
                     }`}
                 >
-                  {item.icon}
+                  <div className="shrink-0">{item.icon}</div>
                   {item.label === 'Outro' && type === 'Outro' ? (
-                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(e.target.value)} className="bg-transparent border-b border-white/50 text-white outline-none w-16 px-1 text-[10px] font-black placeholder:text-white/50" onClick={(e) => e.stopPropagation()} />
-                  ) : <span>{item.label}</span>}
+                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(e.target.value)} className={`bg-transparent border-b outline-none w-full px-1 text-[10px] font-black ${type === 'Outro' ? 'border-white/50 text-white placeholder:text-white/50' : 'border-slate-300 text-slate-900 dark:border-white/50 dark:text-white'}`} onClick={(e) => e.stopPropagation()} />
+                  ) : <span className="flex-1 text-left leading-tight break-words">{item.label}</span>}
                 </button>
               ))}
             </div>
