@@ -220,13 +220,13 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
         </div>
       )}
 
-      <div className="w-full max-w-md bg-slate-900 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[90vh]">
-        <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 p-8 border-b border-white/5 flex justify-between items-center">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[90vh]">
+        <div className="bg-slate-50 dark:bg-gradient-to-r dark:from-blue-900/40 dark:to-slate-900 p-8 border-b border-slate-200 dark:border-white/5 flex justify-between items-center">
           <div>
-            <h2 className="text-xs font-bold text-blue-400 tracking-widest uppercase mb-1">Inventário TI</h2>
-            <h3 className="text-2xl font-black text-white uppercase tracking-tight">Novo Ativo</h3>
+            <h2 className="text-xs font-bold text-indigo-600 dark:text-blue-400 tracking-widest uppercase mb-1">Inventário TI</h2>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Novo Ativo</h3>
           </div>
-          <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-white/40 hover:text-white">
+          <button onClick={onClose} className="p-3 bg-slate-200/50 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-2xl transition-all text-slate-500 hover:text-slate-900 dark:text-white/40 dark:hover:text-white">
             <X size={20} />
           </button>
         </div>
@@ -234,7 +234,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
         <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto flex-1">
           <div className="space-y-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.3em] flex items-center gap-2">
+              <label className="text-[10px] font-black text-indigo-600 dark:text-indigo-400/60 uppercase tracking-[0.3em] flex items-center gap-2">
                 <ScanLine size={12} />
                 Nº de Série (Identificador Principal)
               </label>
@@ -244,16 +244,16 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                     type="text"
                     value={serial}
                     onChange={handleSerialChange}
-                    className="w-full h-16 bg-white/5 text-white border border-white/10 rounded-2xl px-6 pl-14 focus:outline-none focus:border-indigo-500 transition-all uppercase text-base font-black tracking-wider placeholder:text-white/20"
+                    className="w-full h-16 bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-2xl px-6 pl-14 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all uppercase text-base font-black tracking-wider placeholder:text-slate-400 dark:placeholder:text-white/20 shadow-sm dark:shadow-none"
                     placeholder="DIGITE OU ESCANEIE O SERIAL..."
                     required
                   />
-                  <ScanLine size={24} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-500 transition-colors" />
+                  <ScanLine size={24} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <button
                   type="button"
                   onClick={startCamera}
-                  className="h-16 px-5 sm:px-6 bg-indigo-600 hover:bg-indigo-500 rounded-2xl flex items-center justify-center gap-2.5 transition-all text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] active:scale-95 group/cam whitespace-nowrap"
+                  className="h-16 px-5 sm:px-6 bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 rounded-2xl flex items-center justify-center gap-2.5 transition-all text-white shadow-lg shadow-indigo-600/20 dark:shadow-[0_0_20px_rgba(79,70,229,0.3)] active:scale-95 group/cam whitespace-nowrap"
                 >
                   <Camera size={24} className="group-hover:scale-110 transition-transform" />
                   <span className="text-[11px] font-black uppercase tracking-widest hidden sm:inline">Escanear</span>
@@ -262,7 +262,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest flex items-center gap-2">
+              <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest flex items-center gap-2">
                 <Tag size={12} />
                 Nº de Patrimônio
               </label>
@@ -271,23 +271,23 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                   type="text"
                   value={tag}
                   onChange={(e) => setTag(e.target.value)}
-                  className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-5 py-4 pl-12 focus:outline-none focus:border-indigo-500/50 transition-all font-mono text-base font-bold"
+                  className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-xl px-5 py-4 pl-12 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-mono text-base font-bold placeholder:text-slate-400 dark:placeholder:text-white/20 shadow-sm dark:shadow-none"
                   placeholder="EAV-..."
                   required
                 />
-                <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-indigo-500 transition-colors" />
+                <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/10 group-focus-within:text-indigo-500 transition-colors" />
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Modelo / Especificação</label>
-            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500/50 transition-all text-sm font-bold" placeholder="Ex: Dell Latitude..." required />
+            <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Modelo / Especificação</label>
+            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold placeholder:text-slate-400 dark:placeholder:text-white/20 shadow-sm dark:shadow-none" placeholder="Ex: Dell Latitude..." required />
             <datalist id="model-suggestions">{suggestedModels.map((s, i) => <option key={i} value={s} />)}</datalist>
           </div>
 
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Categoria</label>
+            <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Categoria</label>
             <div className="grid grid-cols-2 gap-2">
               {deviceTypes.map((item) => (
                 <button
@@ -295,13 +295,13 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                   type="button"
                   onClick={() => setType(item.label)}
                   className={`flex items-center gap-3 p-3.5 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${type === item.label
-                    ? 'bg-white text-black border-white'
-                    : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20 dark:shadow-[0_0_15px_rgba(79,70,229,0.3)]'
+                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-500 dark:text-white/40 hover:border-indigo-200 hover:text-indigo-600 dark:hover:border-white/20 dark:hover:text-white'
                     }`}
                 >
                   {item.icon}
                   {item.label === 'Outro' && type === 'Outro' ? (
-                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(e.target.value)} className="bg-transparent border-b border-black text-black outline-none w-16 px-1 text-[10px] font-black" onClick={(e) => e.stopPropagation()} />
+                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(e.target.value)} className="bg-transparent border-b border-white/50 text-white outline-none w-16 px-1 text-[10px] font-black placeholder:text-white/50" onClick={(e) => e.stopPropagation()} />
                   ) : <span>{item.label}</span>}
                 </button>
               ))}
@@ -309,8 +309,8 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
           </div>
 
           <div className="flex justify-between items-center pt-4">
-            <button type="button" onClick={onClose} className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-[0.2em] px-4 py-2 transition-all">Cancelar</button>
-            <button type="submit" disabled={loading} className="group flex items-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[12px] tracking-widest transition-all shadow-xl shadow-indigo-900/20 active:scale-95 disabled:opacity-50">
+            <button type="button" onClick={onClose} className="text-[10px] font-black text-slate-500 hover:text-slate-900 dark:text-white/20 dark:hover:text-white uppercase tracking-[0.2em] px-4 py-2 transition-all">Cancelar</button>
+            <button type="submit" disabled={loading} className="group flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[12px] tracking-widest transition-all shadow-xl shadow-indigo-600/20 dark:shadow-indigo-900/40 active:scale-95 disabled:opacity-50">
               {loading ? 'Salvando...' : 'Cadastrar'}
               <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
