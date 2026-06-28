@@ -1079,6 +1079,72 @@ Nova Mensagem do Usuário: ${message}
   }
 });
 
+
+// --- VAULT API ROUTES ---
+app.get('/api/vault/projects', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM vault_projects ORDER BY name ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/vault/projects', authenticateToken, async (req, res) => {
+    try {
+        const { name } = req.body;
+        const id = require('crypto').randomUUID();
+        const created_at = new Date().toISOString();
+        await pool.query('INSERT INTO vault_projects (id, name, created_at) VALUES ($1, $2, $3)', [id, name, created_at]);
+        res.json({ id, name, created_at });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/vault/secrets', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, key_name as key, note, project_id, encrypted_value, created_at FROM vault_secrets ORDER BY key_name ASC');
+        const secrets = result.rows.map(row => ({
+            id: row.id,
+            key: row.key,
+            note: row.note,
+            projectIds: row.project_id ? [row.project_id] : [],
+            value: decryptSecret(row.encrypted_value) || 'ERRO_DESCRIPTOGRAFIA',
+            created_at: row.created_at
+        }));
+        res.json(secrets);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
+    try {
+        const { key, value, note, projectId } = req.body;
+        const id = require('crypto').randomUUID();
+        const encryptedValue = encryptSecret(value);
+        const created_at = new Date().toISOString();
+        
+        await pool.query(
+            'INSERT INTO vault_secrets (id, key_name, encrypted_value, note, project_id, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
+            [id, key, encryptedValue, note, projectId, created_at]
+        );
+        res.json({ id, key, value, note, projectIds: [projectId] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/vault/secrets/:id', authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM vault_secrets WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Rota catch-all para o React SPA (todas as rotas vão para o index.html)
 app.use(express.static(path.join(__dirname, 'dist')));
 
