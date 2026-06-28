@@ -69,6 +69,7 @@ const writeTutorials = (data) => {
 const isDev = fs.existsSync(path.join(__dirname, '.git'));
 const PORT = process.env.PORT || (isDev ? 3001 : 3000);
 const app = express();
+app.set('trust proxy', true); // Segurança: Necessário para VPS/Docker como Coolify para ler IP real do cliente e não dar bypass no login
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -120,7 +121,8 @@ function convertPlaceholders(sql) {
 async function initPostgresDB() {
   try {
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT, hostname TEXT, ip_address TEXT, mac_address TEXT, ram_gb INTEGER, cpu_model TEXT, os_version TEXT, is_accessory BOOLEAN DEFAULT false, invoice_number TEXT, supplier TEXT, purchase_date TEXT, warranty_expiry TEXT);
+      CREATE TABLE IF NOT EXISTS maintenance_logs (id TEXT PRIMARY KEY, device_id TEXT, user_email TEXT, issue_description TEXT, resolution TEXT, cost DECIMAL, start_date TEXT, end_date TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, user_email TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
@@ -502,15 +504,33 @@ app.post('/api/agent/sync', async (req, res) => {
 
     if (existingIndex >= 0) {
       // Atualiza o dispositivo existente
-      const sql = convertPlaceholders('UPDATE devices SET status=?, model=?, condition=?, last_seen=? WHERE id=?');
+      const sql = convertPlaceholders('UPDATE devices SET status=?, model=?, condition=?, last_seen=?, hostname=?, ip_address=?, mac_address=?, ram_gb=?, cpu_model=?, os_version=? WHERE id=?');
       await pool.query(sql, [
         'Em Uso', 
         model || devices[existingIndex].model, 
         technicalInfo, 
         new Date().toISOString(), 
+        hostname || '',
+        ip_address || '',
+        mac_address || '',
+        ram_gb || 0,
+        cpu || '',
+        os || '',
         devices[existingIndex].id
       ]);
-      targetDevice = { ...devices[existingIndex], status: 'Em Uso', model: model || devices[existingIndex].model, condition: technicalInfo, last_seen: new Date().toISOString() };
+      targetDevice = { 
+        ...devices[existingIndex], 
+        status: 'Em Uso', 
+        model: model || devices[existingIndex].model, 
+        condition: technicalInfo, 
+        last_seen: new Date().toISOString(),
+        hostname: hostname || '',
+        ip_address: ip_address || '',
+        mac_address: mac_address || '',
+        ram_gb: ram_gb || 0,
+        cpu_model: cpu || '',
+        os_version: os || ''
+      };
       actionStr = 'updated';
     } else {
       // Cadastra um novo dispositivo
@@ -523,7 +543,14 @@ app.post('/api/agent/sync', async (req, res) => {
         status: 'Em Uso',
         condition: technicalInfo,
         last_seen: new Date().toISOString(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        hostname: hostname || '',
+        ip_address: ip_address || '',
+        mac_address: mac_address || '',
+        ram_gb: ram_gb || 0,
+        cpu_model: cpu || '',
+        os_version: os || '',
+        is_accessory: false
       };
       
       const keys = Object.keys(newDevice);
