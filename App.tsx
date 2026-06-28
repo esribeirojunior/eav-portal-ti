@@ -1133,6 +1133,7 @@ const App: React.FC = () => {
         <DevLabModule
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
+          onSelectModule={setCurrentModule}
         />
       )}
  
