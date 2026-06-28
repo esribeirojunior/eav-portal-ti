@@ -118,20 +118,20 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
     });
 
     return (
-        <div className="min-h-screen bg-[#f4f7fc] dark:bg-[#0c0d21] p-6 sm:p-12 animate-in fade-in duration-500 pb-24 text-left font-sans transition-colors">
+        <div className="min-h-screen bg-slate-100 dark:bg-[#0c0d21] p-6 sm:p-12 animate-in fade-in duration-500 pb-24 text-left font-sans transition-colors">
             <div className="max-w-6xl mx-auto space-y-12 text-left">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-6 text-left">
                         <button
                             onClick={onBack}
-                            className="p-4 bg-white dark:bg-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all text-slate-500 dark:text-white/40 border border-slate-200 dark:border-white/5 shadow-sm active:scale-90"
+                            className="p-4 bg-white dark:bg-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-white/40 border border-slate-300 dark:border-white/5 shadow-sm active:scale-90"
                         >
                             <ChevronLeft size={24} />
                         </button>
                         <div className="text-left">
                             <h2 className="text-4xl font-[900] uppercase tracking-tighter text-slate-800 dark:text-white text-left">Centro de Atalhos</h2>
-                            <p className="text-slate-500 dark:text-white/20 text-[10px] font-black tracking-[0.3em] uppercase mt-1 text-left">Plataformas Externas de Gestão TI</p>
+                            <p className="text-slate-600 dark:text-white/20 text-[10px] font-black tracking-[0.3em] uppercase mt-1 text-left">Plataformas Externas de Gestão TI</p>
                         </div>
                     </div>
 
@@ -148,7 +148,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
 
                 {/* Filtro de Campus */}
                 <div className="flex items-center gap-3 animate-in fade-in duration-300">
-                    <span className="text-[10px] font-black uppercase text-slate-400 dark:text-white/30 tracking-widest">Campus:</span>
+                    <span className="text-[10px] font-black uppercase text-slate-500 dark:text-white/30 tracking-widest">Campus:</span>
                     <div className="flex gap-2">
                         {(['Todos', 'Álvares', 'Aeroporto'] as const).map((cp) => (
                             <button
@@ -156,7 +156,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                                 onClick={() => setSelectedCampus(cp)}
                                 className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedCampus === cp
                                     ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-900/30'
-                                    : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 hover:text-slate-800 dark:hover:text-white shadow-sm'
+                                    : 'bg-white dark:bg-white/5 text-slate-600 dark:text-white/40 border-slate-300 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 hover:text-slate-800 dark:hover:text-white shadow-sm'
                                     }`}
                             >
                                 {cp}
@@ -175,12 +175,12 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                             <h3 className="text-slate-800 dark:text-white font-black uppercase text-sm tracking-widest">Ops! Algo deu errado</h3>
                             <p className="text-rose-600 dark:text-rose-500/60 text-xs mt-1 font-medium italic">{error}</p>
                         </div>
-                        <p className="text-slate-500 dark:text-white/40 text-[10px] leading-relaxed max-w-sm">
+                        <p className="text-slate-600 dark:text-white/40 text-[10px] leading-relaxed max-w-sm">
                             Verifique se você criou a tabela <code className="text-slate-700 dark:text-white/60">shortcuts</code> no Supabase usando o script SQL que te enviei.
                         </p>
                         <button
                             onClick={() => fetchShortcuts()}
-                            className="flex items-center gap-2 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-white border border-slate-200 dark:border-transparent px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mt-2 shadow-sm"
+                            className="flex items-center gap-2 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-white border border-slate-300 dark:border-transparent px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mt-2 shadow-sm"
                         >
                             <RefreshCw size={14} /> Tentar Novamente
                         </button>
@@ -189,14 +189,14 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
 
                 {/* Links Grid */}
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-white/20 gap-4">
+                    <div className="flex flex-col items-center justify-center py-24 text-slate-500 dark:text-white/20 gap-4">
                         <Loader2 className="animate-spin" size={48} />
                         <p className="font-black uppercase tracking-[0.3em] text-[10px]">Carregando Portais...</p>
                     </div>
                 ) : !error && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredShortcuts.length === 0 ? (
-                            <div className="col-span-full py-24 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-4 opacity-70 dark:opacity-40 text-slate-400">
+                            <div className="col-span-full py-24 border-2 border-dashed border-slate-300 dark:border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-4 opacity-70 dark:opacity-40 text-slate-500">
                                 <Monitor size={48} />
                                 <p className="font-black uppercase tracking-widest text-xs">Nenhum atalho cadastrado para este campus.</p>
                             </div>
@@ -206,7 +206,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block bg-white dark:bg-slate-900/60 p-8 rounded-[2.5rem] border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.98] relative overflow-hidden h-full shadow-sm"
+                                    className="block bg-white dark:bg-slate-900/60 p-8 rounded-[2.5rem] border border-slate-300 dark:border-white/5 hover:border-indigo-500/30 dark:hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.98] relative overflow-hidden h-full shadow-sm"
                                 >
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-slate-100 dark:bg-white/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 transition-colors" />
 
@@ -225,12 +225,12 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
                                         <h3 className="text-2xl font-[900] text-slate-800 dark:text-white uppercase tracking-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-left line-clamp-1">
                                             {link.title}
                                         </h3>
-                                        <p className="text-slate-500 dark:text-white/40 text-sm font-medium leading-relaxed text-left line-clamp-2 italic">
+                                        <p className="text-slate-600 dark:text-white/40 text-sm font-medium leading-relaxed text-left line-clamp-2 italic">
                                             {link.description}
                                         </p>
                                     </div>
 
-                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/20 group-hover:text-indigo-600 dark:group-hover:text-white/60 transition-colors relative z-10">
+                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/20 group-hover:text-indigo-600 dark:group-hover:text-white/60 transition-colors relative z-10">
                                         <span>Acessar Portal</span>
                                         <ExternalLink size={12} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                     </div>
