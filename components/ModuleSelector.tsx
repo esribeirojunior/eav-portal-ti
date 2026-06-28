@@ -111,10 +111,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             </div>
                             <p className="text-[15px] font-medium text-slate-800 dark:text-slate-300">Acesse e gerencie os recursos e ferramentas da infraestrutura.</p>
                         </div>
-                        {/* Opções extras no topo direito (placeholder do mockup) */}
-                        <button className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-white/5 flex items-center justify-center text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-white/10 transition-colors">
-                            <span className="font-bold tracking-widest text-lg leading-none -mt-2">...</span>
-                        </button>
+                        
                     </div>
 
                     {/* Módulos Principais */}

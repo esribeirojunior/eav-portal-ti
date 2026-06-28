@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ShieldCheck, Search, Copy, Eye, EyeOff, Loader2, ArrowLeft, Lock, Key, FileText, AlertCircle, CheckCircle2, Plus, X, Trash2, Save
+  ShieldCheck, Search, LogOut, Copy, Eye, EyeOff, Loader2, ArrowLeft, Lock, Key, FileText, AlertCircle, CheckCircle2, Plus, X, Trash2, Save
 } from 'lucide-react';
 import { BitwardenSecret as Secret, BitwardenProject as Project } from '../types';
 
@@ -214,6 +214,9 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack })
             Armazenamento criptografado no banco de dados local com AES-256.
           </p>
         </div>
+        <button onClick={onLogout} className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/30 text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+          <LogOut size={14} /> Sair
+        </button>
       </div>
 
       {/* Main Content */}

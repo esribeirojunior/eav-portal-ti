@@ -880,6 +880,9 @@ const App: React.FC = () => {
                   <LogOut size={14} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
                   Módulos
                 </button>
+                <button onClick={handleLogout} className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/30 text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all rounded-xl text-[10px] font-black uppercase tracking-widest group shadow-sm">
+                  <LogOut size={14} /> Sair
+                </button>
               </div>
             </aside>
 
@@ -1119,6 +1122,7 @@ const App: React.FC = () => {
         <VaultModule
           userEmail={userEmail}
           onBack={() => setCurrentModule('selector')}
+          onLogout={handleLogout}
         />
       )}
 
