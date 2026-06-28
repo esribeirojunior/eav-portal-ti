@@ -1201,6 +1201,17 @@ app.delete('/api/vault/secrets/:id', authenticateToken, async (req, res) => {
     }
 });
 
+app.delete('/api/vault/projects/:id', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir projetos.' });
+    try {
+        await pool.query('DELETE FROM vault_secrets WHERE project_id = $1', [req.params.id]);
+        await pool.query('DELETE FROM vault_projects WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Rota catch-all para o React SPA (todas as rotas vão para o index.html)
 app.use(express.static(path.join(__dirname, 'dist')));
 

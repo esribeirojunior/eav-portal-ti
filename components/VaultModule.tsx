@@ -128,6 +128,22 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
     }
   };
 
+  const handleDeleteProject = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja apagar este projeto? Todos os segredos dele também serão apagados!')) return;
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`/api/vault/projects/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+      });
+      if (!res.ok) throw new Error('Erro ao excluir projeto');
+      if (selectedProjectId === id) setSelectedProjectId('all');
+      fetchData();
+    } catch (err) {
+      alert('Erro ao excluir projeto.');
+    }
+  };
+
   const filteredSecrets = useMemo(() => {
     return secrets.filter(s => {
       const matchesSearch = s.key.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -230,14 +246,27 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                 Todos os Itens
               </button>
               {projects.map(project => (
-                <button 
-                  key={project.id}
-                  onClick={() => setSelectedProjectId(project.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
-                >
-                  <FileText size={16} />
-                  {project.name}
-                </button>
+                <div key={project.id} className="relative group flex items-center">
+                  <button 
+                    onClick={() => setSelectedProjectId(project.id)}
+                    className={`flex-1 text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                  >
+                    <FileText size={16} />
+                    {project.name}
+                  </button>
+                  {userRole === 'superadmin' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteProject(project.id);
+                      }}
+                      className="absolute right-2 p-2 rounded-lg text-rose-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
+                      title="Excluir Projeto"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>
