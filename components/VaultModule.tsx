@@ -145,7 +145,21 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
     });
   };
 
-  const copyToClipboard = (text: string, label: string) => {
+  const logVaultAction = async (action: string, secretId: string, secretKey: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      await fetch('/api/vault/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        body: JSON.stringify({ action, secret_id: secretId, secret_name: secretKey })
+      });
+    } catch (e) {
+      console.error('Falha ao registrar auditoria', e);
+    }
+  };
+
+  const copyToClipboard = (text: string, label: string, secretId?: string, secretKey?: string) => {
+    if (secretId && secretKey) logVaultAction('COPY_SECRET', secretId, secretKey);
     navigator.clipboard.writeText(text);
     setCopyFeedback(label);
     setTimeout(() => setCopyFeedback(null), 2000);
