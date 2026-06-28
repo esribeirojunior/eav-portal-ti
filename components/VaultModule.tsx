@@ -8,9 +8,10 @@ import { BitwardenSecret as Secret, BitwardenProject as Project } from '../types
 interface VaultModuleProps {
   userEmail: string;
   onBack: () => void;
+  userRole?: string;
 }
 
-const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack }) => {
+const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, userRole }) => {
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

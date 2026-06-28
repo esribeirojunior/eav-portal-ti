@@ -1121,8 +1121,8 @@ const App: React.FC = () => {
       {currentModule === 'vault' && (
         <VaultModule
           userEmail={userEmail}
+          userRole={userRole}
           onBack={() => setCurrentModule('selector')}
-          onLogout={handleLogout}
         />
       )}
 
