@@ -184,6 +184,8 @@ async function initPostgresDB() {
       CREATE TABLE IF NOT EXISTS vault_projects (id TEXT PRIMARY KEY, name TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS vault_secrets (id TEXT PRIMARY KEY, key_name TEXT, encrypted_value TEXT, note TEXT, project_id TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS it_tasks (id TEXT PRIMARY KEY, title TEXT, description TEXT, status TEXT, priority TEXT, due_date TEXT, created_by TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS it_task_comments (id TEXT PRIMARY KEY, task_id TEXT, user_email TEXT, content TEXT, created_at TEXT);
     `);
       
       // Add role column if it doesn't exist (ignore error if it does)
