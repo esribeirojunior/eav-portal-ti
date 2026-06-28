@@ -1093,7 +1093,7 @@ app.get('/api/vault/projects', authenticateToken, async (req, res) => {
 app.post('/api/vault/projects', authenticateToken, async (req, res) => {
     try {
         const { name } = req.body;
-        const id = require('crypto').randomUUID();
+        const id = crypto.randomUUID();
         const created_at = new Date().toISOString();
         await pool.query('INSERT INTO vault_projects (id, name, created_at) VALUES ($1, $2, $3)', [id, name, created_at]);
         res.json({ id, name, created_at });
@@ -1122,7 +1122,7 @@ app.get('/api/vault/secrets', authenticateToken, async (req, res) => {
 app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
     try {
         const { key, value, note, projectId } = req.body;
-        const id = require('crypto').randomUUID();
+        const id = crypto.randomUUID();
         const encryptedValue = encryptSecret(value);
         const created_at = new Date().toISOString();
         
