@@ -46,11 +46,6 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                     <Box size={16} /> Gestão de Ativos
                                 </button>
                             )}
-                            {hasModule('assets') && (
-                                <button onClick={() => onSelectModule('employees')} className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
-                                    <Users size={16} /> Colaboradores
-                                </button>
-                            )}
                             {hasModule('links') && (
                                 <button onClick={() => onSelectModule('links')} className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
                                     <ExternalLink size={16} /> Centro de Atalhos
