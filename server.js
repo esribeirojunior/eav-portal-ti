@@ -452,8 +452,8 @@ app.post('/api/db', authenticateToken, async (req, res) => {
               }
             }
             
-            if (existingDevice) {
-              // Bloqueia e retorna erro informando que o item já existe (mesmo para upserts)
+            if (existingDevice && !isUpsert) {
+              // Bloqueia e retorna erro informando que o item já existe (somente para INSERTS normais)
               await client.query('ROLLBACK');
               client.release();
               
@@ -466,6 +466,11 @@ app.post('/api/db', authenticateToken, async (req, res) => {
                   message: `Já existe um dispositivo com este ${field}: "${value}".`
                 }
               });
+            }
+            
+            // Se for isUpsert e existir, garantimos que usamos o mesmo ID para atualizar
+            if (existingDevice && isUpsert) {
+                finalItem.id = existingDevice.id;
             }
           }
           

@@ -310,6 +310,12 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                                 campus: campusVal
                             });
                             if (assignError) console.error("Erro ao criar atribuição para novo usuário:", tag, assignError);
+                        } else if (userEmail) {
+                            // O usuário é o mesmo, mas vamos garantir que o e-mail seja atualizado caso esteja vazio no banco
+                            await supabase
+                                .from('assignments')
+                                .update({ user_email: userEmail })
+                                .eq('id', activeAssignment.id);
                         }
                     } else {
                         // Não há atribuição ativa, cria uma nova
