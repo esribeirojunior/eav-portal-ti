@@ -153,14 +153,14 @@ export const EmployeesModule: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 glass-card p-6 rounded-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-sm p-6 rounded-3xl">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500">
             <Users size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-black uppercase tracking-tight text-slate-800">Colaboradores</h2>
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
+            <h2 className="text-xl font-black uppercase tracking-tight text-slate-800 dark:text-white">Colaboradores</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
               {employees.length} Perfis Encontrados
             </p>
           </div>
@@ -170,7 +170,7 @@ export const EmployeesModule: React.FC = () => {
           <input
             type="text"
             placeholder="BUSCAR COLABORADOR..."
-            className="w-full bg-slate-100 border-none rounded-xl py-3 pl-10 pr-4 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400"
+            className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-xs font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -179,7 +179,7 @@ export const EmployeesModule: React.FC = () => {
       </div>
 
       {/* List */}
-      <div className="glass-card rounded-3xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-sm rounded-3xl overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="animate-spin text-indigo-500" size={32} />
@@ -193,44 +193,44 @@ export const EmployeesModule: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Nome do Usuário</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500">E-mail</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Setor</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">Status</th>
-                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Ação</th>
+                <tr className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Nome do Usuário</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">E-mail</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Setor</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 text-center">Status</th>
+                  <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 text-right">Ação</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEmployees.map((emp, idx) => (
-                  <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                  <tr key={idx} className="border-b border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
                     <td className="py-4 px-6">
-                      <div className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                      <div className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
                         {emp.user_name}
                       </div>
                     </td>
                     <td className="py-4 px-6">
                       {emp.user_email ? (
-                        <span className="text-xs font-semibold text-slate-600">{emp.user_email}</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{emp.user_email}</span>
                       ) : (
-                        <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md">Sem E-mail</span>
+                        <span className="text-xs font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-md">Sem E-mail</span>
                       )}
                     </td>
                     <td className="py-4 px-6">
                       {emp.department_id ? (
-                        <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{getDepartmentName(emp.department_id)}</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{getDepartmentName(emp.department_id)}</span>
                       ) : (
-                        <span className="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-md">Sem Setor</span>
+                        <span className="text-xs font-bold text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-md">Sem Setor</span>
                       )}
                     </td>
                     <td className="py-4 px-6 text-center">
                       {emp.hasMissingData ? (
-                        <div className="inline-flex items-center gap-1 text-amber-500 bg-amber-50 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <div className="inline-flex items-center gap-1 text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                           <AlertCircle size={12} />
                           Pendente
                         </div>
                       ) : (
-                        <div className="inline-flex items-center gap-1 text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <div className="inline-flex items-center gap-1 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                           <CheckCircle2 size={12} />
                           Completo
                         </div>
@@ -243,7 +243,7 @@ export const EmployeesModule: React.FC = () => {
                           setEditEmail(emp.user_email);
                           setEditDepartment(emp.department_id);
                         }}
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors"
                         title="Editar Perfil"
                       >
                         <Edit2 size={14} />
@@ -261,72 +261,72 @@ export const EmployeesModule: React.FC = () => {
       {editingEmployee && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingEmployee(null)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+          <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up border border-slate-200 dark:border-white/10">
             <div className="p-6 sm:p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black uppercase tracking-tight text-slate-800">
+                <h3 className="text-xl font-black uppercase tracking-tight text-slate-800 dark:text-white">
                   Editar Perfil
                 </h3>
                 <button
                   onClick={() => setEditingEmployee(null)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
                 >
                   <X size={16} />
                 </button>
               </div>
 
               {successMsg ? (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3">
-                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3">
+                  <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
                     <CheckCircle2 size={24} />
                   </div>
-                  <p className="text-emerald-700 font-bold text-sm">{successMsg}</p>
+                  <p className="text-emerald-700 dark:text-emerald-400 font-bold text-sm">{successMsg}</p>
                 </div>
               ) : (
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nome do Usuário (Fixo)</label>
-                    <div className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-600 flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Nome do Usuário (Fixo)</label>
+                    <div className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 text-sm font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
                       <Users size={16} className="text-slate-400" />
                       {editingEmployee.user_name}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">E-mail Profissional</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">E-mail Profissional</label>
                     <div className="relative">
                       <input
                         type="email"
                         value={editEmail}
                         onChange={(e) => setEditEmail(e.target.value)}
                         placeholder="Ex: joao.silva@escolaamericana.com.br"
-                        className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                       />
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Setor / Departamento</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Setor / Departamento</label>
                     <div className="relative">
                       <select
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none appearance-none"
                       >
-                        <option value="">Selecione o Setor...</option>
+                        <option value="" className="dark:bg-slate-800">Selecione o Setor...</option>
                         {departments.map(dept => (
-                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                          <option key={dept.id} value={dept.id} className="dark:bg-slate-800">{dept.name}</option>
                         ))}
                       </select>
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex gap-3">
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-3">
                     <button
                       onClick={() => setEditingEmployee(null)}
-                      className="flex-1 py-3 bg-slate-100 text-slate-600 font-black rounded-xl hover:bg-slate-200 transition-colors uppercase text-xs tracking-wider"
+                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-black rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-colors uppercase text-xs tracking-wider"
                     >
                       Cancelar
                     </button>
