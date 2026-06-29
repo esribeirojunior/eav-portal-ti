@@ -103,9 +103,9 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                             <h2>TERMO DE ENTREGA E RESPONSABILIDADE</h2>
                             
                             <div class="content">
-                              <p><b>EMPREGADO(A):</b> <u>${device.currentAssignment.userName.padEnd(60, '_')}</u>,<br>
+                              <p><b>EMPREGADO(A):</b> <u>${(device.currentAssignment.userName || '').padEnd(60, '_')}</u>,<br>
                               portador(a) do CPF n° <u>${''.padEnd(60, '_')}</u>,<br>
-                              cargo de <u>${(device.currentAssignment.userRole === 'Colaborador' ? device.currentAssignment.userDepartment : '').padEnd(60, '_')}</u>.</p>
+                              cargo de <u>${(device.currentAssignment.userRole === 'Colaborador' ? (device.currentAssignment.userDepartment || '') : '').padEnd(60, '_')}</u>.</p>
                               
                               <p><b>EMPREGADORA:</b> <b>ESCOLA AMERICANA DE VITÓRIA S.A.</b>, inscrita no CNPJ sob o n° 27.710.038.0001/04, sediada à Avenida Marechal Mascarenhas de Moraes, n° 2.100, Anexo Ginásio, Bento Ferreira, Vitória – ES, CEP 29.050-625</p>
 
@@ -117,14 +117,14 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                                   <th>QUANTIDADE</th>
                                 </tr>
                                 <tr>
-                                  <td>Equipamento: ${device.type} ${device.model}</td>
+                                  <td>Equipamento: ${device.type || ''} ${device.model || ''}</td>
                                   <td rowspan="4" style="text-align: center; vertical-align: middle;">1</td>
                                 </tr>
                                 <tr>
                                   <td>Serial: ${device.serialNumber || 'N/A'}</td>
                                 </tr>
                                 <tr>
-                                  <td>Patrimônio: ${device.tag}</td>
+                                  <td>Patrimônio: ${device.tag || ''}</td>
                                 </tr>
                                 <tr>
                                   <td>Estado atual do equipamento: (  ) Novo ( X ) Usado</td>
