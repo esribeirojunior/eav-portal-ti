@@ -97,7 +97,7 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                           </head>
                           <body>
                             <div class="header">
-                              <img src="\${window.location.origin}/logo.png" alt="Escola Americana de Vitória" onerror="this.style.display='none'" />
+                              <img src="${window.location.origin}/logo.png" alt="Escola Americana de Vitória" onerror="this.style.display='none'" />
                             </div>
                             <h2>TERMO DE ENTREGA E RESPONSABILIDADE</h2>
                             
