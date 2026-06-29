@@ -136,9 +136,12 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     };
 
     const handleDeleteDepartment = async (id: string, name: string) => {
-        if (!window.confirm(`Tem certeza que deseja remover o setor ${name}? Isso pode afetar históricos existentes.`)) return;
+        if (!window.confirm(`Tem certeza que deseja remover o setor ${name}? Isso desvinculará este setor de todos os colaboradores associados a ele, mas os colaboradores continuarão existindo.`)) return;
         
         try {
+            // Desvincular o setor dos históricos (assignments) primeiro para não ocorrer o cascade delete e apagar os colaboradores que usam os dispositivos
+            await supabase.from('assignments').update({ department_id: null }).eq('department_id', id);
+
             await supabase.from('department').delete().eq('id', id);
             fetchDepartments();
         } catch (error) {

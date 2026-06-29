@@ -17,21 +17,21 @@ if (!postgresUrl) {
 
 async function resetDB() {
   console.log(`Conectando ao PostgreSQL no Coolify...`);
-  
+
   const client = new Client({ connectionString: postgresUrl });
   await client.connect();
   console.log('Conectado com sucesso!');
 
   console.log('Limpando as tabelas (zerando o banco)...');
-  
+
   // Limpa as tabelas. 
   // O usuário pediu para apagar tudo.
   const tablesToClear = [
-    'devices', 
-    'assignments', 
-    'department', 
-    'shortcuts', 
-    'authorized_users', 
+    'devices',
+    'assignments',
+    'department',
+    'shortcuts',
+    'authorized_users',
     'audit_logs'
   ];
 
@@ -45,7 +45,7 @@ async function resetDB() {
   }
 
   console.log('Banco zerado com sucesso! Agora você pode reiniciar a aplicação (para ela criar os itens padrão se tiver apagado tudo) e importar sua planilha novamente.');
-  
+
   await client.end();
 }
 
