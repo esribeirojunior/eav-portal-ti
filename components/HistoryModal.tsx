@@ -97,14 +97,14 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                           </head>
                           <body>
                             <div class="header">
-                              <img src="/logo.png" alt="Escola Americana de Vitória" onerror="this.src='https://i.imgur.com/gKj3q6H.png'" />
+                              <img src="\${window.location.origin}/logo.png" alt="Escola Americana de Vitória" onerror="this.style.display='none'" />
                             </div>
                             <h2>TERMO DE ENTREGA E RESPONSABILIDADE</h2>
                             
                             <div class="content">
-                              <p><b>EMPREGADO(A):</b> <u>${(device.currentAssignment?.userName || '').padEnd(60, '_')}</u>,<br>
-                              portador(a) do CPF n° <u>${''.padEnd(60, '_')}</u>,<br>
-                              cargo de <u>${(device.currentAssignment?.userRole === 'Colaborador' ? (device.currentAssignment?.userDepartment || '') : '').padEnd(60, '_')}</u>.</p>
+                              <p><b>EMPREGADO(A):</b> <span style="border-bottom: 1px solid black; display: inline-block; min-width: 400px; padding: 0 5px;">${device.currentAssignment?.userName || ''}</span>,<br>
+                              portador(a) do CPF n° <span style="border-bottom: 1px solid black; display: inline-block; min-width: 250px;"></span>,<br>
+                              cargo de <span style="border-bottom: 1px solid black; display: inline-block; min-width: 350px; padding: 0 5px;">${device.currentAssignment?.userRole === 'Colaborador' ? (device.currentAssignment?.userDepartment || '') : ''}</span>.</p>
                               
                               <p><b>EMPREGADORA:</b> <b>ESCOLA AMERICANA DE VITÓRIA S.A.</b>, inscrita no CNPJ sob o n° 27.710.038.0001/04, sediada à Avenida Marechal Mascarenhas de Moraes, n° 2.100, Anexo Ginásio, Bento Ferreira, Vitória – ES, CEP 29.050-625</p>
 
