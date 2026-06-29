@@ -1126,6 +1126,16 @@ Nova Mensagem do Usuário: ${message}
 });
 
 
+// Rota temporária de debug (Será removida depois)
+app.get('/api/debug-emails', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT id, user_name, user_email FROM assignments WHERE user_name ILIKE '%falk%'");
+        res.json(result.rows);
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
 // --- VAULT API ROUTES ---
 // --- Rota de Auditoria do Cofre ---
 app.post('/api/vault/audit', authenticateToken, async (req, res) => {
