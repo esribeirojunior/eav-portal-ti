@@ -231,13 +231,13 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
                   required
                   type="email"
                   placeholder="EMAIL"
-                  className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-200 group-hover:border-slate-300'} rounded-2xl py-4 pl-12 pr-4 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-400`}
+                  className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-300 group-hover:border-slate-300'} rounded-2xl py-4 pl-12 pr-4 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-500`}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   style={{ color: '#1e293b' }}
                 />
                 <User 
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0c59cf] transition-colors" 
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#0c59cf] transition-colors" 
                   size={18} 
                 />
               </div>
@@ -248,19 +248,19 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
                   required
                   type={showPassword ? "text" : "password"}
                   placeholder="SENHA"
-                  className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-200 group-hover:border-slate-300'} rounded-2xl py-4 pl-12 pr-12 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-400`}
+                  className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-300 group-hover:border-slate-300'} rounded-2xl py-4 pl-12 pr-12 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-500`}
                   value={pass}
                   onChange={e => setPass(e.target.value)}
                   style={{ color: '#1e293b' }}
                 />
                 <Lock 
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0c59cf] transition-colors" 
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#0c59cf] transition-colors" 
                   size={18} 
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors p-1"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -296,7 +296,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
 
             <div className="flex items-center my-4">
               <div className="flex-1 h-[1px] bg-slate-200" />
-              <span className="mx-4 text-slate-400 text-[10px] font-black uppercase tracking-widest">ou</span>
+              <span className="mx-4 text-slate-500 text-[10px] font-black uppercase tracking-widest">ou</span>
               <div className="flex-1 h-[1px] bg-slate-200" />
             </div>
 
@@ -315,7 +315,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
               </a>
             </div>
 
-            <div className="text-slate-400/60 text-[9px] uppercase tracking-[0.2em] font-black pt-4">
+            <div className="text-slate-500/60 text-[9px] uppercase tracking-[0.2em] font-black pt-4">
               Escola Americana de Vitória &copy; 2026 - by Erisson Junior
             </div>
           </div>
@@ -602,18 +602,17 @@ const App: React.FC = () => {
 
   const handleExportCSV = () => {
     try {
-      const headers = ['TAG', 'Serial Number', 'Modelo', 'Tipo', 'Categoria', 'Status', 'Responsavel', 'Setor', 'Campus', 'Observacao'];
+      const headers = ['Campus', 'Departamento', 'Usuário', 'Status', 'Dispositivo', 'Modelo', 'Service Tag', 'Email', 'Status Envio'];
       const rows = devices.map(d => [
-        d.tag || '',
-        d.serial_number || d.serialNumber || '',
-        d.model || '',
-        d.type || '',
-        d.category || '',
-        d.status || '',
-        d.currentAssignment?.userName || '',
-        d.currentAssignment?.department || '',
         d.currentAssignment?.campus || '',
-        d.condition || ''
+        d.currentAssignment?.userDepartment || '',
+        d.currentAssignment?.userName || '',
+        d.status || '',
+        d.type || '',
+        d.model || '',
+        d.tag || '',
+        d.currentAssignment?.userEmail || '',
+        ''
       ].map(val => `"${String(val).replace(/"/g, '""')}"`));
       
       const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -621,17 +620,17 @@ const App: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `inventario_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `inventario_eav_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      logAuditAction(userEmail, 'EXPORTAÇÃO', `Exportou o inventário completo para CSV.`, 'SYSTEM', 'export');
-      showNotification("Lista exportada com sucesso!");
+      logAuditAction(userEmail, 'EXPORTAÇÃO', `Exportou o inventário completo para CSV no novo formato.`, 'SYSTEM', 'export');
+      showNotification("Planilha exportada com sucesso!");
     } catch (e) {
       console.error("Erro ao exportar:", e);
-      showNotification("Erro ao exportar lista.");
+      showNotification("Erro ao exportar planilha.");
     }
   };
 
@@ -825,9 +824,9 @@ const App: React.FC = () => {
       {
         currentModule === 'assets' && (
           <>
-          <div className="flex w-full h-screen overflow-hidden bg-[#f4f7fc] dark:bg-[#0c0d21] transition-colors">
+          <div className="flex w-full h-screen overflow-hidden bg-slate-100 dark:bg-[#0c0d21] transition-colors">
             {/* --- SIDEBAR --- */}
-            <aside className="w-[280px] flex-shrink-0 bg-white dark:bg-white/5 border-r border-slate-200 dark:border-white/5 flex flex-col sticky top-0 h-screen overflow-y-auto hidden md:flex shadow-sm">
+            <aside className="w-[280px] flex-shrink-0 bg-white dark:bg-white/5 border-r border-slate-300 dark:border-white/5 flex flex-col sticky top-0 h-screen overflow-y-auto hidden md:flex shadow-sm">
               {/* Logo container */}
               <div className="p-8 flex items-center justify-center cursor-pointer mb-2" onClick={() => setCurrentModule('selector')}>
                 <LogoEAV size="normal" single={true} theme={theme} />
@@ -835,13 +834,13 @@ const App: React.FC = () => {
 
               {/* Menu Principal */}
               <div className="px-6 mb-8">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Menu Principal</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 mb-4 px-2">Menu Principal</p>
                 <div className="space-y-2">
-                  <button onClick={() => setSubView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${subView === 'dashboard' ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                  <button onClick={() => setSubView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${subView === 'dashboard' ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                     <LayoutDashboard size={18} />
                     Dashboard
                   </button>
-                  <button onClick={() => setSubView('inventory')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' || subView === 'menu') ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                  <button onClick={() => setSubView('inventory')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' || subView === 'menu') ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                     <ClipboardList size={18} />
                     Inventário
                   </button>
@@ -851,13 +850,13 @@ const App: React.FC = () => {
               {/* Ações Rápidas */}
               {userRole !== 'viewer' && (
                 <div className="px-6 mb-8">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/30 mb-4 px-2">Ações Rápidas</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30 mb-4 px-2">Ações Rápidas</p>
                   <div className="space-y-2">
-                    <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                    <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
                       <Plus size={18} />
                       Novo Ativo
                     </button>
-                    <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
+                    <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
                       <Cable size={18} />
                       Entrega Rápida
                     </button>
@@ -866,25 +865,28 @@ const App: React.FC = () => {
               )}
 
               {/* Perfil e Voltar (Rodapé da Sidebar) */}
-              <div className="mt-auto p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
-                <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-3 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
+              <div className="mt-auto p-6 border-t border-slate-300 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+                <div className="bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 p-3 rounded-2xl flex items-center gap-3 mb-4 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-[#5b61f8] flex items-center justify-center flex-shrink-0 font-black text-white text-sm shadow-inner">
                     {userEmail.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[12px] font-black text-slate-800 dark:text-white truncate">{userEmail.split('@')[0]}</p>
-                    <p className="text-[9px] font-bold text-slate-400 dark:text-white/40 truncate">@{userEmail.split('@')[1]}</p>
+                    <p className="text-[9px] font-bold text-slate-500 dark:text-white/40 truncate">@{userEmail.split('@')[1]}</p>
                   </div>
                 </div>
-                <button onClick={() => setCurrentModule('selector')} className="w-full flex items-center justify-center gap-2 py-3.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-slate-500 hover:text-slate-800 dark:text-white/40 dark:hover:text-white transition-all rounded-xl text-[10px] font-black uppercase tracking-widest group shadow-sm">
+                <button onClick={() => setCurrentModule('selector')} className="w-full flex items-center justify-center gap-2 py-3.5 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white transition-all rounded-xl text-[10px] font-black uppercase tracking-widest group shadow-sm">
                   <LogOut size={14} className="rotate-180 group-hover:-translate-x-1 transition-transform" />
                   Módulos
+                </button>
+                <button onClick={handleLogout} className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/30 text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all rounded-xl text-[10px] font-black uppercase tracking-widest group shadow-sm">
+                  <LogOut size={14} /> Sair
                 </button>
               </div>
             </aside>
 
             {/* --- MAIN CONTENT AREA --- */}
-            <main className="flex-1 overflow-y-auto bg-[#f4f7fc] dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors">
+            <main className="flex-1 overflow-y-auto bg-slate-100 dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors">
 
               <div className="max-w-[1400px] mx-auto animate-premium relative z-10">
                 {/* --- HEADER SUPERIOR INVENTÁRIO/DASHBOARD --- */}
@@ -901,7 +903,7 @@ const App: React.FC = () => {
                         </button>
                       )}
                     </h2>
-                    <p className="text-[13px] font-bold text-slate-400 dark:text-white/40 mt-2">
+                    <p className="text-[13px] font-bold text-slate-500 dark:text-white/40 mt-2">
                       {subView === 'dashboard' ? 'Métricas e relatórios do sistema' : 'Gestão completa de equipamentos e licenças.'}
                     </p>
                   </div>
@@ -913,11 +915,11 @@ const App: React.FC = () => {
                         <input
                           type="text"
                           placeholder="Pesquisar..."
-                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3.5 pl-12 pr-4 text-[12px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-white/20 shadow-sm"
+                          className="w-full bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-full py-3.5 pl-12 pr-4 text-[12px] font-bold text-slate-800 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-500 dark:placeholder:text-white/20 shadow-sm"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-white/20" size={16} />
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -925,7 +927,7 @@ const App: React.FC = () => {
                           <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value as any)}
-                            className="appearance-none bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                            className="appearance-none bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
                           >
                             {['Todos', 'Manutenção', ...Object.values(DeviceType)].map((cat) => (
                               <option key={cat} value={cat}>{cat}</option>
@@ -938,7 +940,7 @@ const App: React.FC = () => {
                           <select
                             value={selectedCampus}
                             onChange={(e) => setSelectedCampus(e.target.value as any)}
-                            className="appearance-none bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                            className="appearance-none bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/60 outline-none hover:border-slate-300 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
                           >
                             {['Todos', 'Álvares', 'Aeroporto', 'Álvares / Aeroporto'].map((cp) => (
                               <option key={cp} value={cp}>{cp}</option>
@@ -1090,7 +1092,7 @@ const App: React.FC = () => {
 
       {currentModule === 'selector' && (
         <ModuleSelector
-          onSelectModule={(module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => {
+          onSelectModule={(module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => {
             if (module === 'audit') setIsAuditModalOpen(true);
             else setCurrentModule(module);
           }}
@@ -1118,7 +1120,9 @@ const App: React.FC = () => {
       {currentModule === 'vault' && (
         <VaultModule
           userEmail={userEmail}
+          userRole={userRole}
           onBack={() => setCurrentModule('selector')}
+          onLogout={handleLogout}
         />
       )}
 
@@ -1133,15 +1137,16 @@ const App: React.FC = () => {
         <DevLabModule
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
+          onSelectModule={setCurrentModule}
         />
       )}
  
       {currentModule === 'settings' && (
-        <div className="flex w-full h-screen overflow-hidden bg-[#f4f7fc] dark:bg-[#0c0d21] transition-colors relative">
+        <div className="flex w-full h-screen overflow-hidden bg-slate-100 dark:bg-[#0c0d21] transition-colors relative">
            <SettingsModule userEmail={userEmail} />
            <button 
               onClick={() => setCurrentModule('selector')}
-              className="absolute top-6 right-6 p-3 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm hover:shadow-md transition-all z-50"
+              className="absolute top-6 right-6 p-3 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl text-slate-600 hover:text-slate-800 dark:hover:text-white shadow-sm hover:shadow-md transition-all z-50"
            >
               Voltar ao Início
            </button>
@@ -1177,7 +1182,7 @@ const App: React.FC = () => {
             setTheme('dark');
           }
         }}
-        className="fixed bottom-6 right-24 w-14 h-14 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-white shadow-xl shadow-slate-200/50 dark:shadow-black/50 hover:scale-110 active:scale-95 transition-all z-50 flex items-center justify-center group border border-slate-200 dark:border-slate-700"
+        className="fixed bottom-6 right-24 w-14 h-14 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-white shadow-xl shadow-slate-200/50 dark:shadow-black/50 hover:scale-110 active:scale-95 transition-all z-50 flex items-center justify-center group border border-slate-300 dark:border-slate-700"
         title="Alternar Tema"
       >
         <Sun size={24} className="hidden dark:block group-hover:text-amber-400 transition-colors" />

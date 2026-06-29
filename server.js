@@ -69,6 +69,7 @@ const writeTutorials = (data) => {
 const isDev = fs.existsSync(path.join(__dirname, '.git'));
 const PORT = process.env.PORT || (isDev ? 3001 : 3000);
 const app = express();
+app.set('trust proxy', true); // Segurança: Necessário para VPS/Docker como Coolify para ler IP real do cliente e não dar bypass no login
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -103,6 +104,61 @@ function processBase64Fields(obj) {
   }
 }
 
+
+// --- VAULT MASTER KEY ---
+let VAULT_MASTER_KEY = process.env.VAULT_MASTER_KEY;
+const VAULT_KEY_FILE = path.join(DATA_DIR, 'vault.key');
+
+if (!VAULT_MASTER_KEY) {
+    if (fs.existsSync(VAULT_KEY_FILE)) {
+        VAULT_MASTER_KEY = fs.readFileSync(VAULT_KEY_FILE, 'utf8').trim();
+        console.log('[Vault] VAULT_MASTER_KEY carregada do arquivo vault.key.');
+    } else {
+        console.warn('⚠️ [CRÍTICO] VAULT_MASTER_KEY não encontrada no ENV e nem no vault.key!');
+        console.warn('⚠️ Gerando uma nova chave efêmera. Se o container reiniciar, as senhas serão PERDIDAS.');
+        console.warn('⚠️ Configure a variável VAULT_MASTER_KEY no seu painel de hospedagem (ex: Coolify) imediatamente!');
+        VAULT_MASTER_KEY = crypto.randomBytes(32).toString('hex');
+        const envPath = path.join(__dirname, '.env');
+        fs.appendFileSync(envPath, '\nVAULT_MASTER_KEY=' + VAULT_MASTER_KEY + '\n');
+        try {
+            fs.writeFileSync(VAULT_KEY_FILE, VAULT_MASTER_KEY, 'utf8');
+        } catch (e) {
+            console.error('[Vault] Erro ao salvar vault.key:', e.message);
+        }
+    }
+    process.env.VAULT_MASTER_KEY = VAULT_MASTER_KEY;
+}
+
+// Criptografia AES-256-GCM para o Cofre
+function encryptSecret(text) {
+    const iv = crypto.randomBytes(12); // GCM recomendado 12 bytes
+    const key = crypto.createHash('sha256').update(String(VAULT_MASTER_KEY)).digest('base64').substr(0, 32);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+    return iv.toString('hex') + ':' + authTag + ':' + encrypted;
+}
+
+function decryptSecret(encryptedData) {
+    try {
+        const parts = encryptedData.split(':');
+        if (parts.length !== 3) return null;
+        const iv = Buffer.from(parts[0], 'hex');
+        const authTag = Buffer.from(parts[1], 'hex');
+        const encrypted = parts[2];
+        const key = crypto.createHash('sha256').update(String(VAULT_MASTER_KEY)).digest('base64').substr(0, 32);
+        const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+        decipher.setAuthTag(authTag);
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+    } catch (err) {
+        console.error('[Vault] Erro ao descriptografar:', err);
+        return null;
+    }
+}
+
 // --- POSTGRES DATABASE SYSTEM ---
 import pg from 'pg';
 const { Pool } = pg;
@@ -120,11 +176,21 @@ function convertPlaceholders(sql) {
 async function initPostgresDB() {
   try {
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT, hostname TEXT, ip_address TEXT, mac_address TEXT, ram_gb INTEGER, cpu_model TEXT, os_version TEXT, is_accessory BOOLEAN DEFAULT false, invoice_number TEXT, supplier TEXT, purchase_date TEXT, warranty_expiry TEXT);
+      CREATE TABLE IF NOT EXISTS maintenance_logs (id TEXT PRIMARY KEY, device_id TEXT, user_email TEXT, issue_description TEXT, resolution TEXT, cost DECIMAL, start_date TEXT, end_date TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, user_email TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
       CREATE TABLE IF NOT EXISTS shortcuts (id TEXT PRIMARY KEY, title TEXT, description TEXT, url TEXT, icon_name TEXT, color TEXT, campus TEXT);
+      CREATE TABLE IF NOT EXISTS vault_projects (id TEXT PRIMARY KEY, name TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS vault_secrets (id TEXT PRIMARY KEY, key_name TEXT, encrypted_value TEXT, note TEXT, project_id TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS it_tasks (id TEXT PRIMARY KEY, title TEXT, description TEXT, status TEXT, priority TEXT, due_date TEXT, created_by TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS it_task_comments (id TEXT PRIMARY KEY, task_id TEXT, user_email TEXT, content TEXT, created_at TEXT);
+    `);
+    
+    // Assegura que colunas novas existam caso as tabelas tenham sido criadas numa versão anterior
+    await pool.query(`
+      ALTER TABLE assignments ADD COLUMN IF NOT EXISTS user_email TEXT;
     `);
       
       // Add role column if it doesn't exist (ignore error if it does)
@@ -203,25 +269,25 @@ async function readDBTable(sheetName) {
 }
 
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
-const ACTIVE_SESSIONS = new Set();
+const ACTIVE_SESSIONS = new Map();
 
 function authenticateToken(req, res, next) {
   const ip = req.ip || req.connection.remoteAddress || '';
   const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
 
-  // Permitir acesso irrestrito se a requisição vier do próprio computador (localhost)
-  if (isLocalhost) {
-    return next();
-  }
-
-  // Se vier da rede externa/local (ex: 192.168.x.x), exige token de login
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token || !ACTIVE_SESSIONS.has(token)) {
+  if (token && ACTIVE_SESSIONS.has(token)) {
+    req.user = ACTIVE_SESSIONS.get(token);
+    return next();
+  } else if (!isLocalhost) {
     return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
+  } else {
+    // Fallback para localhost bypass
+    req.user = { email: 'localhost@admin', role: 'superadmin' };
+    return next();
   }
-  next();
 }
 
 // Endpoint de Debug/Fix
@@ -250,6 +316,26 @@ app.post('/api/db', authenticateToken, async (req, res) => {
   const { table, filters = {}, ilikeCol, ilikeVal, insertData, updateData, isDelete, isUpsert, orderCol, orderAsc, isSingle } = req.body;
 
   try {
+    const isMutation = isDelete || updateData || insertData || isUpsert;
+    if (isMutation) {
+        const role = req.user ? req.user.role : 'viewer';
+        
+        // Privilege Escalation Prevention
+        if (table === 'authorized_users' && role !== 'superadmin') {
+            return res.status(403).json({ error: 'Acesso negado: Apenas Super Admins podem modificar contas de usuários.' });
+        }
+        
+        // Protect Vault and Audit logs from generic modifications
+        const readOnlyTables = ['audit_logs', 'vault_secrets', 'vault_projects'];
+        if (readOnlyTables.includes(table)) {
+            return res.status(403).json({ error: 'Operação não permitida via API genérica.' });
+        }
+        
+        // Mass Delete Prevention
+        if (isDelete && Object.keys(filters).length === 0) {
+            return res.status(400).json({ error: 'Exclusão em massa bloqueada. Forneça um filtro.' });
+        }
+    }
     let whereClause = '';
     const params = [];
     const filterKeys = Object.keys(filters);
@@ -371,8 +457,8 @@ app.post('/api/db', authenticateToken, async (req, res) => {
               }
             }
             
-            if (existingDevice) {
-              // Bloqueia e retorna erro informando que o item já existe (mesmo para upserts)
+            if (existingDevice && !isUpsert) {
+              // Bloqueia e retorna erro informando que o item já existe (somente para INSERTS normais)
               await client.query('ROLLBACK');
               client.release();
               
@@ -385,6 +471,11 @@ app.post('/api/db', authenticateToken, async (req, res) => {
                   message: `Já existe um dispositivo com este ${field}: "${value}".`
                 }
               });
+            }
+            
+            // Se for isUpsert e existir, garantimos que usamos o mesmo ID para atualizar
+            if (existingDevice && isUpsert) {
+                finalItem.id = existingDevice.id;
             }
           }
           
@@ -502,15 +593,33 @@ app.post('/api/agent/sync', async (req, res) => {
 
     if (existingIndex >= 0) {
       // Atualiza o dispositivo existente
-      const sql = convertPlaceholders('UPDATE devices SET status=?, model=?, condition=?, last_seen=? WHERE id=?');
+      const sql = convertPlaceholders('UPDATE devices SET status=?, model=?, condition=?, last_seen=?, hostname=?, ip_address=?, mac_address=?, ram_gb=?, cpu_model=?, os_version=? WHERE id=?');
       await pool.query(sql, [
         'Em Uso', 
         model || devices[existingIndex].model, 
         technicalInfo, 
         new Date().toISOString(), 
+        hostname || '',
+        ip_address || '',
+        mac_address || '',
+        ram_gb || 0,
+        cpu || '',
+        os || '',
         devices[existingIndex].id
       ]);
-      targetDevice = { ...devices[existingIndex], status: 'Em Uso', model: model || devices[existingIndex].model, condition: technicalInfo, last_seen: new Date().toISOString() };
+      targetDevice = { 
+        ...devices[existingIndex], 
+        status: 'Em Uso', 
+        model: model || devices[existingIndex].model, 
+        condition: technicalInfo, 
+        last_seen: new Date().toISOString(),
+        hostname: hostname || '',
+        ip_address: ip_address || '',
+        mac_address: mac_address || '',
+        ram_gb: ram_gb || 0,
+        cpu_model: cpu || '',
+        os_version: os || ''
+      };
       actionStr = 'updated';
     } else {
       // Cadastra um novo dispositivo
@@ -523,7 +632,14 @@ app.post('/api/agent/sync', async (req, res) => {
         status: 'Em Uso',
         condition: technicalInfo,
         last_seen: new Date().toISOString(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        hostname: hostname || '',
+        ip_address: ip_address || '',
+        mac_address: mac_address || '',
+        ram_gb: ram_gb || 0,
+        cpu_model: cpu || '',
+        os_version: os || '',
+        is_accessory: false
       };
       
       const keys = Object.keys(newDevice);
@@ -636,7 +752,7 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
 
   console.log(`[VNC] Disparando conexão remota VNC para: ${ip}...`);
 
-  const vncPass = process.env.VNC_PASSWORD || 'eav@2017';
+  const vncPass = process.env.process.env.VNC_PASSWORD;
 
   // Usa spawn desanexado para forçar a janela a abrir como um aplicativo independente (em primeiro plano)
   const vncProcess = spawn('C:\\Program Files\\TightVNC\\tvnviewer.exe', [ip, `-password=${vncPass}`], {
@@ -849,7 +965,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     console.log(`[Auth] Login bem-sucedido para: ${email}`);
     const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.add(token);
+    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
     return res.json({ 
       user: {
         id: user.id,
@@ -900,7 +1016,7 @@ app.post('/api/auth/google', async (req, res) => {
 
     console.log(`[Auth Google] Login bem-sucedido para: ${email}`);
     const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.add(token);
+    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
 
     return res.json({
       user: {
@@ -1007,6 +1123,115 @@ Nova Mensagem do Usuário: ${message}
 
     return res.status(500).json({ error: 'Falha ao conectar com a IA: ' + errorMessage });
   }
+});
+
+
+// Rota temporária de debug (Será removida depois)
+app.get('/api/debug-emails', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT id, user_name, user_email FROM assignments WHERE user_name ILIKE '%falk%'");
+        res.json(result.rows);
+    } catch (e) {
+        res.json({ error: e.message });
+    }
+});
+
+// --- VAULT API ROUTES ---
+// --- Rota de Auditoria do Cofre ---
+app.post('/api/vault/audit', authenticateToken, async (req, res) => {
+    try {
+        const { action, secret_id, secret_name } = req.body;
+        const id = crypto.randomUUID();
+        const created_at = new Date().toISOString();
+        const user_email = req.user ? req.user.email : 'unknown';
+        const details = `Segredo: ${secret_name || secret_id}`;
+        
+        await pool.query(
+            'INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [id, user_email, action, details, 'VAULT', secret_id, created_at]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/vault/projects', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM vault_projects ORDER BY name ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/vault/projects', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar projetos.' });
+    try {
+        const { name } = req.body;
+        const id = crypto.randomUUID();
+        const created_at = new Date().toISOString();
+        await pool.query('INSERT INTO vault_projects (id, name, created_at) VALUES ($1, $2, $3)', [id, name, created_at]);
+        res.json({ id, name, created_at });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/vault/secrets', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, key_name as key, note, project_id, encrypted_value, created_at FROM vault_secrets ORDER BY key_name ASC');
+        const secrets = result.rows.map(row => ({
+            id: row.id,
+            key: row.key,
+            note: row.note,
+            projectIds: row.project_id ? [row.project_id] : [],
+            value: decryptSecret(row.encrypted_value) || 'ERRO_DESCRIPTOGRAFIA',
+            created_at: row.created_at
+        }));
+        res.json(secrets);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar segredos.' });
+    try {
+        const { key, value, note, projectId } = req.body;
+        const id = crypto.randomUUID();
+        const encryptedValue = encryptSecret(value);
+        const created_at = new Date().toISOString();
+        
+        await pool.query(
+            'INSERT INTO vault_secrets (id, key_name, encrypted_value, note, project_id, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
+            [id, key, encryptedValue, note, projectId, created_at]
+        );
+        res.json({ id, key, value, note, projectIds: [projectId] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/vault/secrets/:id', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir segredos.' });
+    try {
+        await pool.query('DELETE FROM vault_secrets WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/vault/projects/:id', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir projetos.' });
+    try {
+        await pool.query('DELETE FROM vault_secrets WHERE project_id = $1', [req.params.id]);
+        await pool.query('DELETE FROM vault_projects WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Rota catch-all para o React SPA (todas as rotas vão para o index.html)

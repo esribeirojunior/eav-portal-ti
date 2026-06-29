@@ -1,18 +1,21 @@
+const fs = require('fs');
+const path = require('path');
 
+const targetFile = path.join(__dirname, 'components', 'VaultModule.tsx');
+
+const reactCode = `
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  ShieldCheck, Search, LogOut, Copy, Eye, EyeOff, Loader2, ArrowLeft, Lock, Key, FileText, AlertCircle, CheckCircle2, Plus, X, Trash2, Save
+  ShieldCheck, Search, Copy, Eye, EyeOff, Loader2, ArrowLeft, Lock, Key, FileText, AlertCircle, CheckCircle2, Plus, X, Trash2, Save
 } from 'lucide-react';
 import { BitwardenSecret as Secret, BitwardenProject as Project } from '../types';
 
 interface VaultModuleProps {
   userEmail: string;
   onBack: () => void;
-  userRole?: string;
-  onLogout: () => void;
 }
 
-const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, userRole, onLogout }) => {
+const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack }) => {
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +48,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
       const token = localStorage.getItem('auth_token');
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
+        'Authorization': token ? \`Bearer \${token}\` : ''
       };
 
       const [secretsRes, projectsRes] = await Promise.all([
@@ -79,7 +82,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
       const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/vault/secrets', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? \`Bearer \${token}\` : '' },
         body: JSON.stringify({ key: newKey, value: newValue, note: newNote, projectId: newSecretProjectId })
       });
       if (!res.ok) throw new Error('Erro ao salvar');
@@ -100,7 +103,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
       const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/vault/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': token ? \`Bearer \${token}\` : '' },
         body: JSON.stringify({ name: newProjectName })
       });
       if (!res.ok) throw new Error('Erro ao salvar');
@@ -118,29 +121,13 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
     if (!window.confirm('Tem certeza que deseja apagar este segredo?')) return;
     try {
       const token = localStorage.getItem('auth_token');
-      await fetch(`/api/vault/secrets/${id}`, {
+      await fetch(\`/api/vault/secrets/\${id}\`, {
         method: 'DELETE',
-        headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+        headers: { 'Authorization': token ? \`Bearer \${token}\` : '' }
       });
       fetchData();
     } catch (err) {
       alert('Erro ao excluir segredo.');
-    }
-  };
-
-  const handleDeleteProject = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja apagar este projeto? Todos os segredos dele também serão apagados!')) return;
-    try {
-      const token = localStorage.getItem('auth_token');
-      const res = await fetch(`/api/vault/projects/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': token ? `Bearer ${token}` : '' }
-      });
-      if (!res.ok) throw new Error('Erro ao excluir projeto');
-      if (selectedProjectId === id) setSelectedProjectId('all');
-      fetchData();
-    } catch (err) {
-      alert('Erro ao excluir projeto.');
     }
   };
 
@@ -153,48 +140,12 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
     });
   }, [secrets, searchQuery, selectedProjectId]);
 
-  const toggleVisibility = (id: string, keyName: string) => {
-    setVisibleSecrets(prev => {
-        const isRevealing = !prev[id];
-        if (isRevealing) logVaultAction('VIEW_SECRET', id, keyName);
-        return { ...prev, [id]: isRevealing };
-    });
+  const toggleVisibility = (id: string) => {
+    setVisibleSecrets(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const logVaultAction = async (action: string, secretId: string, secretKey: string) => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      await fetch('/api/vault/audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
-        body: JSON.stringify({ action, secret_id: secretId, secret_name: secretKey })
-      });
-    } catch (e) {
-      console.error('Falha ao registrar auditoria', e);
-    }
-  };
-
-  const copyToClipboard = (text: string, label: string, secretId?: string, secretKey?: string) => {
-    if (secretId && secretKey) logVaultAction('COPY_SECRET', secretId, secretKey);
-    
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text);
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand('copy');
-      } catch (err) {
-        console.error('Falha no fallback de cópia', err);
-      }
-      document.body.removeChild(textArea);
-    }
-    
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
     setCopyFeedback(label);
     setTimeout(() => setCopyFeedback(null), 2000);
   };
@@ -221,17 +172,17 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <input 
               type="text"
               placeholder="Pesquisar segredo..."
-              className="w-full bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-white/20"
+              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-white/20"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-white/20 group-focus-within:text-indigo-500 transition-colors" size={16} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20 group-focus-within:text-indigo-500 transition-colors" size={16} />
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
-                <label className="text-[10px] uppercase tracking-[0.2em] font-black text-slate-700 dark:text-white/30">Projetos</label>
-                {userRole === 'superadmin' && (
+                <label className="text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-white/30">Projetos</label>
+                {isAdmin && (
                     <button onClick={() => setIsProjectModalOpen(true)} className="text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 transition-colors">
                         <Plus size={14} />
                     </button>
@@ -240,33 +191,20 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <div className="space-y-1">
               <button 
                 onClick={() => setSelectedProjectId('all')}
-                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                className={\`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 \${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}\`}
               >
                 <ShieldCheck size={16} />
                 Todos os Itens
               </button>
               {projects.map(project => (
-                <div key={project.id} className="relative group flex items-center">
-                  <button 
-                    onClick={() => setSelectedProjectId(project.id)}
-                    className={`flex-1 text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
-                  >
-                    <FileText size={16} />
-                    {project.name}
-                  </button>
-                  {userRole === 'superadmin' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProject(project.id);
-                      }}
-                      className="absolute right-2 p-2 rounded-lg text-rose-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
-                      title="Excluir Projeto"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
+                <button 
+                  key={project.id}
+                  onClick={() => setSelectedProjectId(project.id)}
+                  className={\`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 \${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}\`}
+                >
+                  <FileText size={16} />
+                  {project.name}
+                </button>
               ))}
             </div>
           </div>
@@ -277,13 +215,10 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <Lock size={14} className="text-indigo-500 dark:text-indigo-400" />
             <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-300">Segurança Total</span>
           </div>
-          <p className="text-[10px] text-slate-700 dark:text-white/30 leading-relaxed italic">
+          <p className="text-[10px] text-slate-500 dark:text-white/30 leading-relaxed italic">
             Armazenamento criptografado no banco de dados local com AES-256.
           </p>
         </div>
-        <button onClick={onLogout} className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:border-rose-300 dark:hover:border-rose-500/30 text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm">
-          <LogOut size={14} /> Sair
-        </button>
       </div>
 
       {/* Main Content */}
@@ -301,7 +236,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
         {loading ? (
           <div className="h-full flex flex-col items-center justify-center space-y-4">
             <Loader2 className="animate-spin text-indigo-500" size={40} />
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-600 dark:text-white/20">Descriptografando cofre...</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 dark:text-white/20">Descriptografando cofre...</p>
           </div>
         ) : error ? (
           <div className="h-full flex flex-col items-center justify-center space-y-6 text-center max-w-sm mx-auto">
@@ -310,7 +245,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 dark:text-white">Erro de Conexão</h3>
-              <p className="text-sm text-slate-700 dark:text-white/40 leading-relaxed">{error}</p>
+              <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed">{error}</p>
             </div>
             <button 
               onClick={fetchData}
@@ -324,15 +259,15 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <h2 className="text-4xl md:text-5xl font-[1000] tracking-tighter uppercase text-slate-900 dark:text-white">Meus <span className="text-indigo-500">Segredos</span></h2>
-                <p className="text-slate-700 dark:text-white/30 text-sm font-medium">Gestão centralizada de chaves e senhas de infraestrutura.</p>
+                <p className="text-slate-500 dark:text-white/30 text-sm font-medium">Gestão centralizada de chaves e senhas de infraestrutura.</p>
               </div>
               <div className="flex items-center gap-4">
-                 {userRole === 'superadmin' && (
-            <button onClick={() => setIsSecretModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+                 {isAdmin && (
+                    <button onClick={() => setIsSecretModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-indigo-900/20">
                         <Plus size={16} /> Novo Segredo
                     </button>
                  )}
-                 <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/30">
+                 <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/30">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Cofre Local
                  </div>
@@ -342,12 +277,12 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {filteredSecrets.length === 0 ? (
                 <div className="col-span-full py-20 text-center space-y-4 border-2 border-dashed border-slate-300 dark:border-white/5 rounded-[3rem]">
-                  <Search size={40} className="mx-auto text-slate-600 dark:text-white/10" />
-                  <p className="text-sm font-bold text-slate-600 dark:text-white/20 uppercase tracking-widest">Nenhum segredo encontrado.</p>
+                  <Search size={40} className="mx-auto text-slate-400 dark:text-white/10" />
+                  <p className="text-sm font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest">Nenhum segredo encontrado.</p>
                 </div>
               ) : (
                 filteredSecrets.map(secret => (
-                  <div key={secret.id} className="group bg-white shadow-md border-slate-300 dark:bg-slate-900/60 dark:shadow-none dark:border-white/5 p-6 md:p-8 rounded-[2.5rem] border border-slate-300 dark:border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.99] shadow-sm hover:shadow-md dark:shadow-none">
+                  <div key={secret.id} className="group bg-white dark:bg-slate-900/60 p-6 md:p-8 rounded-[2.5rem] border border-slate-300 dark:border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.99] shadow-sm hover:shadow-md dark:shadow-none">
                     <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-600/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
@@ -357,7 +292,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                           <h3 className="text-lg font-black uppercase tracking-tighter text-slate-900 dark:text-white">{secret.key}</h3>
                           <div className="flex gap-2 mt-1">
                             {secret.projectIds.map(pid => (
-                              <span key={pid} className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white/40 rounded border border-slate-300 dark:border-white/5">
+                              <span key={pid} className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 rounded border border-slate-300 dark:border-white/5">
                                 {projects.find(p => p.id === pid)?.name || 'Projeto'}
                               </span>
                             ))}
@@ -367,12 +302,12 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                       
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => toggleVisibility(secret.id, secret.key)}
-                          className="p-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-700 dark:text-white/40 hover:text-slate-900 dark:hover:text-white transition-all"
+                          onClick={() => toggleVisibility(secret.id)}
+                          className="p-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 dark:text-white/40 hover:text-slate-900 dark:hover:text-white transition-all"
                         >
                           {visibleSecrets[secret.id] ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
-                        {userRole === 'superadmin' && (
+                        {isAdmin && (
                             <button 
                               onClick={() => handleDeleteSecret(secret.id)}
                               className="p-2.5 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-xl text-rose-500 transition-all opacity-0 group-hover:opacity-100"
@@ -385,11 +320,11 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 
                     <div className="space-y-4">
                       <div className="relative">
-                        <div className={`w-full bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all ${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-600 dark:text-white/10 select-none blur-sm'}`}>
+                        <div className={\`w-full bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all \${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-400 dark:text-white/10 select-none blur-sm'}\`}>
                           {visibleSecrets[secret.id] ? secret.value : '••••••••••••••••••••••••'}
                         </div>
                         <button 
-                          onClick={() => copyToClipboard(secret.value, 'Segredo', secret.id, secret.key)}
+                          onClick={() => copyToClipboard(secret.value, 'Segredo')}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg active:scale-90 transition-all"
                         >
                           <Copy size={16} />
@@ -398,8 +333,8 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 
                       {secret.note && (
                         <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-200 dark:border-white/5">
-                          <FileText size={14} className="text-slate-600 dark:text-white/20 mt-1 flex-shrink-0" />
-                          <p className="text-[11px] text-slate-700 dark:text-white/40 italic leading-relaxed">{secret.note}</p>
+                          <FileText size={14} className="text-slate-400 dark:text-white/20 mt-1 flex-shrink-0" />
+                          <p className="text-[11px] text-slate-500 dark:text-white/40 italic leading-relaxed">{secret.note}</p>
                         </div>
                       )}
                     </div>
@@ -420,21 +355,21 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                 <form onSubmit={handleCreateSecret} className="space-y-4">
                     <div>
                         <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nome da Chave</label>
-                        <input required value={newKey} onChange={e=>setNewKey(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: AWS_ACCESS_KEY" />
+                        <input required value={newKey} onChange={e=>setNewKey(e.target.value)} className="w-full mt-1 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: AWS_ACCESS_KEY" />
                     </div>
                     <div>
                         <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Valor do Segredo (Senha/Token)</label>
-                        <input required type="password" value={newValue} onChange={e=>setNewValue(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-mono" placeholder="••••••••••••••" />
+                        <input required type="password" value={newValue} onChange={e=>setNewValue(e.target.value)} className="w-full mt-1 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-mono" placeholder="••••••••••••••" />
                     </div>
                     <div>
                         <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Projeto</label>
-                        <select required value={newSecretProjectId} onChange={e=>setNewSecretProjectId(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+                        <select required value={newSecretProjectId} onChange={e=>setNewSecretProjectId(e.target.value)} className="w-full mt-1 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
                             {projects.map(p => <option key={p.id} value={p.id} className="dark:bg-[#1a1b3b]">{p.name}</option>)}
                         </select>
                     </div>
                     <div>
                         <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nota Opcional</label>
-                        <input value={newNote} onChange={e=>setNewNote(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Acesso Root Banco de Dados" />
+                        <input value={newNote} onChange={e=>setNewNote(e.target.value)} className="w-full mt-1 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Acesso Root Banco de Dados" />
                     </div>
                     <button type="submit" disabled={saving || projects.length === 0} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl mt-4 uppercase text-[11px] tracking-widest disabled:opacity-50">
                         {saving ? 'Salvando...' : 'Criar Segredo Seguro'}
@@ -454,7 +389,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                 <form onSubmit={handleCreateProject} className="space-y-4">
                     <div>
                         <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nome do Projeto</label>
-                        <input required value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Produção Cloud" />
+                        <input required value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} className="w-full mt-1 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Produção Cloud" />
                     </div>
                     <button type="submit" disabled={saving} className="w-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold py-3 rounded-xl mt-2 uppercase text-[11px] tracking-widest disabled:opacity-50">
                         {saving ? 'Criando...' : 'Criar Projeto'}
@@ -468,3 +403,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 };
 
 export const VaultModule = React.memo(VaultModuleComponent);
+`;
+
+fs.writeFileSync(targetFile, reactCode, 'utf8');
+console.log('VaultModule.tsx atualizado com sucesso.');

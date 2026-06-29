@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Users, Building2, Plus, Trash2, Shield, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ModulePermissionsModal } from './ModulePermissionsModal';
+import { EmployeesModule } from './EmployeesModule';
 
 interface SettingsModuleProps {
     userEmail?: string;
 }
 
 export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'departments'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'departments' | 'employees'>('users');
     
     // Users state
     const [users, setUsers] = useState<any[]>([]);
@@ -149,42 +150,48 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     };
 
     return (
-        <div className="flex-1 overflow-y-auto bg-[#f4f7fc] dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors duration-300">
+        <div className="flex-1 overflow-y-auto bg-slate-100 dark:bg-[#0c0d21] p-6 md:p-12 relative transition-colors duration-300">
             <div className="max-w-5xl mx-auto">
                 <div className="mb-10">
                     <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                         <Shield className="text-indigo-600 dark:text-indigo-500" size={32} />
                         Painel de Controle
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Gerencie acessos e os cadastros base do sistema.</p>
+                    <p className="text-slate-600 dark:text-slate-500 mt-2 text-lg">Gerencie acessos e os cadastros base do sistema.</p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
-                    <div className="flex border-b border-slate-200 dark:border-white/5">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-300 dark:border-white/5 shadow-sm overflow-hidden">
+                    <div className="flex border-b border-slate-300 dark:border-white/5">
                         <button 
                             onClick={() => setActiveTab('users')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'users' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'users' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-600 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
                             <Users size={18} /> Equipe de TI
                         </button>
                         <button 
                             onClick={() => setActiveTab('departments')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'departments' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'departments' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-600 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
-                            <Building2 size={18} /> Setores e Departamentos
+                            <Building2 size={18} /> Setores
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('employees')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-5 text-sm font-bold transition-all ${activeTab === 'employees' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50/50 dark:bg-indigo-500/5' : 'text-slate-600 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                        >
+                            <Users size={18} /> Base de Colaboradores
                         </button>
                     </div>
 
                     <div className="p-8">
                         {activeTab === 'users' && (
                             <div className="space-y-8">
-                                <div className="bg-slate-50 dark:bg-[#15162c] p-6 rounded-2xl border border-slate-200 dark:border-white/5">
+                                <div className="bg-slate-50 dark:bg-[#15162c] p-6 rounded-2xl border border-slate-300 dark:border-white/5">
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Adicionar Administrador</h3>
                                     <form onSubmit={handleAddUser} className="flex gap-4">
                                         <input 
                                             type="email" 
                                             placeholder="E-mail corporativo" 
-                                            className="flex-1 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="flex-1 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             value={newUserEmail}
                                             onChange={(e) => setNewUserEmail(e.target.value)}
                                             required
@@ -192,7 +199,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                         <input 
                                             type="password" 
                                             placeholder="Senha (Opcional, Padrão: eav@123)" 
-                                            className="w-64 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-64 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             value={newUserPassword}
                                             onChange={(e) => setNewUserPassword(e.target.value)}
                                         />
@@ -202,9 +209,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                     </form>
                                 </div>
 
-                                <div className="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden">
+                                <div className="border border-slate-300 dark:border-white/5 rounded-2xl overflow-hidden">
                                     <table className="w-full text-left text-sm">
-                                        <thead className="bg-slate-50 dark:bg-[#15162c] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs">
+                                        <thead className="bg-slate-50 dark:bg-[#15162c] text-slate-600 dark:text-slate-500 font-bold uppercase tracking-wider text-xs">
                                             <tr>
                                                 <th className="px-6 py-4">Usuário</th>
                                                 <th className="px-6 py-4">Status</th>
@@ -228,7 +235,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                         <select 
                                                             value={u.role || 'admin'} 
                                                             onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                                                            className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs rounded-lg px-2 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            className="bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs rounded-lg px-2 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                         >
                                                             <option value="superadmin">Super Admin</option>
                                                             <option value="admin">Administrador</option>
@@ -246,7 +253,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                     <td className="px-6 py-4 text-right">
                                                         <button 
                                                             onClick={() => handleDeleteUser(u.id, u.email)}
-                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                                             title="Remover acesso"
                                                         >
                                                             <Trash2 size={18} />
@@ -256,7 +263,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                             ))}
                                             {users.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={3} className="px-6 py-8 text-center text-slate-500">Nenhum usuário encontrado.</td>
+                                                    <td colSpan={3} className="px-6 py-8 text-center text-slate-600">Nenhum usuário encontrado.</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -267,13 +274,13 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
                         {activeTab === 'departments' && (
                             <div className="space-y-8">
-                                <div className="bg-slate-50 dark:bg-[#15162c] p-6 rounded-2xl border border-slate-200 dark:border-white/5">
+                                <div className="bg-slate-50 dark:bg-[#15162c] p-6 rounded-2xl border border-slate-300 dark:border-white/5">
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Adicionar Setor</h3>
                                     <form onSubmit={handleAddDepartment} className="flex gap-4">
                                         <input 
                                             type="text" 
                                             placeholder="Nome do Setor/Departamento" 
-                                            className="flex-1 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="flex-1 bg-white dark:bg-[#0c0d21] border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             value={newDepartmentName}
                                             onChange={(e) => setNewDepartmentName(e.target.value)}
                                             required
@@ -284,25 +291,31 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                     </form>
                                 </div>
 
-                                <div className="border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden grid grid-cols-2 gap-4 p-4">
+                                <div className="border border-slate-300 dark:border-white/5 rounded-2xl overflow-hidden grid grid-cols-2 gap-4 p-4">
                                     {departments.sort((a,b) => a.name.localeCompare(b.name)).map((dept) => (
-                                        <div key={dept.id} className="flex items-center justify-between p-4 border border-slate-200 dark:border-white/5 rounded-xl hover:border-indigo-500/30 transition-colors bg-slate-50/50 dark:bg-white/5">
+                                        <div key={dept.id} className="flex items-center justify-between p-4 border border-slate-300 dark:border-white/5 rounded-xl hover:border-indigo-500/30 transition-colors bg-slate-50/50 dark:bg-white/5">
                                             <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                                                <Building2 size={16} className="text-slate-400" />
+                                                <Building2 size={16} className="text-slate-500" />
                                                 {dept.name}
                                             </span>
                                             <button 
                                                 onClick={() => handleDeleteDepartment(dept.id, dept.name)}
-                                                className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                                className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
                                     ))}
                                     {departments.length === 0 && (
-                                        <div className="col-span-2 text-center py-8 text-slate-500">Nenhum setor cadastrado.</div>
+                                        <div className="col-span-2 text-center py-8 text-slate-600">Nenhum setor cadastrado.</div>
                                     )}
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'employees' && (
+                            <div className="pt-2">
+                                <EmployeesModule isEmbedded={true} />
                             </div>
                         )}
                     </div>

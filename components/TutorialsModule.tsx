@@ -253,15 +253,15 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                     <div className="flex items-center gap-6">
                         <button
                             onClick={viewingTutorial ? () => setViewingTutorial(null) : onBack}
-                            className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-white/40 border border-white/5 active:scale-90"
+                            className="p-4 bg-white dark:bg-white/5 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-slate-500 dark:text-white/40 border border-slate-300 dark:border-white/5 active:scale-90"
                         >
                             <ChevronLeft size={24} />
                         </button>
                         <div>
-                            <h2 className="text-4xl font-[900] uppercase tracking-tighter text-white">
+                            <h2 className="text-4xl font-[900] uppercase tracking-tighter text-slate-900 dark:text-white">
                                 {viewingTutorial ? 'Procedimento' : 'Passo a Passo TI'}
                             </h2>
-                            <p className="text-white/20 text-[10px] font-black tracking-[0.3em] uppercase mt-1">
+                            <p className="text-slate-400 dark:text-white/20 text-[10px] font-black tracking-[0.3em] uppercase mt-1">
                                 {publicMode ? 'Acesso Público' : viewingTutorial ? viewingTutorial.category : 'Manuais e Procedimentos de Suporte'}
                             </p>
                         </div>
@@ -275,14 +275,14 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                     placeholder="Pesquisar manual..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="bg-white/5 border border-white/10 rounded-2xl py-4 px-12 text-[13px] font-bold text-white outline-none focus:border-orange-500/50 transition-all w-64 placeholder:text-white/10"
+                                    className="bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-12 text-[13px] font-bold text-slate-900 dark:text-white outline-none focus:border-orange-500/50 transition-all w-64 placeholder:text-slate-400 dark:text-white/10"
                                 />
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
                             </div>
                             {isAdmin && (
                                 <button
                                     onClick={() => { resetForm(); setIsModalOpen(true); }}
-                                    className="flex items-center gap-3 bg-orange-600 hover:bg-orange-500 text-white px-6 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-xl shadow-orange-900/20"
+                                    className="flex items-center gap-3 bg-orange-600 hover:bg-orange-500 text-slate-900 dark:text-white px-6 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-xl shadow-orange-900/20"
                                 >
                                     <Plus size={18} />
                                     Novo Manual
@@ -292,7 +292,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                     )}
                 </div>
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-48 text-white/20 gap-6">
+                    <div className="flex flex-col items-center justify-center py-48 text-slate-400 dark:text-white/20 gap-6">
                         <Loader2 className="animate-spin text-orange-500" size={64} />
                         <p className="font-[900] uppercase tracking-[0.4em] text-xs">Carregando Procedimento...</p>
                     </div>
@@ -302,28 +302,28 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                             <AlertCircle size={40} />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Ops! Algo deu errado</h3>
-                            <p className="text-white/40 font-medium italic max-w-sm">{error}</p>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Ops! Algo deu errado</h3>
+                            <p className="text-slate-500 dark:text-white/40 font-medium italic max-w-sm">{error}</p>
                         </div>
-                        <button onClick={publicMode ? () => window.location.reload() : () => fetchTutorials()} className="bg-white/5 hover:bg-white/10 text-white px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 border border-white/5">
+                        <button onClick={publicMode ? () => window.location.reload() : () => fetchTutorials()} className="bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 border border-slate-300 dark:border-white/5">
                             <RefreshCw size={16} className="inline mr-2" /> Tentar Novamente
                         </button>
                     </div>
                 ) : viewingTutorial ? (
                     /* Detailed View */
                     <div className="animate-in slide-in-from-right-4 duration-300 space-y-8">
-                        <div className="bg-slate-900/60 border border-white/5 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
+                        <div className="bg-slate-900/60 border border-slate-300 dark:border-white/5 rounded-[3rem] p-8 md:p-12 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/5 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
                             
                             <div className="relative z-10 space-y-8">
                                 <div className="flex justify-between items-start">
-                                    <div className="w-20 h-20 bg-orange-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl">
+                                    <div className="w-20 h-20 bg-orange-600 rounded-[2rem] flex items-center justify-center text-slate-900 dark:text-white shadow-2xl">
                                         {getIcon(viewingTutorial.icon_name || 'BookOpen', 40)}
                                     </div>
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={() => handleShare(viewingTutorial.id)} 
-                                            className="p-3 bg-indigo-500/10 hover:bg-indigo-500 rounded-xl text-indigo-400 hover:text-white transition-all flex items-center gap-2 group"
+                                            className="p-3 bg-indigo-500/10 hover:bg-indigo-500 rounded-xl text-indigo-400 hover:text-slate-900 dark:text-white transition-all flex items-center gap-2 group"
                                             title="Compartilhar Link"
                                         >
                                             <Share2 size={18} />
@@ -332,21 +332,21 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                         
                                         {isAdmin && (
                                             <div className="flex gap-2">
-                                                <button onClick={() => handleEdit(viewingTutorial)} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-white/60 transition-all"><Settings size={18} /></button>
-                                                <button onClick={() => handleDelete(viewingTutorial.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500 rounded-xl text-rose-500 hover:text-white transition-all"><Trash2 size={18} /></button>
+                                                <button onClick={() => handleEdit(viewingTutorial)} className="p-3 bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-600 dark:text-white/60 transition-all"><Settings size={18} /></button>
+                                                <button onClick={() => handleDelete(viewingTutorial.id)} className="p-3 bg-rose-500/10 hover:bg-rose-500 rounded-xl text-rose-500 hover:text-slate-900 dark:text-white transition-all"><Trash2 size={18} /></button>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <h1 className="text-4xl font-black text-white uppercase tracking-tight">{viewingTutorial.title}</h1>
-                                    <p className="text-white/40 text-lg font-medium italic leading-relaxed">{viewingTutorial.description}</p>
+                                    <h1 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{viewingTutorial.title}</h1>
+                                    <p className="text-slate-500 dark:text-white/40 text-lg font-medium italic leading-relaxed">{viewingTutorial.description}</p>
                                 </div>
 
-                                <div className="h-[1px] w-full bg-white/5" />
+                                <div className="h-[1px] w-full bg-white dark:bg-white/5" />
 
-                                <div className="text-white/80 text-base leading-loose font-medium whitespace-pre-wrap tutorial-content">
+                                <div className="text-slate-800 dark:text-white/80 text-base leading-loose font-medium whitespace-pre-wrap tutorial-content">
                                     {viewingTutorial.content}
                                 </div>
  
@@ -356,7 +356,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                             <Video size={20} />
                                             <span className="text-[11px] font-black uppercase tracking-widest">Vídeo Demonstrativo</span>
                                         </div>
-                                        <div className="rounded-3xl overflow-hidden bg-black/40 border border-white/5 aspect-video flex items-center justify-center">
+                                        <div className="rounded-3xl overflow-hidden bg-white dark:bg-black/40 border border-slate-300 dark:border-white/5 aspect-video flex items-center justify-center">
                                             {isDirectVideo(viewingTutorial.video_url) ? (
                                                 <video 
                                                     src={viewingTutorial.video_url} 
@@ -379,7 +379,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                                     href={viewingTutorial.video_url} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border border-white/10 active:scale-95"
+                                                    className="inline-flex items-center gap-2 bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-white/60 hover:text-slate-900 dark:text-white px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all border border-slate-300 dark:border-white/10 active:scale-95"
                                                 >
                                                     <Link size={16} />
                                                     Abrir vídeo em nova guia (Google Drive)
@@ -401,7 +401,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-white text-black border-white' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20 hover:text-white'}`}
+                                        className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-white text-black border-white' : 'bg-white dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-300 dark:border-white/5 hover:border-white/20 hover:text-slate-900 dark:text-white'}`}
                                     >
                                         {cat}
                                     </button>
@@ -410,7 +410,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                         )}
 
                         {filteredTutorials.length === 0 ? (
-                                    <div className="col-span-full py-24 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-4 opacity-40">
+                                    <div className="col-span-full py-24 border-2 border-dashed border-slate-300 dark:border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-4 opacity-40">
                                         <BookOpen size={48} />
                                         <p className="font-black uppercase tracking-widest text-xs">Nenhum procedimento encontrado.</p>
                                     </div>
@@ -418,12 +418,12 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                     <button
                                         key={tutorial.id}
                                         onClick={() => setViewingTutorial(tutorial)}
-                                        className="group bg-slate-900/60 p-8 rounded-[2.5rem] border border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-4px] text-left relative overflow-hidden"
+                                        className="group bg-slate-900/60 p-8 rounded-[2.5rem] border border-slate-300 dark:border-white/5 hover:border-orange-500/30 transition-all hover:translate-y-[-4px] text-left relative overflow-hidden"
                                     >
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-orange-600/10 transition-colors" />
                                         
                                         <div className="flex gap-6 items-start relative z-10">
-                                            <div className="w-14 h-14 bg-orange-600/10 text-orange-500 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-all duration-500">
+                                            <div className="w-14 h-14 bg-orange-600/10 text-orange-500 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-slate-900 dark:text-white transition-all duration-500">
                                                 {getIcon(tutorial.icon_name || 'BookOpen')}
                                             </div>
                                             <div className="flex-1 space-y-2">
@@ -431,8 +431,8 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-orange-500/60">{tutorial.category}</span>
                                                     {tutorial.video_url && <PlayCircle size={14} className="text-orange-500/40" />}
                                                 </div>
-                                                <h3 className="text-2xl font-[900] text-white uppercase tracking-tight line-clamp-1">{tutorial.title}</h3>
-                                                <p className="text-white/40 text-sm font-medium leading-relaxed line-clamp-2 italic">{tutorial.description}</p>
+                                                <h3 className="text-2xl font-[900] text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{tutorial.title}</h3>
+                                                <p className="text-slate-500 dark:text-white/40 text-sm font-medium leading-relaxed line-clamp-2 italic">{tutorial.description}</p>
                                             </div>
                                         </div>
                                     </button>
@@ -443,14 +443,14 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
 
             {/* Modal de Cadastro/Edição */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-2xl bg-slate-950 rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-orange-900/20 to-slate-900">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-2xl bg-slate-100 dark:bg-slate-950 rounded-[2.5rem] border border-slate-300 dark:border-white/10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        <div className="p-8 border-b border-slate-300 dark:border-white/5 flex justify-between items-center bg-gradient-to-r from-orange-900/20 to-slate-900">
                             <div>
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">{editingTutorial ? 'Editar Manual' : 'Novo Manual'}</h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{editingTutorial ? 'Editar Manual' : 'Novo Manual'}</h3>
                                 <p className="text-[10px] font-black text-orange-400/60 uppercase tracking-widest mt-1">Cadastro de procedimento de suporte</p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-white/40">
+                            <button onClick={() => setIsModalOpen(false)} className="p-3 bg-white dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-2xl transition-all text-slate-500 dark:text-white/40">
                                 <X size={20} />
                             </button>
                         </div>
@@ -458,44 +458,44 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                         <form onSubmit={handleSave} className="p-8 space-y-6 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Título do Procedimento</label>
-                                    <input required value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-bold" placeholder="Ex: Configuração de VPN" />
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Título do Procedimento</label>
+                                    <input required value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-bold" placeholder="Ex: Configuração de VPN" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Categoria</label>
-                                    <input required value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-bold" placeholder="Ex: Rede, Software, etc." />
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Categoria</label>
+                                    <input required value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-bold" placeholder="Ex: Rede, Software, etc." />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Descrição Curta</label>
-                                <input required value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium" placeholder="Breve resumo do que este manual trata" />
+                                <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Descrição Curta</label>
+                                <input required value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium" placeholder="Breve resumo do que este manual trata" />
                             </div>
 
                              <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Link de Vídeo (Opcional)</label>
+                                <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Link de Vídeo (Opcional)</label>
                                 <div className="relative">
                                     <input 
                                         type="url" 
                                         value={videoUrl} 
                                         onChange={e => setVideoUrl(e.target.value)} 
-                                        className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 pl-12 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium" 
+                                        className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 pl-12 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium" 
                                         placeholder="Cole o link do YouTube, Vimeo ou Google Drive..." 
                                     />
-                                    <Link className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                                    <Link className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20" size={16} />
                                 </div>
-                                <p className="text-[9px] text-white/20 uppercase tracking-widest mt-1 ml-1">O vídeo será incorporado automaticamente se for do YouTube.</p>
+                                <p className="text-[9px] text-slate-400 dark:text-white/20 uppercase tracking-widest mt-1 ml-1">O vídeo será incorporado automaticamente se for do YouTube.</p>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Ícone</label>
+                                <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Ícone</label>
                                 <div className="flex gap-4">
                                     {['BookOpen', 'FileText', 'HelpCircle', 'Settings', 'User'].map(icon => (
                                         <button
                                             key={icon}
                                             type="button"
                                             onClick={() => setIconName(icon)}
-                                            className={`p-4 rounded-xl border transition-all ${iconName === icon ? 'bg-orange-600 border-orange-500 text-white' : 'bg-white/5 border-white/10 text-white/20 hover:border-white/30'}`}
+                                            className={`p-4 rounded-xl border transition-all ${iconName === icon ? 'bg-orange-600 border-orange-500 text-slate-900 dark:text-white' : 'bg-white dark:bg-white/5 border-slate-300 dark:border-white/10 text-slate-400 dark:text-white/20 hover:border-white/30'}`}
                                         >
                                             {getIcon(icon, 20)}
                                         </button>
@@ -504,11 +504,11 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest">Conteúdo do Procedimento</label>
-                                <textarea required value={content} onChange={e => setContent(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium h-64 resize-none leading-relaxed" placeholder="Escreva o passo a passo detalhado aqui..." />
+                                <label className="text-[10px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Conteúdo do Procedimento</label>
+                                <textarea required value={content} onChange={e => setContent(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-500/50 transition-all text-sm font-medium h-64 resize-none leading-relaxed" placeholder="Escreva o passo a passo detalhado aqui..." />
                             </div>
 
-                            <button type="submit" disabled={saving} className="w-full py-5 bg-orange-600 hover:bg-orange-500 text-white font-black rounded-2xl shadow-xl transition-all uppercase text-[12px] tracking-[0.2em] flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
+                            <button type="submit" disabled={saving} className="w-full py-5 bg-orange-600 hover:bg-orange-500 text-slate-900 dark:text-white font-black rounded-2xl shadow-xl transition-all uppercase text-[12px] tracking-[0.2em] flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50">
                                 {saving ? <Loader2 className="animate-spin" /> : <Save size={18} />}
                                 {saving ? 'Salvando...' : editingTutorial ? 'Atualizar Manual' : 'Criar Manual'}
                             </button>
@@ -517,8 +517,8 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
                 </div>
             )}
             {/* Footer */}
-            <div className="text-center pt-10 border-t border-white/5 no-print mt-10">
-                <p className="text-white/10 text-[9px] uppercase tracking-[0.4em] font-black">
+            <div className="text-center pt-10 border-t border-slate-300 dark:border-white/5 no-print mt-10">
+                <p className="text-slate-400 dark:text-white/10 text-[9px] uppercase tracking-[0.4em] font-black">
                     Escola Americana de Vitória &copy; 2026 - Versão 2.0 by Erisson Ribeiro
                 </p>
             </div>

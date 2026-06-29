@@ -157,30 +157,30 @@ export function DeviceList({
 
   // Renderização de Item de Dispositivo Disponível (Lista Moderna)
   const renderDeviceCard = (device: any) => (
-    <div key={device.id} className="group relative bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-indigo-500/30 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-white/10 shadow-sm">
+    <div key={device.id} className="group relative bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 hover:border-indigo-500/30 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-white/10 shadow-sm">
       <div className="flex items-center gap-4 flex-1">
-        <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-500 dark:text-white/40">
+        <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-600 dark:text-white/40">
           {getIcon(device.type)}
         </div>
         <div className="flex flex-col">
           <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{device.model}</h3>
-          <p className="text-[11px] font-medium text-slate-500 dark:text-white/50 tracking-wide mt-0.5">
+          <p className="text-[11px] font-medium text-slate-600 dark:text-white/50 tracking-wide mt-0.5">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-200 dark:border-white/5 pt-4 xl:pt-0">
+      <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-300 dark:border-white/5 pt-4 xl:pt-0">
         <div className="flex flex-col items-start xl:items-end">
-          <span className="text-[9px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Tipo</span>
+          <span className="text-[9px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Tipo</span>
           <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">{device.type}</span>
         </div>
         <div className="flex flex-col items-start xl:items-end">
-          <span className="text-[9px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest">Categoria</span>
+          <span className="text-[9px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest">Categoria</span>
           <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">{device.category || device.type}</span>
         </div>
         <div className="flex flex-col items-start xl:items-end">
-          <span className="text-[9px] font-black text-slate-400 dark:text-white/30 uppercase tracking-widest mb-1">Status</span>
+          <span className="text-[9px] font-black text-slate-500 dark:text-white/30 uppercase tracking-widest mb-1">Status</span>
           {(() => {
             const norm = device.status ? device.status.toLowerCase() : '';
             if (norm.includes('uso')) return <span className="status-badge status-badge-em-uso">EM USO</span>;
@@ -202,7 +202,7 @@ export function DeviceList({
         {device.condition && device.condition.includes('Sistema:') && (
           <button
             onClick={() => setSelectedRmmDevice(device)}
-            className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 px-3 py-2.5 rounded-xl transition-all border border-slate-200 dark:border-indigo-500/20 active:scale-95 group/rmm"
+            className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 px-3 py-2.5 rounded-xl transition-all border border-slate-300 dark:border-indigo-500/20 active:scale-95 group/rmm"
             title="Ver Status do PC"
           >
             <Activity size={16} className="group-hover/rmm:scale-110 transition-transform" />
@@ -210,7 +210,7 @@ export function DeviceList({
         )}
         <button
           onClick={() => onHistory(device)}
-          className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 dark:text-white/40 px-3 py-2.5 rounded-xl transition-all border border-slate-200 dark:border-white/5 active:scale-95 group/hist"
+          className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-white/40 px-3 py-2.5 rounded-xl transition-all border border-slate-300 dark:border-white/5 active:scale-95 group/hist"
           title="Ver Histórico"
         >
           <History size={16} className="group-hover/hist:rotate-[-45deg] transition-transform" />
@@ -218,7 +218,7 @@ export function DeviceList({
         {userRole !== 'viewer' && onDelete && (
           <button
             onClick={() => onDelete(device)}
-            className="flex items-center justify-center bg-slate-100 hover:bg-rose-100 dark:bg-white/5 dark:hover:bg-rose-500/20 text-slate-500 hover:text-rose-600 dark:text-white/40 dark:hover:text-rose-500 px-3 py-2.5 rounded-xl transition-all border border-slate-200 dark:border-white/5 hover:border-rose-200 dark:hover:border-rose-500/30 active:scale-95 group/trash"
+            className="flex items-center justify-center bg-slate-100 hover:bg-rose-100 dark:bg-white/5 dark:hover:bg-rose-500/20 text-slate-600 hover:text-rose-600 dark:text-white/40 dark:hover:text-rose-500 px-3 py-2.5 rounded-xl transition-all border border-slate-300 dark:border-white/5 hover:border-rose-200 dark:hover:border-rose-500/30 active:scale-95 group/trash"
             title="Excluir Ativo"
           >
             <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
@@ -272,33 +272,7 @@ export function DeviceList({
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* 📊 BARRA DE ESTATÍSTICAS (DASHBOARD COMPACTO NO TOPO - BANNER CONTÍNUO) */}
-      <div className="bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2rem] p-2 animate-premium flex flex-col lg:flex-row shadow-sm">
-        {[
-          { label: 'Total Setores', value: sortedSectors.length, icon: '📊', color: 'text-indigo-500' },
-          { label: 'Equipamentos', value: devices.filter(d => d.status !== 'Manutenção').length, icon: '💼', color: 'text-emerald-500' },
-          { label: 'Taxa Ativa', value: `${((inUseDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '✅', color: 'text-blue-500' },
-          { label: 'Taxa Operacional', value: `${((availableDevices.length / (devices.length || 1)) * 100).toFixed(0)}%`, icon: '📈', color: 'text-purple-500' }
-        ].map((stat, idx, arr) => (
-          <React.Fragment key={idx}>
-            <div className="flex-1 px-6 py-4 flex items-center gap-4 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl transition-all">
-              <div className={`w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-xl ${stat.color}`}>
-                {stat.icon}
-              </div>
-              <div className="text-left">
-                <p className="text-[9px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-0.5">{stat.label}</p>
-                <p className="text-2xl font-[1000] text-slate-800 dark:text-white leading-tight">{stat.value}</p>
-              </div>
-            </div>
-            {idx < arr.length - 1 && (
-              <div className="hidden lg:block w-px bg-slate-200 dark:bg-white/5 my-4" />
-            )}
-            {idx < arr.length - 1 && (
-              <div className="block lg:hidden h-px bg-slate-200 dark:bg-white/5 mx-4" />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+
 
       {/* Tabs Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/5 pb-2">
@@ -398,13 +372,13 @@ export function DeviceList({
               availableDevices.map(renderDeviceCard)
             )
           ) : (
-            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-200 dark:border-white/10">
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-300 dark:border-white/10">
               <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-500/5 rounded-[2rem] flex items-center justify-center text-emerald-500 dark:text-emerald-500/20 border border-emerald-100 dark:border-emerald-500/10">
                 <CheckCircle2 size={48} />
               </div>
               <div className="space-y-1">
-                <p className="text-slate-400 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo entregue</p>
-                <p className="text-slate-400/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo disponível no momento</p>
+                <p className="text-slate-500 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo entregue</p>
+                <p className="text-slate-500/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo disponível no momento</p>
               </div>
             </div>
           )
@@ -412,13 +386,13 @@ export function DeviceList({
           maintenanceDevices.length > 0 ? (
             maintenanceDevices.map(renderMaintenanceCard)
           ) : (
-            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-200 dark:border-white/10">
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-300 dark:border-white/10">
               <div className="w-24 h-24 bg-rose-50 dark:bg-rose-500/5 rounded-[2rem] flex items-center justify-center text-rose-400 dark:text-rose-400/20 border border-rose-100 dark:border-rose-500/10">
                 <CheckCircle2 size={48} />
               </div>
               <div className="space-y-1">
-                <p className="text-slate-400 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo OK</p>
-                <p className="text-slate-400/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo em manutenção</p>
+                <p className="text-slate-500 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo OK</p>
+                <p className="text-slate-500/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo em manutenção</p>
               </div>
             </div>
           )
@@ -444,7 +418,7 @@ export function DeviceList({
               const activeItems = Object.values(usersInSector).flat().filter((d: any) => d.status === 'Em Uso').length;
 
               return (
-                <div key={sector.department} className="bg-white/50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-300 shadow-sm">
+                <div key={sector.department} className="bg-white dark:bg-white/5 rounded-2xl border border-slate-300 dark:border-white/5 overflow-hidden transition-all duration-300 shadow-sm">
                   {/* ACCORDION HEADER */}
                   <div 
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors gap-4"
@@ -456,14 +430,14 @@ export function DeviceList({
                       </div>
                       <div>
                         <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{sector.department}</h3>
-                        <p className="text-[11px] font-medium text-slate-500 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
+                        <p className="text-[11px] font-medium text-slate-600 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6">
                       <div className="text-right hidden sm:block">
                         <p className="text-base font-semibold text-slate-800 dark:text-white">{activeItems} / {totalItems}</p>
-                        <p className="text-[9px] font-medium text-slate-500 dark:text-white/40 uppercase tracking-widest">Ativos no setor</p>
+                        <p className="text-[9px] font-medium text-slate-600 dark:text-white/40 uppercase tracking-widest">Ativos no setor</p>
                       </div>
                       <div className={`p-2 rounded-lg bg-white/5 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
                         <ChevronRight size={18} />
@@ -473,7 +447,7 @@ export function DeviceList({
 
                   {/* ACCORDION CONTENT */}
                   {isExpanded && (
-                    <div className="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
+                    <div className="p-6 border-t border-slate-300 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                         {sector.usersList.map((user: any, idx: number) => (
                           <div key={idx} className="custody-user-card">
