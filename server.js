@@ -767,8 +767,17 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
 
 
 
-// Serve os arquivos estáticos do build do React
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve os arquivos estáticos do build do React com suporte explícito a UTF-8 nos cabeçalhos HTTP
+app.use(express.static(path.join(__dirname, 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js') || filePath.endsWith('.css') || filePath.endsWith('.html') || filePath.endsWith('.json')) {
+      const contentType = res.getHeader('Content-Type');
+      if (contentType && !contentType.includes('charset')) {
+        res.setHeader('Content-Type', contentType + '; charset=utf-8');
+      }
+    }
+  }
+}));
 app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads')));
 
 // Endpoint proxy para a Monitcall
@@ -1238,7 +1247,11 @@ app.delete('/api/vault/projects/:id', authenticateToken, async (req, res) => {
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'), {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8'
+    }
+  });
 });
 
 export const serverReady = new Promise((resolve, reject) => {

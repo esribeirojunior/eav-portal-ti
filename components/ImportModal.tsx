@@ -89,8 +89,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const data = e.target?.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
 
@@ -119,7 +119,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 setLoading(false);
             }
         };
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
     };
 
     const handleImport = async () => {
