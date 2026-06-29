@@ -187,6 +187,11 @@ async function initPostgresDB() {
       CREATE TABLE IF NOT EXISTS it_tasks (id TEXT PRIMARY KEY, title TEXT, description TEXT, status TEXT, priority TEXT, due_date TEXT, created_by TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS it_task_comments (id TEXT PRIMARY KEY, task_id TEXT, user_email TEXT, content TEXT, created_at TEXT);
     `);
+    
+    // Assegura que colunas novas existam caso as tabelas tenham sido criadas numa versão anterior
+    await pool.query(`
+      ALTER TABLE assignments ADD COLUMN IF NOT EXISTS user_email TEXT;
+    `);
       
       // Add role column if it doesn't exist (ignore error if it does)
       try { await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'"); } catch (e) {}
