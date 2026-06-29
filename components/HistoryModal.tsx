@@ -72,9 +72,8 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                 
                 <button
                   onClick={() => {
-                    const newWindow = window.open('', '_blank');
-                    if (newWindow) {
-                      newWindow.document.write(`
+                    const htmlContent = `
+                        <!DOCTYPE html>
                         <html>
                           <head>
                             <title>Termo de Responsabilidade - ${device.tag}</title>
@@ -103,9 +102,9 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                             <h2>TERMO DE ENTREGA E RESPONSABILIDADE</h2>
                             
                             <div class="content">
-                              <p><b>EMPREGADO(A):</b> <u>${(device.currentAssignment.userName || '').padEnd(60, '_')}</u>,<br>
+                              <p><b>EMPREGADO(A):</b> <u>${(device.currentAssignment?.userName || '').padEnd(60, '_')}</u>,<br>
                               portador(a) do CPF n° <u>${''.padEnd(60, '_')}</u>,<br>
-                              cargo de <u>${(device.currentAssignment.userRole === 'Colaborador' ? (device.currentAssignment.userDepartment || '') : '').padEnd(60, '_')}</u>.</p>
+                              cargo de <u>${(device.currentAssignment?.userRole === 'Colaborador' ? (device.currentAssignment?.userDepartment || '') : '').padEnd(60, '_')}</u>.</p>
                               
                               <p><b>EMPREGADORA:</b> <b>ESCOLA AMERICANA DE VITÓRIA S.A.</b>, inscrita no CNPJ sob o n° 27.710.038.0001/04, sediada à Avenida Marechal Mascarenhas de Moraes, n° 2.100, Anexo Ginásio, Bento Ferreira, Vitória – ES, CEP 29.050-625</p>
 
@@ -149,19 +148,20 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
 
                               <p>8) O presente termo integra as normas regimentais da <b>EMPREGADORA</b> e obriga o integral cumprimento e obediência pelo(a) <b>EMPREGADO(A)</b>, sendo parte integrante do contrato de trabalho para todos os fins.</p>
                               
-                              <p style="margin-top: 50px; text-align: right;">Vitória/ES, ${new Date(device.currentAssignment.startDate).toLocaleDateString('pt-BR')}</p>
+                              <p style="margin-top: 50px; text-align: right;">Vitória/ES, ${new Date(device.currentAssignment?.startDate || new Date()).toLocaleDateString('pt-BR')}</p>
 
                               <div style="text-align: center; margin-top: 80px;">
                                   <div style="border-top: 1px solid black; width: 350px; margin: 0 auto;"></div>
-                                  <p style="margin-top: 5px;"><b>${device.currentAssignment.userName}</b><br>Empregado(a)</p>
+                                  <p style="margin-top: 5px;"><b>${device.currentAssignment?.userName || ''}</b><br>Empregado(a)</p>
                               </div>
                             </div>
                             <script>setTimeout(() => window.print(), 500);</script>
                           </body>
                         </html>
-                      `);
-                      newWindow.document.close();
-                    }
+                    `;
+                    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    window.open(url, '_blank');
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-emerald-500/20"
                 >
