@@ -64,9 +64,110 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                 </div>
               </div>
               
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-400/80 px-1">
-                <Clock size={14} />
-                <span>Atribuído em: {formatDate(device.currentAssignment.startDate)}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-emerald-400/80 px-1">
+                  <Clock size={14} />
+                  <span>Atribuído em: {formatDate(device.currentAssignment.startDate)}</span>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                      newWindow.document.write(`
+                        <html>
+                          <head>
+                            <title>Termo de Responsabilidade - ${device.tag}</title>
+                            <style>
+                              body { font-family: Arial, sans-serif; padding: 40px; color: #000; line-height: 1.5; max-width: 800px; margin: 0 auto; }
+                              .header { text-align: center; margin-bottom: 20px; border-top: 10px solid #E5DFD3; position: relative; }
+                              .header::before { content: ""; position: absolute; top: -10px; left: 0; width: 30%; height: 10px; background: #E1CA93; }
+                              .header::after { content: ""; position: absolute; top: -10px; right: 0; width: 30%; height: 10px; background: #6F6C85; }
+                              .header img { max-width: 250px; margin-top: 20px; }
+                              h2 { text-align: center; text-decoration: underline; font-size: 16px; margin-top: 30px; margin-bottom: 30px; }
+                              .content { font-size: 14px; text-align: justify; }
+                              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                              table, th, td { border: 1px solid black; }
+                              th, td { padding: 8px; text-align: left; font-weight: bold; }
+                              th { text-align: center; }
+                              @media print {
+                                body { padding: 20px; }
+                                button { display: none; }
+                              }
+                            </style>
+                          </head>
+                          <body>
+                            <div class="header">
+                              <img src="/logo.png" alt="Escola Americana de Vitória" onerror="this.src='https://i.imgur.com/gKj3q6H.png'" />
+                            </div>
+                            <h2>TERMO DE ENTREGA E RESPONSABILIDADE</h2>
+                            
+                            <div class="content">
+                              <p><b>EMPREGADO(A):</b> <u>${device.currentAssignment.userName.padEnd(60, '_')}</u>,<br>
+                              portador(a) do CPF n° <u>${''.padEnd(60, '_')}</u>,<br>
+                              cargo de <u>${(device.currentAssignment.userRole === 'Colaborador' ? device.currentAssignment.userDepartment : '').padEnd(60, '_')}</u>.</p>
+                              
+                              <p><b>EMPREGADORA:</b> <b>ESCOLA AMERICANA DE VITÓRIA S.A.</b>, inscrita no CNPJ sob o n° 27.710.038.0001/04, sediada à Avenida Marechal Mascarenhas de Moraes, n° 2.100, Anexo Ginásio, Bento Ferreira, Vitória – ES, CEP 29.050-625</p>
+
+                              <p>A <b>EMPREGADORA</b> realiza a entrega do(s) seguinte(s) item(ns):</p>
+
+                              <table>
+                                <tr>
+                                  <th>DESCRIÇÃO</th>
+                                  <th>QUANTIDADE</th>
+                                </tr>
+                                <tr>
+                                  <td>Equipamento: ${device.type} ${device.model}</td>
+                                  <td rowspan="4" style="text-align: center; vertical-align: middle;">1</td>
+                                </tr>
+                                <tr>
+                                  <td>Serial: ${device.serialNumber || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                  <td>Patrimônio: ${device.tag}</td>
+                                </tr>
+                                <tr>
+                                  <td>Estado atual do equipamento: (  ) Novo ( X ) Usado</td>
+                                </tr>
+                              </table>
+
+                              <p>Fica o(a) <b>EMPREGADO(A)</b> ciente de que:</p>
+
+                              <p>1) O(s) equipamento(s) recebido(s), nesta data, é(são) de propriedade da <b>EMPREGADORA</b>, sendo que o(a) <b>EMPREGADO(A)</b> possui somente a detenção para uso exclusivo durante o exercício das atividades laborais;</p>
+
+                              <p>2) O(A) <b>EMPREGADO(A)</b> será responsável pela guarda e adequada utilização e conservação do(s) equipamento(s), bem como pela orientação do(a)s aluno(a)s quanto à forma de utilização e conservação;</p>
+
+                              <p>3) É terminantemente proibido o uso do(s) equipamento(s) para quaisquer fins não vinculados ao exercício das atividades educacionais;</p>
+
+                              <p>4) O(A) <b>EMPREGADO(A)</b> deverá comunicar, imediatamente, à <b>EMPREGADORA</b> qualquer ocorrência de qualquer dano ao equipamento ou capa protetora causados por si ou terceiros;</p>
+
+                              <p>5) Na hipótese de rescisão contratual, o(a) <b>EMPREGADO(A)</b> deverá devolver o(s) equipamento(s) na data da comunicação;</p>
+
+                              <p>6) A <b>EMPREGADORA</b> emitirá relatório fotográfico do estado do(s) equipamento(s) no momento da entrega, bem como quando da sua devolução;</p>
+
+                              <p>7) Ressalvado o desgaste natural do uso, em sendo constatadas quaisquer avarias no(s) equipamento(s), seja a título de dolo ou culpa, ficará o(a) <b>EMPREGADO(A)</b> obrigado(a) a indenizar a <b>EMPREGADORA</b> relativamente ao valor do conserto ou substituição, autorizando-se, desde já, o desconto respectivo em folha de pagamento ou rescisão de contrato de trabalho, nos termos do artigo 462, §1º da CLT.</p>
+
+                              <p>8) O presente termo integra as normas regimentais da <b>EMPREGADORA</b> e obriga o integral cumprimento e obediência pelo(a) <b>EMPREGADO(A)</b>, sendo parte integrante do contrato de trabalho para todos os fins.</p>
+                              
+                              <p style="margin-top: 50px; text-align: right;">Vitória/ES, ${new Date(device.currentAssignment.startDate).toLocaleDateString('pt-BR')}</p>
+
+                              <div style="text-align: center; margin-top: 80px;">
+                                  <div style="border-top: 1px solid black; width: 350px; margin: 0 auto;"></div>
+                                  <p style="margin-top: 5px;"><b>${device.currentAssignment.userName}</b><br>Empregado(a)</p>
+                              </div>
+                            </div>
+                            <script>setTimeout(() => window.print(), 500);</script>
+                          </body>
+                        </html>
+                      `);
+                      newWindow.document.close();
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-emerald-500/20"
+                >
+                  <Printer size={16} />
+                  Imprimir Termo
+                </button>
               </div>
             </div>
           )}
