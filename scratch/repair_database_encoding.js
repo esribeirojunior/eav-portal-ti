@@ -81,14 +81,26 @@ const replacements = [
 async function run() {
   console.log(`🔌 Conectando ao banco de dados PostgreSQL...`);
   
-  // Use ssl configuration for external postgres if not localhost
-  const useSsl = !postgresUrl.includes('localhost') && !postgresUrl.includes('127.0.0.1');
-  const client = new Client({ 
-    connectionString: postgresUrl,
-    ssl: useSsl ? { rejectUnauthorized: false } : false
-  });
-  
-  await client.connect();
+  // Try connecting without SSL first (standard for local/Coolify docker networks)
+  // If it fails with an SSL-related error, retry with SSL configured
+  let client;
+  try {
+    client = new Client({ 
+      connectionString: postgresUrl
+    });
+    await client.connect();
+  } catch (sslErr) {
+    if (sslErr.message.includes('SSL') || sslErr.message.includes('ssl') || sslErr.message.includes('support')) {
+      console.log('⚠️ Conexão sem SSL falhou ou SSL é requerido. Tentando com SSL...');
+      client = new Client({ 
+        connectionString: postgresUrl,
+        ssl: { rejectUnauthorized: false }
+      });
+      await client.connect();
+    } else {
+      throw sslErr;
+    }
+  }
   console.log('✅ Conectado com sucesso!');
 
   console.log('\n🧹 Iniciando limpeza de codificação no banco de dados...');
