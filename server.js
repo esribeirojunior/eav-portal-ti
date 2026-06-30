@@ -602,7 +602,7 @@ app.post('/api/agent/sync', async (req, res) => {
         hostname || '',
         ip_address || '',
         mac_address || '',
-        ram_gb || 0,
+        Math.round(ram_gb || 0),
         cpu || '',
         os || '',
         devices[existingIndex].id
@@ -616,7 +616,7 @@ app.post('/api/agent/sync', async (req, res) => {
         hostname: hostname || '',
         ip_address: ip_address || '',
         mac_address: mac_address || '',
-        ram_gb: ram_gb || 0,
+        ram_gb: Math.round(ram_gb || 0),
         cpu_model: cpu || '',
         os_version: os || ''
       };
@@ -636,7 +636,7 @@ app.post('/api/agent/sync', async (req, res) => {
         hostname: hostname || '',
         ip_address: ip_address || '',
         mac_address: mac_address || '',
-        ram_gb: ram_gb || 0,
+        ram_gb: Math.round(ram_gb || 0),
         cpu_model: cpu || '',
         os_version: os || '',
         is_accessory: false
