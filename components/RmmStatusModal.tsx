@@ -106,23 +106,11 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
   if (diskPercentage > 90) progressColor = 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]';
 
   const testPing = async () => {
-    setPingStatus('pinging');
     try {
-      const targetIp = specs.ip && specs.ip !== 'N/A' ? specs.ip : null;
-      const res = await fetch('/api/agent/ping', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hostname: specs.hostname || device.tag, ip: targetIp })
-      });
-      const data = await res.json();
-      if (data.online) {
-        setPingStatus('online');
-        setPingTime(data.time);
-      } else {
-        setPingStatus('offline');
-      }
+      const targetIp = specs.ip && specs.ip !== 'N/A' ? specs.ip : specs.hostname;
+      window.location.href = `ping://${targetIp}`;
     } catch (e) {
-      setPingStatus('offline');
+      console.error("Erro ao iniciar ping local", e);
     }
   };
 
@@ -187,20 +175,13 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
               {/* Ping Network Tester */}
               <div className={`p-4 rounded-2xl border transition-all duration-500 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 border-white/5`}>
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    pingStatus === 'online' ? 'bg-emerald-500/20 text-emerald-400' :
-                    pingStatus === 'offline' ? 'bg-rose-500/20 text-rose-400' :
-                    'bg-indigo-500/20 text-indigo-400'
-                  }`}>
-                    {pingStatus === 'pinging' ? <Loader2 size={18} className="animate-spin" /> : <Network size={18} />}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/20 text-indigo-400">
+                    <Network size={18} />
                   </div>
                   <div>
                     <h3 className="text-xs font-black text-white uppercase tracking-widest">Teste de Conexão Local</h3>
                     <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">
-                      {pingStatus === 'online' ? `Online (${pingTime}ms)` : 
-                       pingStatus === 'offline' ? 'Dispositivo Inativo' :
-                       pingStatus === 'pinging' ? 'Testando...' :
-                       'Verifique se a máquina está ativa na rede'}
+                      Abre o terminal CMD para testar a rede local (ping)
                     </p>
                   </div>
                 </div>
@@ -219,9 +200,9 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
                   </button>
                   <button
                     onClick={testPing}
-                    disabled={pingStatus === 'pinging' || !specs.ip || specs.ip === 'N/A'}
+                    disabled={!specs.ip || specs.ip === 'N/A'}
                     className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${
-                      pingStatus === 'pinging' || !specs.ip || specs.ip === 'N/A'
+                      !specs.ip || specs.ip === 'N/A'
                         ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
                         : 'bg-indigo-600 text-white hover:bg-indigo-500 border border-indigo-500 shadow-indigo-500/20 active:scale-95'
                     }`}

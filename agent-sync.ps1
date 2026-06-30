@@ -1,5 +1,7 @@
 param (
-    [string]$ServerIP = "127.0.0.1"
+    [string]$ServerIP = "127.0.0.1",
+    [switch]$Automated,
+    [string]$SavedCampus = ""
 )
 
 # Base URL calculation to support both local IP:3000 and Coolify/sslip.io domains
@@ -29,8 +31,12 @@ Write-Host "     - Coleta os dados de hardware e sincroniza com o Servidor."
 Write-Host "================================================" -ForegroundColor Cyan
 
 $opcao = ""
-while ($opcao -ne "1" -and $opcao -ne "2") {
-    $opcao = Read-Host "Selecione uma opcao (1 ou 2)"
+if ($Automated) {
+    $opcao = "2"
+} else {
+    while ($opcao -ne "1" -and $opcao -ne "2") {
+        $opcao = Read-Host "Selecione uma opcao (1 ou 2)"
+    }
 }
 
 if ($opcao -eq "1") {
@@ -94,11 +100,47 @@ start "" "$vncViewerPath" %IP% -password=eav2017
         Write-Host "[ERRO] Falha ao escrever no registro. Verifique se rodou como Administrador!" -ForegroundColor Red
         Write-Host $_.Exception.Message -ForegroundColor Red
     }
+
+    # Registrar protocolo ping:// no registro
+    try {
+        $pingRegPath = "HKLM:\SOFTWARE\Classes\ping"
+        if (-not (Test-Path $pingRegPath)) { New-Item -Path $pingRegPath -Force | Out-Null }
+        Set-Item -Path $pingRegPath -Value "URL:Ping Protocol" -Force
+        New-ItemProperty -Path $pingRegPath -Name "URL Protocol" -Value "" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+
+        $pingShellPath = Join-Path $pingRegPath "shell"
+        if (-not (Test-Path $pingShellPath)) { New-Item -Path $pingShellPath -Force | Out-Null }
+        $pingOpenPath = Join-Path $pingShellPath "open"
+        if (-not (Test-Path $pingOpenPath)) { New-Item -Path $pingOpenPath -Force | Out-Null }
+        $pingCmdPath = Join-Path $pingOpenPath "command"
+        if (-not (Test-Path $pingCmdPath)) { New-Item -Path $pingCmdPath -Force | Out-Null }
+
+        # Cria um bat auxiliar para o ping
+        $pingLauncherPath = Join-Path $vncFolder "ping-web-launcher.bat"
+        $pingLauncherContent = @"
+@echo off
+set IP=%1
+set IP=%IP:ping://=%
+set IP=%IP:/=%
+set IP=%IP:"=%
+echo =======================================
+echo Testando conexao continua com: %IP%
+echo =======================================
+ping %IP% -t
+"@
+        Set-Content -Path $pingLauncherPath -Value $pingLauncherContent -Force
+
+        Set-Item -Path $pingCmdPath -Value "`"$pingLauncherPath`" `"%1`"" -Force
+        Write-Host "Protocolo ping:// registrado com sucesso no Registro do Windows!" -ForegroundColor Green
+    } catch {
+        Write-Host "[ERRO] Falha ao registrar ping:// no registro." -ForegroundColor Red
+    }
 }
 else {
     # Perfil 2: Maquina de Usuario
     Write-Host "`nConfigurando perfil: Maquina de Usuario (VNC Server & Sincronizacao)..." -ForegroundColor Cyan
 
+    if (-not $Automated) {
     # Habilitar RDP e Firewall
     try {
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0 -ErrorAction SilentlyContinue
@@ -152,7 +194,7 @@ else {
     $passwordBytes = [byte[]](24, 46, 45, 156, 85, 106, 201, 7)
 
     foreach ($path in $paths) {
-        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 0
+        Set-RegValueDWord -regPath $path -Name "QuerySetting" -Value 2
         Set-RegValueDWord -regPath $path -Name "QueryAccept" -Value 1
         Set-RegValueDWord -regPath $path -Name "QueryTimeout" -Value 30
         Set-RegValueDWord -regPath $path -Name "QueryAction" -Value 0
@@ -161,7 +203,7 @@ else {
         Set-RegValueDWord -regPath $path -Name "UseControlAuthentication" -Value 1
         Set-RegValueBinary -regPath $path -Name "Password" -Value $passwordBytes
         Set-RegValueBinary -regPath $path -Name "ControlPassword" -Value $passwordBytes
-        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:0"
+        Set-RegValueString -regPath $path -Name "IpAccessControl" -Value "0.0.0.0-255.255.255.255:2"
     }
     Write-Host "Politicas de seguranca e senha (eav@2017) aplicadas com sucesso no Registro (Todos os perfis)." -ForegroundColor Green
 
@@ -202,6 +244,7 @@ else {
     } else {
         Write-Host "[AVISO] tvnserver.exe nao encontrado. Certifique-se de instalar o TightVNC Server manualmente para aplicar as configuracoes!" -ForegroundColor Yellow
     }
+    } # Fim do bloco if (-not $Automated)
 
     # Iniciar Coleta de Dados
     Write-Host "`nIniciando Coleta de Dados do Computador para Sincronizacao..." -ForegroundColor Cyan
@@ -301,18 +344,22 @@ else {
         $detectedCampus = "Aeroporto"
         Write-Host "Rede detectada automaticamente como Campus Aeroporto (IP: $ipAddress)" -ForegroundColor Green
     } else {
-        Write-Host "Rede atual nao mapeada automaticamente para nenhum Campus (IP: $ipAddress)." -ForegroundColor Yellow
-        Write-Host "Selecione o Campus correspondente:" -ForegroundColor Yellow
-        Write-Host "[1] Álvares"
-        Write-Host "[2] Aeroporto"
-        $campOp = ""
-        while ($campOp -ne "1" -and $campOp -ne "2") {
-            $campOp = Read-Host "Selecione a opcao (1 ou 2)"
-        }
-        if ($campOp -eq "2") {
-            $detectedCampus = "Aeroporto"
+        if ($Automated -and $SavedCampus) {
+            $detectedCampus = $SavedCampus
         } else {
-            $detectedCampus = "Álvares"
+            Write-Host "Rede atual nao mapeada automaticamente para nenhum Campus (IP: $ipAddress)." -ForegroundColor Yellow
+            Write-Host "Selecione o Campus correspondente:" -ForegroundColor Yellow
+            Write-Host "[1] Álvares"
+            Write-Host "[2] Aeroporto"
+            $campOp = ""
+            while ($campOp -ne "1" -and $campOp -ne "2") {
+                $campOp = Read-Host "Selecione a opcao (1 ou 2)"
+            }
+            if ($campOp -eq "2") {
+                $detectedCampus = "Aeroporto"
+            } else {
+                $detectedCampus = "Álvares"
+            }
         }
     }
 
@@ -355,7 +402,36 @@ else {
         Write-Host "Erro ao enviar dados. Verifique a conexão com o servidor." -ForegroundColor Red
         Write-Host $_.Exception.Message -ForegroundColor Red
     }
+
+    if (-not $Automated) {
+        Write-Host "`nConfigurando a execucao em segundo plano (Servico Silencioso)..." -ForegroundColor Yellow
+        $installDir = "C:\EAV_Agente"
+        if (-not (Test-Path $installDir)) {
+            New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+        }
+        $targetScript = Join-Path $installDir "agent-sync.ps1"
+        Copy-Item -Path $PSCommandPath -Destination $targetScript -Force
+
+        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
+        
+        $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
+        $triggerInterval = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Hours 4)
+        
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable
+        
+        try {
+            Register-ScheduledTask -TaskName "EAV-Sincronizacao" -Action $action -Trigger @($triggerLogon, $triggerInterval) -Settings $settings -User "SYSTEM" -RunLevel Highest -Force -ErrorAction Stop | Out-Null
+            Write-Host "Servico em segundo plano criado com sucesso via PowerShell!" -ForegroundColor Green
+        } catch {
+            Write-Host "Aviso: Nao foi possivel usar o PowerShell para agendar. Usando SchTasks como plano B..." -ForegroundColor Yellow
+            $cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
+            schtasks /create /tn "EAV-Sincronizacao" /ru "SYSTEM" /sc HOURLY /mo 4 /tr "$cmd" /f | Out-Null
+            Write-Host "Servico em segundo plano criado com sucesso via SchTasks! O sistema sera atualizado automaticamente a cada 4 horas." -ForegroundColor Green
+        }
+    }
 }
 
-Write-Host "`nPressione qualquer tecla para fechar..."
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+if (-not $Automated) {
+    Write-Host "`nPressione qualquer tecla para fechar..."
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+}
