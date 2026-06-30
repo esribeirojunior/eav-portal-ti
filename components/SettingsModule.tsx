@@ -101,10 +101,10 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     };
 
     const handleDeleteUser = async (id: string, email: string) => {
-        if (email.toLowerCase() === userEmail?.toLowerCase()) {
-            alert('Você não pode remover a si mesmo!');
-            return;
-        }
+        // if (email.toLowerCase() === userEmail?.toLowerCase()) {
+        //     alert('Você não pode remover a si mesmo!');
+        //     return;
+        // }
         if (!window.confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
 
         try {
