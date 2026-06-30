@@ -15,6 +15,8 @@ export enum DeviceType {
   KEYBOARD = 'Teclado',
   KEYBOARD_MOUSE_KIT = 'Kit Teclado/mouse',
   ADAPTER = 'Adaptador',
+  MINI_PC = 'Mini PC',
+  TV = 'TV Corporativa',
   OTHER = 'Outro'
 }
 

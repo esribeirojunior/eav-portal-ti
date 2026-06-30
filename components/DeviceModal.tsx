@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Monitor, Laptop, Tablet, Smartphone, Box, Save, ScanLine, Tag, Camera, Loader2, Sparkles, Headphones, MousePointer, Keyboard, Settings, ChevronRight } from 'lucide-react';
+import { X, Monitor, Laptop, Tablet, Smartphone, Box, Save, ScanLine, Tag, Camera, Loader2, Sparkles, Headphones, MousePointer, Keyboard, Settings, ChevronRight, Cpu, Tv } from 'lucide-react';
 import { supabase, logAuditAction } from '../lib/supabase';
 import { analyzeDeviceLabel } from '../lib/gemini';
 
@@ -183,6 +183,8 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
     { label: 'Notebook', icon: <Laptop size={16} /> },
     { label: 'MacBook', icon: <Laptop size={16} /> },
     { label: 'Monitor', icon: <Monitor size={16} /> },
+    { label: 'Mini PC', icon: <Cpu size={16} /> },
+    { label: 'TV Corporativa', icon: <Tv size={16} /> },
     { label: 'Headset', icon: <Headphones size={16} /> },
     { label: 'Mouse', icon: <MousePointer size={16} /> },
     { label: 'Teclado', icon: <Keyboard size={16} /> },
