@@ -172,44 +172,31 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
           
           {isAgentData ? (
             <>
-              {/* Ping Network Tester */}
-              <div className={`p-4 rounded-2xl border transition-all duration-500 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 border-white/5`}>
+              {/* Quick Actions */}
+              <div className="p-4 rounded-2xl border transition-all duration-500 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/5 border-white/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-500/20 text-indigo-400">
-                    <Network size={18} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400">
+                    <MonitorSmartphone size={18} />
                   </div>
                   <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Teste de Conexão Local</h3>
+                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Acesso Remoto Direto</h3>
                     <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">
-                      Abre o terminal CMD para testar a rede local (ping)
+                      Conecta via VNC usando a Máquina Mestre
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={openRemoteDesktop}
-                    disabled={!specs.ip || specs.ip === 'N/A'}
-                    className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${
-                      !specs.ip || specs.ip === 'N/A'
-                        ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
-                        : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/50 shadow-emerald-500/20 active:scale-95'
-                    }`}
-                  >
-                    <MonitorSmartphone size={14} />
-                    Acesso Remoto
-                  </button>
-                  <button
-                    onClick={testPing}
-                    disabled={!specs.ip || specs.ip === 'N/A'}
-                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${
-                      !specs.ip || specs.ip === 'N/A'
-                        ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-500 border border-indigo-500 shadow-indigo-500/20 active:scale-95'
-                    }`}
-                  >
-                    Pingar IP/Host
-                  </button>
-                </div>
+                <button
+                  onClick={openRemoteDesktop}
+                  disabled={!specs.ip || specs.ip === 'N/A'}
+                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${
+                    !specs.ip || specs.ip === 'N/A'
+                      ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+                      : 'bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-500 shadow-emerald-500/20 active:scale-95'
+                  }`}
+                >
+                  <MonitorSmartphone size={14} />
+                  Conectar (VNC)
+                </button>
               </div>
 
               {/* Hardware Stats */}
