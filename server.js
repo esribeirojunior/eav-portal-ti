@@ -729,15 +729,18 @@ app.post('/api/agent/ping', authenticateToken, (req, res) => {
 
   console.log(`[Ping] Disparando ping na rede para: ${targetHost}...`);
 
-  // O comando do Windows envia 1 pacote apenas para teste rápido
-  exec(`ping -n 1 -w 2000 ${targetHost}`, (error, stdout, stderr) => {
+  // Suporte multiplataforma: Windows usa -n e -w(ms), Linux usa -c e -W(s)
+  const isWin = process.platform === 'win32';
+  const pingCmd = isWin ? `ping -n 1 -w 2000 ${targetHost}` : `ping -c 1 -W 2 ${targetHost}`;
+
+  exec(pingCmd, (error, stdout, stderr) => {
     if (error) {
       console.log(`[Ping] Falha: Host ${targetHost} não alcançável.`);
-      return res.json({ online: false, error: 'Host inalcançável', output: stdout });
+      return res.json({ online: false, error: 'Host inalcançável', output: stdout || stderr });
     }
 
-    // Tentar extrair o tempo do ping "tempo=XXms" ou "time=XXms"
-    let timeMatch = stdout.match(/tempo[=<](\d+)ms/i) || stdout.match(/time[=<](\d+)ms/i);
+    // Tentar extrair o tempo do ping "tempo=XXms", "time=XXms" ou "time=XX ms"
+    let timeMatch = stdout.match(/tempo[=<](\d+)\s*ms/i) || stdout.match(/time[=<](\d+)\s*ms/i);
     let ms = timeMatch ? timeMatch[1] : '?';
 
     console.log(`[Ping] Sucesso: Host ${targetHost} online (${ms}ms)`);
