@@ -359,7 +359,7 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '0.75rem', color: '#fff', fontSize: '12px', outline: 'none' }} 
                   formatter={(value: number) => [value, 'Quantidade']}
                 />
-                <Bar dataKey="value" name="Quantidade" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12}>
+                <Bar dataKey="value" name="Quantidade" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12} isAnimationActive={false}>
                     {categoryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={
                         index % 4 === 0 ? '#10b981' : 
@@ -395,6 +395,7 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                   paddingAngle={5}
                   dataKey="value"
                   stroke="none"
+                  isAnimationActive={false}
                 >
                   {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} style={{ outline: 'none' }} />)}
                 </Pie>
