@@ -18,11 +18,11 @@ set SERVER_IP=%1
 if not "%SERVER_IP%"=="" goto :run
 
 :: Se rodar clicando duas vezes, ele pergunta se deseja usar o servidor padrao ou outro (como o Coolify)
-echo Servidor Padrao cadastrado: 10.158.0.4
+echo Servidor Padrao cadastrado: tech.escolaamericana.com.br
 set /p INPUT_IP=Digite o IP ou Dominio do Servidor [Enter para usar o padrao]: 
 
 if "%INPUT_IP%"=="" (
-    set SERVER_IP=10.158.0.4
+    set SERVER_IP=tech.escolaamericana.com.br
 ) else (
     set SERVER_IP=%INPUT_IP%
 )

@@ -8,7 +8,7 @@ if ($baseUrl -notlike "http://*" -and $baseUrl -notlike "https://*") {
     if ($baseUrl -match "^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$") {
         $baseUrl = "http://${baseUrl}:3000"
     } else {
-        $baseUrl = "http://${baseUrl}"
+        $baseUrl = "https://${baseUrl}"
     }
 }
 
@@ -183,8 +183,10 @@ else {
         # Para o serviço de forma limpa se estiver rodando
         Stop-Service -Name "tvnserver" -Force -ErrorAction SilentlyContinue
         
-        # Garante o registro do TightVNC como serviço do Windows
-        & $vncPath -install | Out-Null
+        # Garante o registro do TightVNC como serviço do Windows apenas se não existir
+        if (-not (Get-Service -Name "tvnserver" -ErrorAction SilentlyContinue)) {
+            & $vncPath -install -silent 2>$null | Out-Null
+        }
         
         # Garante a finalização de qualquer processo órfão
         Get-Process -Name "tvnserver" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
