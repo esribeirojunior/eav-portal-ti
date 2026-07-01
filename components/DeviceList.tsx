@@ -162,9 +162,9 @@ export function DeviceList({
         <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-800 dark:text-white/40">
           {getIcon(device.type)}
         </div>
-        <div className="flex flex-col">
-          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{device.model}</h3>
-          <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5">
+        <div className="flex flex-col min-w-0 flex-1">
+          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight break-all line-clamp-2">{device.model}</h3>
+          <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 break-all line-clamp-2">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
           </p>
         </div>
@@ -235,9 +235,9 @@ export function DeviceList({
         <div className="w-12 h-12 bg-rose-100 dark:bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 dark:text-rose-400">
           {getIcon(device.type)}
         </div>
-        <div className="flex flex-col">
-          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight">{device.model}</h3>
-          <p className="text-[11px] font-medium text-rose-500/80 dark:text-rose-400/70 tracking-wide mt-0.5">
+        <div className="flex flex-col min-w-0 flex-1">
+          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight break-all line-clamp-2">{device.model}</h3>
+          <p className="text-[11px] font-medium text-rose-500/80 dark:text-rose-400/70 tracking-wide mt-0.5 break-all line-clamp-2">
             <span className="text-rose-600 dark:text-rose-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber}</span>
           </p>
         </div>
