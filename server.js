@@ -164,7 +164,10 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  max: 20, // Limite máximo de conexões simultâneas que o Node pode abrir
+  idleTimeoutMillis: 30000, // Fecha conexões ociosas (idle) após 30 segundos
+  connectionTimeoutMillis: 2000, // Retorna erro rápido se o banco demorar mais de 2s para responder
 });
 
 // Função utilitária para converter placeholders '?' (SQLite) para '$1, $2' (PostgreSQL)
