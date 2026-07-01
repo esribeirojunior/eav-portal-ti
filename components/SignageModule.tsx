@@ -70,7 +70,6 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                 };
             });
 
-            // Filtra os dispositivos de forma mais inteligente (busca em tipo, modelo ou nome de quem está usando)
             const signageDevices = (formattedData || []).filter(d => {
                 const typeStr = (d.type || '').toLowerCase();
                 const modelStr = (d.model || '').toLowerCase();
@@ -78,9 +77,14 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                 
                 return typeStr.includes('mini pc') || 
                        typeStr.includes('tv') || 
+                       typeStr.includes('krtv') ||
                        modelStr.includes('mini pc') || 
+                       modelStr.includes('tv') ||
+                       modelStr.includes('krtv') ||
                        respStr.includes('mini pc') || 
-                       respStr.includes('mural');
+                       respStr.includes('mural') ||
+                       respStr.includes('tv') ||
+                       respStr.includes('krtv');
             });
 
             setDevices(signageDevices);
