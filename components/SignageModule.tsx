@@ -92,8 +92,21 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
     };
 
     const handleRemoteControl = async (device: Device) => {
-        const ip = prompt(`Informe o IP para acesso remoto ao ${device.tag} (${device.model}):\nEx: 10.0.0.X`);
-        if (!ip) return;
+        let ip = device.ip_address;
+        
+        // Se não tiver IP no banco, busca na string de condição (formato antigo/legado)
+        if (!ip && device.condition && device.condition.includes('IP: ')) {
+            try {
+                ip = device.condition.split('IP: ')[1].split(' |')[0].trim();
+            } catch (e) {
+                console.error("Não foi possível extrair IP da condição", e);
+            }
+        }
+
+        if (!ip || ip === 'N/A' || ip === 'Desconhecido') {
+            ip = prompt(`O IP deste dispositivo não foi sincronizado automaticamente.\nInforme o IP para acesso remoto ao ${device.tag} (${device.model}):\nEx: 10.0.0.X`);
+            if (!ip) return;
+        }
         
         try {
             const res = await fetch('http://localhost:3002/api/remote-control', {

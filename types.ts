@@ -64,6 +64,7 @@ export interface Device {
   responsible?: string;
   department?: string;
   condition?: string;
+  ip_address?: string;
 }
 
 export interface InventoryStats {
