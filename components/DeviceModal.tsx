@@ -42,11 +42,14 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
     }
   }, [isOpen]);
 
+  const sanitizeInput = (val: string) => val.replace(/[^a-zA-Z0-9\s\-_.,()/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]/g, '').slice(0, 30);
+
   const handleSerialChange = (e: React.ChangeEvent<HTMLInputElement> | string) => {
-    const valor = typeof e === 'string' ? e : e.target.value;
-    setSerial(valor);
-    if (valor) {
-      setTag(`EAV-${valor.toUpperCase()}`);
+    const rawValue = typeof e === 'string' ? e : e.target.value;
+    const cleanValue = sanitizeInput(rawValue);
+    setSerial(cleanValue);
+    if (cleanValue) {
+      setTag(`EAV-${cleanValue.toUpperCase()}`.slice(0, 30));
     } else {
       setTag('');
     }
@@ -276,7 +279,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                 <input
                   type="text"
                   value={tag}
-                  onChange={(e) => setTag(e.target.value)}
+                  onChange={(e) => setTag(sanitizeInput(e.target.value))}
                   maxLength={30}
                   minLength={3}
                   pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$"
@@ -292,7 +295,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Modelo / Especificação</label>
-            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(e.target.value)} maxLength={30} minLength={2} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none" placeholder="Ex: Dell Latitude..." required />
+            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(sanitizeInput(e.target.value))} maxLength={30} minLength={2} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none" placeholder="Ex: Dell Latitude..." required />
             <datalist id="model-suggestions">{suggestedModels.map((s, i) => <option key={i} value={s} />)}</datalist>
           </div>
 
@@ -311,7 +314,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                 >
                   <div className="shrink-0">{item.icon}</div>
                   {item.label === 'Outro' && type === 'Outro' ? (
-                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(e.target.value)} maxLength={20} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className={`bg-transparent border-b outline-none w-full px-1 text-[10px] font-black ${type === 'Outro' ? 'border-white/50 text-white placeholder:text-white/50' : 'border-slate-400 text-slate-900 dark:border-white/50 dark:text-white'}`} onClick={(e) => e.stopPropagation()} />
+                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(sanitizeInput(e.target.value))} maxLength={20} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className={`bg-transparent border-b outline-none w-full px-1 text-[10px] font-black ${type === 'Outro' ? 'border-white/50 text-white placeholder:text-white/50' : 'border-slate-400 text-slate-900 dark:border-white/50 dark:text-white'}`} onClick={(e) => e.stopPropagation()} />
                   ) : <span className="flex-1 text-left leading-tight break-words">{item.label}</span>}
                 </button>
               ))}
