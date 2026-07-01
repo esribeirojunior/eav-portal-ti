@@ -448,7 +448,7 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                 <th className="pb-3 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-white/80">
+            <tbody className="divide-y divide-slate-300 dark:divide-white/5 text-slate-700 dark:text-white/80">
               {recentActivities.length > 0 ? (
                 recentActivities.map((act, i) => (
                   <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">

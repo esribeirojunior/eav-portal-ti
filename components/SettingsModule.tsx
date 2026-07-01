@@ -219,7 +219,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                 <th className="px-6 py-4 text-right">Ação</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                                        <tbody className="divide-y divide-slate-300 dark:divide-white/5">
                                             {users.map((u) => (
                                                 <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center gap-3">
