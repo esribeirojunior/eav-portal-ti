@@ -109,18 +109,8 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
         }
         
         try {
-            const res = await fetch('http://localhost:3002/api/remote-control', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ip, hostName: device.tag })
-            });
-
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || 'Falha ao iniciar VNC');
-            }
-
-            // O backend local (server.js) já disparou o executável
+            // Utiliza o protocolo local vnc:// para o PC do TI abrir o Viewer
+            window.location.href = `vnc://${ip}`;
         } catch (err: any) {
             alert(`Erro ao conectar: ${err.message}`);
         }
