@@ -171,13 +171,13 @@ export function DeviceList({
       </div>
 
       <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-400 dark:border-white/5 pt-4 xl:pt-0">
-        <div className="flex flex-col items-start xl:items-end">
+        <div className="flex flex-col items-start xl:items-end min-w-0">
           <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Tipo</span>
-          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">{device.type}</span>
+          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80 truncate max-w-[120px]">{device.type}</span>
         </div>
-        <div className="flex flex-col items-start xl:items-end">
+        <div className="flex flex-col items-start xl:items-end min-w-0">
           <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Categoria</span>
-          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">{device.category || device.type}</span>
+          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80 truncate max-w-[120px]">{device.category || device.type}</span>
         </div>
         <div className="flex flex-col items-start xl:items-end">
           <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest mb-1">Status</span>
@@ -468,7 +468,7 @@ export function DeviceList({
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
                                         <p className="text-[10px] font-bold text-white uppercase break-all line-clamp-2">{device.model}</p>
-                                        <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none shrink-0">
+                                        <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none shrink-0 truncate max-w-[80px]">
                                           {device.type}
                                         </span>
                                       </div>
