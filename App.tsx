@@ -106,9 +106,25 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
   const [error, setError] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutTime, setLockoutTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    let interval: any;
+    if (lockoutTime && lockoutTime > 0) {
+      interval = setInterval(() => {
+        setLockoutTime((prev) => (prev && prev > 1 ? prev - 1 : null));
+      }, 1000);
+    } else if (lockoutTime === null && failedAttempts >= 5) {
+      setFailedAttempts(0);
+    }
+    return () => clearInterval(interval);
+  }, [lockoutTime, failedAttempts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (lockoutTime) return;
+
     setLoading(true);
     setError(false);
     setGoogleError(null);
@@ -122,11 +138,17 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
       if (error) throw error;
 
       if (data.user) {
+        setFailedAttempts(0);
         onLogin(email);
       }
     } catch (err) {
       console.error("Erro no login:", err);
       setError(true);
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      if (newAttempts >= 5) {
+        setLockoutTime(30);
+      }
     } finally {
       setLoading(false);
     }
@@ -268,9 +290,15 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
               </div>
             </div>
 
-            {error && (
+            {error && !lockoutTime && (
               <div className="text-center bg-red-50 border border-red-100 rounded-lg py-2 px-3 animate-bounce">
                 <p className="text-red-600 text-[10px] font-bold uppercase tracking-wider">Credenciais Inválidas</p>
+              </div>
+            )}
+
+            {lockoutTime && (
+              <div className="text-center bg-orange-50 border border-orange-100 rounded-lg py-2 px-3">
+                <p className="text-orange-600 text-[10px] font-bold uppercase tracking-wider">Muitas tentativas. Aguarde {lockoutTime}s</p>
               </div>
             )}
 
@@ -282,11 +310,13 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || lockoutTime !== null}
               className="w-full py-4.5 bg-[#0f2d70] hover:bg-[#0c2050] text-[#ffffff] font-black rounded-2xl shadow-lg transition-all uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {loading ? (
                 <Loader2 className="animate-spin text-[#ffffff]" size={18} />
+              ) : lockoutTime ? (
+                <span className="text-[#ffffff]">Bloqueado Temporariamente</span>
               ) : (
                 <>
                   Entrar
