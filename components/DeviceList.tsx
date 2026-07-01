@@ -23,33 +23,33 @@ import { SectorDetailModal } from './SectorDetailModal';
 import { RmmStatusModal } from './RmmStatusModal';
 import { Activity } from 'lucide-react';
 
-const SECTOR_CONFIGS: Record<string, { color: string; icon: string; subtitle: string }> = {
-  'COORDENAÇÃO': { color: '#667eea', icon: '💼', subtitle: 'Gestão Administrativa' },
-  'DIRETORIA': { color: '#f093fb', icon: '👥', subtitle: 'Alta Gestão' },
-  'DISCENTES': { color: '#4facfe', icon: '📚', subtitle: 'Área Estudantil' },
-  'FINANCEIRO': { color: '#43e97b', icon: '💰', subtitle: 'Gestão Financeira' },
-  'SECRETARIA': { color: '#fa709a', icon: '📋', subtitle: 'Suporte Administrativo' },
-  'SUPRIMENTOS': { color: '#fbc2eb', icon: '📦', subtitle: 'Logística e Materiais' },
-  'TI': { color: '#a8edea', icon: '💻', subtitle: 'Tecnologia da Informação' },
-  'RH': { color: '#ec4899', icon: '👥', subtitle: 'Recursos Humanos' },
-  'DP': { color: '#db2777', icon: '👥', subtitle: 'Departamento Pessoal' },
-  'ADMISSIONS': { color: '#3b82f6', icon: '🎓', subtitle: 'Admissões' },
-  'MARKETING': { color: '#f97316', icon: '📣', subtitle: 'Comunicação e Marketing' },
-  'GUARITA': { color: '#64748b', icon: '🛡️', subtitle: 'Segurança e Portaria' },
-  'AFTER SCHOOL': { color: '#fb7185', icon: '🎒', subtitle: 'Atividades Extracurriculares' },
-  'ASSISTENTE DIREÇÃO/RECEPÇÃO': { color: '#0ea5e9', icon: '📞', subtitle: 'Assistência e Recepção' },
-  'BIBLIOTECA': { color: '#8b5cf6', icon: '📚', subtitle: 'Centro de Mídia e Leitura' },
-  'COOD. FINANCEIRO': { color: '#34d399', icon: '💵', subtitle: 'Coordenação Financeira' },
-  'DIREÇÃO': { color: '#c084fc', icon: '👔', subtitle: 'Diretoria e Gestão' },
-  'RECEPÇÃO': { color: '#06b6d4', icon: '🛎️', subtitle: 'Recepção e Atendimento' },
-  'MONITORES': { color: '#eab308', icon: '🧑‍🏫', subtitle: 'Monitores e Inspetores' },
-  'MARKETING/ADMISSIONS': { color: '#6366f1', icon: '🤝', subtitle: 'Comunicação e Admissões' },
-  'OPERAÇÃO': { color: '#84cc16', icon: '🔧', subtitle: 'Operação e Infraestrutura' },
-  'NUTRIÇÃO': { color: '#f87171', icon: '🍎', subtitle: 'Nutrição e Alimentação' },
-  'ENFERMARIA': { color: '#f43f5e', icon: '🩹', subtitle: 'Serviços de Saúde e Ambulatório' },
-  'JURIDICO': { color: '#475569', icon: '⚖️', subtitle: 'Assessoria Jurídica' },
-  'TRIAGEM': { color: '#f97316', icon: '🚧', subtitle: 'Equipamentos Novos (Aguardando Alocação)' },
-  'OUTROS': { color: '#a0aec0', icon: '🏢', subtitle: 'Outros Setores' }
+const SECTOR_CONFIGS: Record<string, { color: string; subtitle: string }> = {
+  'COORDENAÇÃO': { color: '#667eea', subtitle: 'Gestão Administrativa' },
+  'DIRETORIA': { color: '#f093fb', subtitle: 'Alta Gestão' },
+  'DISCENTES': { color: '#4facfe', subtitle: 'Área Estudantil' },
+  'FINANCEIRO': { color: '#43e97b', subtitle: 'Gestão Financeira' },
+  'SECRETARIA': { color: '#fa709a', subtitle: 'Suporte Administrativo' },
+  'SUPRIMENTOS': { color: '#fbc2eb', subtitle: 'Logística e Materiais' },
+  'TI': { color: '#a8edea', subtitle: 'Tecnologia da Informação' },
+  'RH': { color: '#ec4899', subtitle: 'Recursos Humanos' },
+  'DP': { color: '#db2777', subtitle: 'Departamento Pessoal' },
+  'ADMISSIONS': { color: '#3b82f6', subtitle: 'Admissões' },
+  'MARKETING': { color: '#f97316', subtitle: 'Comunicação e Marketing' },
+  'GUARITA': { color: '#64748b', subtitle: 'Segurança e Portaria' },
+  'AFTER SCHOOL': { color: '#fb7185', subtitle: 'Atividades Extracurriculares' },
+  'ASSISTENTE DIREÇÃO/RECEPÇÃO': { color: '#0ea5e9', subtitle: 'Assistência e Recepção' },
+  'BIBLIOTECA': { color: '#8b5cf6', subtitle: 'Centro de Mídia e Leitura' },
+  'COOD. FINANCEIRO': { color: '#34d399', subtitle: 'Coordenação Financeira' },
+  'DIREÇÃO': { color: '#c084fc', subtitle: 'Diretoria e Gestão' },
+  'RECEPÇÃO': { color: '#06b6d4', subtitle: 'Recepção e Atendimento' },
+  'MONITORES': { color: '#eab308', subtitle: 'Monitores e Inspetores' },
+  'MARKETING/ADMISSIONS': { color: '#6366f1', subtitle: 'Comunicação e Admissões' },
+  'OPERAÇÃO': { color: '#84cc16', subtitle: 'Operação e Infraestrutura' },
+  'NUTRIÇÃO': { color: '#f87171', subtitle: 'Nutrição e Alimentação' },
+  'ENFERMARIA': { color: '#f43f5e', subtitle: 'Serviços de Saúde e Ambulatório' },
+  'JURIDICO': { color: '#475569', subtitle: 'Assessoria Jurídica' },
+  'TRIAGEM': { color: '#f97316', subtitle: 'Equipamentos Novos (Aguardando Alocação)' },
+  'OUTROS': { color: '#a0aec0', subtitle: 'Outros Setores' }
 };
 
 interface DeviceListProps {
@@ -426,7 +426,7 @@ export function DeviceList({
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg" style={{ backgroundColor: config.color }}>
-                        {config.icon}
+                        <Building size={22} className="text-white opacity-90" />
                       </div>
                       <div>
                         <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{sector.department}</h3>
