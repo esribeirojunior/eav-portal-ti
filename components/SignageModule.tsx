@@ -38,7 +38,6 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                         campus
                     )
                 `)
-                .in('type', ['Mini PC', 'TV Corporativa']) // Filtra apenas esses tipos
                 .order('tag', { ascending: true });
 
             if (error) throw error;
@@ -71,7 +70,20 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                 };
             });
 
-            setDevices(formattedData || []);
+            // Filtra os dispositivos de forma mais inteligente (busca em tipo, modelo ou nome de quem está usando)
+            const signageDevices = (formattedData || []).filter(d => {
+                const typeStr = (d.type || '').toLowerCase();
+                const modelStr = (d.model || '').toLowerCase();
+                const respStr = (d.responsible || '').toLowerCase();
+                
+                return typeStr.includes('mini pc') || 
+                       typeStr.includes('tv') || 
+                       modelStr.includes('mini pc') || 
+                       respStr.includes('mini pc') || 
+                       respStr.includes('mural');
+            });
+
+            setDevices(signageDevices);
         } catch (err) {
             console.error("Erro ao buscar devices do mural:", err);
         } finally {
