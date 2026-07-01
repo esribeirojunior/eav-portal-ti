@@ -455,8 +455,8 @@ export function DeviceList({
                               <div className="w-8 h-8 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                                 <User size={14} />
                               </div>
-                              <div>
-                                <h4 className="text-[13px] font-semibold text-slate-800 dark:text-white tracking-tight">{user.userName}</h4>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-[13px] font-semibold text-slate-800 dark:text-white tracking-tight break-all line-clamp-2">{user.userName}</h4>
                                 <div className="custody-badge mt-0.5">{user.items.length} dispositivo(s)</div>
                               </div>
                             </div>
@@ -465,14 +465,14 @@ export function DeviceList({
                                 <div key={device.id} className="custody-device-item flex items-center justify-between transition-colors">
                                   <div className="flex items-center gap-3">
                                     <div className="custody-device-icon">{getIcon(device.type)}</div>
-                                    <div>
-                                      <div className="flex items-center gap-2">
-                                        <p className="text-[10px] font-bold text-white uppercase">{device.model}</p>
-                                        <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none">
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
+                                        <p className="text-[10px] font-bold text-white uppercase break-all line-clamp-2">{device.model}</p>
+                                        <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none shrink-0">
                                           {device.type}
                                         </span>
                                       </div>
-                                      <p className="text-[8px] text-white/30 uppercase tracking-widest mt-1">
+                                      <p className="text-[8px] text-white/30 uppercase tracking-widest mt-1 break-all line-clamp-2">
                                         <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>
                                         {device.serialNumber && ` • S/N: ${device.serialNumber}`}
                                       </p>
