@@ -246,6 +246,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                     type="text"
                     value={serial}
                     onChange={handleSerialChange}
+                    maxLength={50}
                     className="w-full h-16 bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-2xl px-6 pl-14 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all uppercase text-base font-black tracking-wider placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none"
                     placeholder="DIGITE OU ESCANEIE O SERIAL..."
                     required
@@ -273,6 +274,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                   type="text"
                   value={tag}
                   onChange={(e) => setTag(e.target.value)}
+                  maxLength={50}
                   className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-xl px-5 py-4 pl-12 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-mono text-base font-bold placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none"
                   placeholder="EAV-..."
                   required
@@ -284,7 +286,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
 
           <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Modelo / Especificação</label>
-            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(e.target.value)} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none" placeholder="Ex: Dell Latitude..." required />
+            <input type="text" list="model-suggestions" value={model} onChange={(e) => setModel(e.target.value)} maxLength={50} className="w-full bg-white dark:bg-white/5 text-slate-900 dark:text-white border border-slate-400 dark:border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold placeholder:text-slate-600 dark:placeholder:text-white/20 shadow-sm dark:shadow-none" placeholder="Ex: Dell Latitude..." required />
             <datalist id="model-suggestions">{suggestedModels.map((s, i) => <option key={i} value={s} />)}</datalist>
           </div>
 
