@@ -205,20 +205,20 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
                 {filteredEmployees.map((emp, idx) => (
                   <tr key={idx} className="border-b border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group">
                     <td className="py-4 px-6">
-                      <div className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2">
+                      <div className="font-bold text-sm text-slate-800 dark:text-white flex items-center gap-2 max-w-[200px] truncate" title={emp.user_name}>
                         {emp.user_name}
                       </div>
                     </td>
                     <td className="py-4 px-6">
                       {emp.user_email ? (
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-300">{emp.user_email}</span>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-300 max-w-[200px] truncate" title={emp.user_email}>{emp.user_email}</div>
                       ) : (
                         <span className="text-xs font-bold text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-2 py-1 rounded-md">Sem E-mail</span>
                       )}
                     </td>
                     <td className="py-4 px-6">
                       {emp.department_id ? (
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-300 uppercase tracking-wider">{getDepartmentName(emp.department_id)}</span>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-300 uppercase tracking-wider max-w-[150px] truncate" title={getDepartmentName(emp.department_id)}>{getDepartmentName(emp.department_id)}</div>
                       ) : (
                         <span className="text-xs font-bold text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-md">Sem Setor</span>
                       )}

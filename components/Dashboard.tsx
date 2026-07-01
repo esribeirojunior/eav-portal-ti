@@ -452,10 +452,10 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
               {recentActivities.length > 0 ? (
                 recentActivities.map((act, i) => (
                   <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-colors">
-                    <td className="py-3.5 font-mono font-bold text-slate-800 dark:text-white">{act.deviceTag}</td>
-                    <td className="py-3.5 font-semibold">{act.deviceModel} ({act.deviceType})</td>
-                    <td className="py-3.5 font-bold text-indigo-600 dark:text-indigo-400">{act.userName}</td>
-                    <td className="py-3.5 text-slate-800 dark:text-slate-500">{act.campus || 'N/A'}</td>
+                    <td className="py-3.5"><div className="font-mono font-bold text-slate-800 dark:text-white max-w-[150px] truncate" title={act.deviceTag}>{act.deviceTag}</div></td>
+                    <td className="py-3.5"><div className="font-semibold max-w-[200px] truncate" title={`${act.deviceModel} (${act.deviceType})`}>{act.deviceModel} ({act.deviceType})</div></td>
+                    <td className="py-3.5"><div className="font-bold text-indigo-600 dark:text-indigo-400 max-w-[150px] truncate" title={act.userName}>{act.userName}</div></td>
+                    <td className="py-3.5"><div className="text-slate-800 dark:text-slate-500 max-w-[150px] truncate" title={act.campus}>{act.campus || 'N/A'}</div></td>
                     <td className="py-3.5 text-slate-800 dark:text-slate-500">
                       {new Date(act.startDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </td>
