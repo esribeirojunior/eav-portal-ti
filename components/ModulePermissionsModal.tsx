@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Box, ExternalLink, Beaker, CheckSquare, Activity, Key, BookOpen } from 'lucide-react';
+import { X, Save, Box, ExternalLink, Beaker, CheckSquare, Activity, Key, BookOpen, MonitorPlay } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface ModulePermissionsModalProps {
@@ -16,7 +16,8 @@ const AVAILABLE_MODULES = [
     { id: 'tasks', name: 'Task Manager', icon: <CheckSquare size={18} /> },
     { id: 'vault', name: 'Password Vault', icon: <Key size={18} /> },
     { id: 'tutorials', name: 'Tutoriais', icon: <BookOpen size={18} /> },
-    { id: 'lab', name: 'TI Beta Lab', icon: <Beaker size={18} /> }
+    { id: 'lab', name: 'TI Beta Lab', icon: <Beaker size={18} /> },
+    { id: 'signage', name: 'Mural Digital', icon: <MonitorPlay size={18} /> }
 ];
 
 export const ModulePermissionsModal = ({ isOpen, onClose, user, onSaved }: ModulePermissionsModalProps) => {

@@ -18,6 +18,7 @@ import { VaultModule } from './components/VaultModule';
 import { TutorialsModule } from './components/TutorialsModule';
 import DevLabModule from './components/DevLabModule';
 import { SettingsModule } from './components/SettingsModule';
+import { SignageModule } from './components/SignageModule';
 import { AuditLogModal } from './components/AuditLogModal';
 import { UserProfile } from './components/UserProfile';
 import { Copilot } from './components/Copilot';
@@ -436,7 +437,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   // --- STATE: Controle de Módulos ---
-  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings'>('selector');
+  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage'>('selector');
 
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
@@ -1092,7 +1093,7 @@ const App: React.FC = () => {
 
       {currentModule === 'selector' && (
         <ModuleSelector
-          onSelectModule={(module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => {
+          onSelectModule={(module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage') => {
             if (module === 'audit') setIsAuditModalOpen(true);
             else setCurrentModule(module);
           }}
@@ -1138,6 +1139,13 @@ const App: React.FC = () => {
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
           onSelectModule={setCurrentModule}
+        />
+      )}
+
+      {currentModule === 'signage' && (
+        <SignageModule
+          onBack={() => setCurrentModule('selector')}
+          userEmail={userEmail}
         />
       )}
  

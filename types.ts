@@ -83,7 +83,7 @@ export interface Shortcut {
   campus?: string;
 }
 
-export type ModuleKey = 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab';
+export type ModuleKey = 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'signage';
 
 export interface ITTask {
   id: string;

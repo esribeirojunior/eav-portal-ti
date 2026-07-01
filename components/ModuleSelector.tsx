@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users } from 'lucide-react';
+import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users, MonitorPlay } from 'lucide-react';
 
 interface ModuleSelectorProps {
-    onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings') => void;
+    onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage') => void;
     onLogout: () => void;
     userEmail?: string;
     userRole?: string;
@@ -49,6 +49,11 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('links') && (
                                 <button onClick={() => onSelectModule('links')} className="flex items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
                                     <ExternalLink size={16} /> Centro de Atalhos
+                                </button>
+                            )}
+                            {hasModule('signage') && (
+                                <button onClick={() => onSelectModule('signage')} className="flex items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-300 hover:text-pink-600 dark:hover:text-white transition-colors text-left">
+                                    <MonitorPlay size={16} /> Mural Digital
                                 </button>
                             )}
                             {hasModule('lab') && (
@@ -158,6 +163,27 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                         </p>
                                     </div>
                                     <div className="mt-6 flex items-center text-[13px] font-semibold text-green-700 dark:text-green-500 group-hover:gap-2 transition-all">
+                                        <span className="mr-2">→</span> Acessar
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Mural Digital */}
+                            {hasModule('signage') && (
+                                <button 
+                                    onClick={() => onSelectModule('signage')}
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-pink-600/50 hover:shadow-lg hover:shadow-pink-900/10 min-h-[280px]"
+                                >
+                                    <div>
+                                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
+                                            <MonitorPlay size={24} className="text-pink-600" />
+                                        </div>
+                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Mural Digital</h4>
+                                        <p className="text-sm text-slate-800 dark:text-slate-300 leading-relaxed font-medium">
+                                            Gerenciamento de TVs Corporativas e Mini PCs.
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-pink-700 dark:text-pink-500 group-hover:gap-2 transition-all">
                                         <span className="mr-2">→</span> Acessar
                                     </div>
                                 </button>

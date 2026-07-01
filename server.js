@@ -201,7 +201,7 @@ async function initPostgresDB() {
       try { await pool.query("UPDATE authorized_users SET role = 'superadmin' WHERE email ILIKE 'erisson.junior@escolaamericana.com.br'"); } catch (e) {}
       
       // Add modules column if it doesn't exist
-      try { await pool.query(`ALTER TABLE authorized_users ADD COLUMN modules TEXT DEFAULT '["assets","links","audit","tasks","vault","tutorials","lab"]'`); } catch (e) {}
+      try { await pool.query(`ALTER TABLE authorized_users ADD COLUMN modules TEXT DEFAULT '["assets","links","audit","tasks","vault","tutorials","lab","signage"]'`); } catch (e) {}
       
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
