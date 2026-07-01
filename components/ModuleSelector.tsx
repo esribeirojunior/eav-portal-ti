@@ -17,9 +17,9 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
         <div className="min-h-screen bg-slate-100 dark:bg-[#0c0d21] flex font-sans transition-colors duration-300">
             
             {/* SIDEBAR */}
-            <aside className="w-[280px] bg-white dark:bg-white/5 border-r border-slate-300 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen transition-colors duration-300">
+            <aside className="w-[280px] bg-white dark:bg-white/5 border-r border-slate-400 dark:border-white/5 flex flex-col flex-shrink-0 sticky top-0 h-screen transition-colors duration-300">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-300 dark:border-white/5 flex flex-col items-center justify-center min-h-[100px]">
+                <div className="p-6 border-b border-slate-400 dark:border-white/5 flex flex-col items-center justify-center min-h-[100px]">
                     <div className="w-48">
                         <img src="/logo.png" alt="EAV Logo" className="w-full h-auto block dark:hidden" />
                         <img src="/logo-branco.png" alt="EAV Logo" className="w-full h-auto hidden dark:block" />
@@ -82,7 +82,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                 </div>
 
                 {/* Footer User */}
-                <div className="p-6 border-t border-slate-300 dark:border-white/5">
+                <div className="p-6 border-t border-slate-400 dark:border-white/5">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-inner">
                             {userEmail ? userEmail.substring(0, 2).toUpperCase() : 'TI'}
@@ -151,7 +151,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('links') && (
                                 <button 
                                     onClick={() => onSelectModule('links')}
-                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-green-600/50 hover:shadow-lg hover:shadow-green-900/10 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-400 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-green-600/50 hover:shadow-lg hover:shadow-green-900/10 min-h-[280px]"
                                 >
                                     <div>
                                         <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -172,7 +172,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('signage') && (
                                 <button 
                                     onClick={() => onSelectModule('signage')}
-                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-pink-600/50 hover:shadow-lg hover:shadow-pink-900/10 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-400 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-pink-600/50 hover:shadow-lg hover:shadow-pink-900/10 min-h-[280px]"
                                 >
                                     <div>
                                         <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -193,7 +193,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('lab') && (
                                 <button 
                                     onClick={() => onSelectModule('lab')}
-                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-900/10 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-400 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-purple-600/50 hover:shadow-lg hover:shadow-purple-900/10 min-h-[280px]"
                                 >
                                     <div>
                                         <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
@@ -224,7 +224,7 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                 {/* Logs de Auditoria */}
                                 <button 
                                     onClick={() => onSelectModule('audit')}
-                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-orange-600/50 hover:shadow-lg hover:shadow-orange-900/10 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-400 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-orange-600/50 hover:shadow-lg hover:shadow-orange-900/10 min-h-[280px]"
                                 >
                                     <div>
                                         <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">

@@ -116,7 +116,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                     <div className="flex items-center gap-6">
                         <button
                             onClick={activeProject ? () => setActiveProject(null) : onBack}
-                            className="p-4 bg-white dark:bg-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all text-slate-600 dark:text-white/40 border border-slate-300 dark:border-white/5 active:scale-90 shadow-sm dark:shadow-none"
+                            className="p-4 bg-white dark:bg-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-all text-slate-800 dark:text-white/40 border border-slate-400 dark:border-white/5 active:scale-90 shadow-sm dark:shadow-none"
                         >
                             <ChevronLeft size={24} />
                         </button>
@@ -127,9 +127,9 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                     </div>
 
                     {activeProject && (
-                        <div className="hidden md:flex items-center gap-8 px-8 py-4 bg-white dark:bg-white/5 rounded-[2rem] border border-slate-300 dark:border-white/5 shadow-sm dark:shadow-none">
+                        <div className="hidden md:flex items-center gap-8 px-8 py-4 bg-white dark:bg-white/5 rounded-[2rem] border border-slate-400 dark:border-white/5 shadow-sm dark:shadow-none">
                             <div className="text-center">
-                                <p className="text-[9px] font-black text-slate-500 dark:text-white/20 uppercase tracking-widest">Total</p>
+                                <p className="text-[9px] font-black text-slate-700 dark:text-white/20 uppercase tracking-widest">Total</p>
                                 <p className="text-xl font-black text-slate-900 dark:text-white">{ramais.length}</p>
                             </div>
                             <div className="text-center">
@@ -149,7 +149,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Monitor de Campus */}
                         <button 
                             onClick={() => setActiveProject('monitcall')}
-                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-300 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-cyan-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -158,7 +158,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                 </div>
                                 <div className="space-y-3">
                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors">Monitor de Campus</h3>
-                                    <p className="text-slate-600 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
                                         Visualização em tempo real de todos os ramais e disponibilidade da escola.
                                     </p>
                                 </div>
@@ -172,7 +172,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Gestão de Tarefas TI */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('tasks')}
-                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-300 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-cyan-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-cyan-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -181,7 +181,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                 </div>
                                 <div className="space-y-3">
                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-cyan-500 dark:group-hover:text-cyan-400 transition-colors">Gestão de Tarefas TI</h3>
-                                    <p className="text-slate-600 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
                                         Organização interna, prazos e diário de bordo da equipe.
                                     </p>
                                 </div>
@@ -195,7 +195,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Cofre de Senhas */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('vault')}
-                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-300 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-blue-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-blue-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-blue-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -204,7 +204,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                 </div>
                                 <div className="space-y-3">
                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">Cofre de Senhas</h3>
-                                    <p className="text-slate-600 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
                                         Acesso seguro a chaves de API e credenciais Bitwarden.
                                     </p>
                                 </div>
@@ -218,7 +218,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                         {/* Passo a Passo TI */}
                         <button 
                             onClick={() => onSelectModule && onSelectModule('tutorials')}
-                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-300 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-orange-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-orange-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-orange-600/10 transition-all" />
                             <div className="relative z-10 space-y-8">
@@ -227,7 +227,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                 </div>
                                 <div className="space-y-3">
                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">Passo a Passo TI</h3>
-                                    <p className="text-slate-600 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
                                         Procedimentos de suporte ao usuário e manuais técnicos.
                                     </p>
                                 </div>
@@ -240,14 +240,14 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                     </div>
                 ) : (
                     <div className="animate-in zoom-in-95 duration-500 space-y-8">
-                        <div className="bg-white dark:bg-slate-900/60 border border-slate-300 dark:border-white/5 shadow-sm dark:shadow-none rounded-[3rem] p-8 md:p-12">
+                        <div className="bg-white dark:bg-slate-900/60 border border-slate-400 dark:border-white/5 shadow-sm dark:shadow-none rounded-[3rem] p-8 md:p-12">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3 text-cyan-600 dark:text-cyan-500">
                                         <Phone size={24} />
                                         <h3 className="text-3xl font-[1000] text-slate-900 dark:text-white uppercase tracking-tight">Status da Telefonia</h3>
                                     </div>
-                                    <p className="text-slate-600 dark:text-white/40 text-sm font-medium italic">Campus Escola Americana de Vitória</p>
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium italic">Campus Escola Americana de Vitória</p>
                                 </div>
                                 
                                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -255,11 +255,11 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                         <input
                                             type="text"
                                             placeholder="BUSCAR RAMAL OU NOME..."
-                                            className="w-full md:w-64 bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-2xl py-5 px-12 text-[10px] font-black text-slate-900 dark:text-white outline-none focus:border-cyan-500 transition-all placeholder:text-slate-500 dark:placeholder:text-white/10 tracking-widest"
+                                            className="w-full md:w-64 bg-slate-50 dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-2xl py-5 px-12 text-[10px] font-black text-slate-900 dark:text-white outline-none focus:border-cyan-500 transition-all placeholder:text-slate-700 dark:placeholder:text-white/10 tracking-widest"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
-                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-white/20 group-focus-within:text-cyan-500 transition-colors" size={16} />
+                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-700 dark:text-white/20 group-focus-within:text-cyan-500 transition-colors" size={16} />
                                     </div>
 
                                     <button 
@@ -281,13 +281,13 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                             )}
 
                             {/* Tabs de Filtro */}
-                            <div className="flex gap-4 mb-8 border-b border-slate-300 dark:border-white/5 pb-4 overflow-x-auto no-scrollbar">
+                            <div className="flex gap-4 mb-8 border-b border-slate-400 dark:border-white/5 pb-4 overflow-x-auto no-scrollbar">
                                 <button
                                     onClick={() => setActiveTab('registrados')}
                                     className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${
                                         activeTab === 'registrados' 
                                         ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' 
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/10'
+                                        : 'bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/10'
                                     }`}
                                 >
                                     Registrados ({ramais.filter(r => isExtensionRegistered(r.estado)).length})
@@ -297,7 +297,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                     className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${
                                         activeTab === 'nao_registrados' 
                                         ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' 
-                                        : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/10'
+                                        : 'bg-slate-100 dark:bg-white/5 text-slate-800 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/10'
                                     }`}
                                 >
                                     Não Registrados ({ramais.filter(r => !isExtensionRegistered(r.estado)).length})
@@ -332,7 +332,7 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                             </div>
 
                                             <div className="relative z-10 space-y-1">
-                                                <div className="text-[9px] font-black text-slate-600 dark:text-white/30 uppercase tracking-[0.2em]">
+                                                <div className="text-[9px] font-black text-slate-800 dark:text-white/30 uppercase tracking-[0.2em]">
                                                     Ramal {r.ramal}
                                                 </div>
                                                 <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-tight break-words group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
@@ -345,14 +345,14 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                             </div>
 
 
-                            <div className="mt-12 p-8 bg-slate-50 dark:bg-black/40 border border-slate-300 dark:border-white/5 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div className="mt-12 p-8 bg-slate-50 dark:bg-black/40 border border-slate-400 dark:border-white/5 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-8">
                                 <div className="flex items-start gap-6">
-                                    <div className="p-4 bg-white dark:bg-white/5 rounded-2xl text-cyan-600 dark:text-cyan-500 shadow-sm dark:shadow-none border border-slate-300 dark:border-none">
+                                    <div className="p-4 bg-white dark:bg-white/5 rounded-2xl text-cyan-600 dark:text-cyan-500 shadow-sm dark:shadow-none border border-slate-400 dark:border-none">
                                         <ShieldCheck size={24} />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[11px] font-black text-slate-600 dark:text-white/40 uppercase tracking-widest">Modo de Operação:</p>
-                                        <p className="text-xs text-slate-500 dark:text-white/20 font-medium leading-relaxed italic max-w-xl">
+                                        <p className="text-[11px] font-black text-slate-800 dark:text-white/40 uppercase tracking-widest">Modo de Operação:</p>
+                                        <p className="text-xs text-slate-700 dark:text-white/20 font-medium leading-relaxed italic max-w-xl">
                                             Sincronização automática via API Vipphone Monitcall. Este painel é restrito à equipe de TI para diagnóstico de rede e infraestrutura.
                                         </p>
                                     </div>
@@ -367,8 +367,8 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                 )}
             </div>
             {/* Footer */}
-            <div className="text-center pt-10 border-t border-slate-300 dark:border-white/5 no-print mt-10">
-                <p className="text-slate-500 dark:text-white/10 text-[9px] uppercase tracking-[0.4em] font-black">
+            <div className="text-center pt-10 border-t border-slate-400 dark:border-white/5 no-print mt-10">
+                <p className="text-slate-700 dark:text-white/10 text-[9px] uppercase tracking-[0.4em] font-black">
                     Escola Americana de Vitória &copy; 2026 - Versão 2.0 by Erisson Ribeiro
                 </p>
             </div>

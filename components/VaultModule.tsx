@@ -202,11 +202,11 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
   return (
     <div className="flex h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden font-sans">
       {/* Sidebar de Navegação Local */}
-      <div className="w-full md:w-80 flex flex-col border-r border-slate-300 dark:border-white/5 bg-white dark:bg-slate-950 p-6 space-y-8">
+      <div className="w-full md:w-80 flex flex-col border-r border-slate-400 dark:border-white/5 bg-white dark:bg-slate-950 p-6 space-y-8">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
-            className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/5 rounded-xl text-slate-500 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-all border border-slate-300 dark:border-white/5"
+            className="p-2.5 hover:bg-slate-200 dark:hover:bg-white/5 rounded-xl text-slate-700 dark:text-white/50 hover:text-slate-900 dark:hover:text-white transition-all border border-slate-400 dark:border-white/5"
           >
             <ArrowLeft size={18} />
           </button>
@@ -221,11 +221,11 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <input 
               type="text"
               placeholder="Pesquisar segredo..."
-              className="w-full bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-white/20"
+              className="w-full bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-600 dark:placeholder:text-white/20"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-white/20 group-focus-within:text-indigo-500 transition-colors" size={16} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-800 dark:text-white/20 group-focus-within:text-indigo-500 transition-colors" size={16} />
           </div>
 
           <div className="space-y-3">
@@ -240,7 +240,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             <div className="space-y-1">
               <button 
                 onClick={() => setSelectedProjectId('all')}
-                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-800 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
               >
                 <ShieldCheck size={16} />
                 Todos os Itens
@@ -249,7 +249,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                 <div key={project.id} className="relative group flex items-center">
                   <button 
                     onClick={() => setSelectedProjectId(project.id)}
-                    className={`flex-1 text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-600 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
+                    className={`flex-1 text-left px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-3 ${selectedProjectId === project.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-800 dark:text-white/40 hover:bg-slate-200 dark:hover:bg-white/5'}`}
                   >
                     <FileText size={16} />
                     {project.name}
@@ -301,7 +301,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
         {loading ? (
           <div className="h-full flex flex-col items-center justify-center space-y-4">
             <Loader2 className="animate-spin text-indigo-500" size={40} />
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-600 dark:text-white/20">Descriptografando cofre...</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-800 dark:text-white/20">Descriptografando cofre...</p>
           </div>
         ) : error ? (
           <div className="h-full flex flex-col items-center justify-center space-y-6 text-center max-w-sm mx-auto">
@@ -314,7 +314,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
             </div>
             <button 
               onClick={fetchData}
-              className="px-8 py-3 bg-slate-200 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 rounded-xl text-xs font-bold uppercase tracking-widest border border-slate-300 dark:border-white/10 transition-all text-slate-900 dark:text-white"
+              className="px-8 py-3 bg-slate-200 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 rounded-xl text-xs font-bold uppercase tracking-widest border border-slate-400 dark:border-white/10 transition-all text-slate-900 dark:text-white"
             >
               Tentar Novamente
             </button>
@@ -332,7 +332,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                         <Plus size={16} /> Novo Segredo
                     </button>
                  )}
-                 <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-slate-300 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/30">
+                 <div className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-white/5 border border-slate-400 dark:border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/30">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Cofre Local
                  </div>
@@ -341,13 +341,13 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {filteredSecrets.length === 0 ? (
-                <div className="col-span-full py-20 text-center space-y-4 border-2 border-dashed border-slate-300 dark:border-white/5 rounded-[3rem]">
-                  <Search size={40} className="mx-auto text-slate-600 dark:text-white/10" />
-                  <p className="text-sm font-bold text-slate-600 dark:text-white/20 uppercase tracking-widest">Nenhum segredo encontrado.</p>
+                <div className="col-span-full py-20 text-center space-y-4 border-2 border-dashed border-slate-400 dark:border-white/5 rounded-[3rem]">
+                  <Search size={40} className="mx-auto text-slate-800 dark:text-white/10" />
+                  <p className="text-sm font-bold text-slate-800 dark:text-white/20 uppercase tracking-widest">Nenhum segredo encontrado.</p>
                 </div>
               ) : (
                 filteredSecrets.map(secret => (
-                  <div key={secret.id} className="group bg-white shadow-md border-slate-300 dark:bg-slate-900/60 dark:shadow-none dark:border-white/5 p-6 md:p-8 rounded-[2.5rem] border border-slate-300 dark:border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.99] shadow-sm hover:shadow-md dark:shadow-none">
+                  <div key={secret.id} className="group bg-white shadow-md border-slate-400 dark:bg-slate-900/60 dark:shadow-none dark:border-white/5 p-6 md:p-8 rounded-[2.5rem] border border-slate-400 dark:border-white/5 hover:border-indigo-500/30 transition-all hover:translate-y-[-4px] active:scale-[0.99] shadow-sm hover:shadow-md dark:shadow-none">
                     <div className="flex items-start justify-between mb-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-600/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
@@ -357,7 +357,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                           <h3 className="text-lg font-black uppercase tracking-tighter text-slate-900 dark:text-white">{secret.key}</h3>
                           <div className="flex gap-2 mt-1">
                             {secret.projectIds.map(pid => (
-                              <span key={pid} className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white/40 rounded border border-slate-300 dark:border-white/5">
+                              <span key={pid} className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white/40 rounded border border-slate-400 dark:border-white/5">
                                 {projects.find(p => p.id === pid)?.name || 'Projeto'}
                               </span>
                             ))}
@@ -385,7 +385,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
 
                     <div className="space-y-4">
                       <div className="relative">
-                        <div className={`w-full bg-slate-100 dark:bg-black/40 border border-slate-300 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all ${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-600 dark:text-white/10 select-none blur-sm'}`}>
+                        <div className={`w-full bg-slate-100 dark:bg-black/40 border border-slate-400 dark:border-white/10 rounded-2xl py-4 px-6 font-mono text-sm tracking-widest break-all ${visibleSecrets[secret.id] ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-800 dark:text-white/10 select-none blur-sm'}`}>
                           {visibleSecrets[secret.id] ? secret.value : '••••••••••••••••••••••••'}
                         </div>
                         <button 
@@ -397,8 +397,8 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
                       </div>
 
                       {secret.note && (
-                        <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-200 dark:border-white/5">
-                          <FileText size={14} className="text-slate-600 dark:text-white/20 mt-1 flex-shrink-0" />
+                        <div className="flex gap-3 items-start p-4 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-slate-400 dark:border-white/5">
+                          <FileText size={14} className="text-slate-800 dark:text-white/20 mt-1 flex-shrink-0" />
                           <p className="text-[11px] text-slate-700 dark:text-white/40 italic leading-relaxed">{secret.note}</p>
                         </div>
                       )}
@@ -414,27 +414,27 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
       {/* Modal Criar Segredo */}
       {isSecretModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm p-4">
-            <div className="w-full max-w-lg bg-white dark:bg-[#1a1b3b] rounded-[2rem] border border-slate-300 dark:border-white/10 shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
-                <button onClick={() => setIsSecretModalOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white"><X size={20}/></button>
+            <div className="w-full max-w-lg bg-white dark:bg-[#1a1b3b] rounded-[2rem] border border-slate-400 dark:border-white/10 shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
+                <button onClick={() => setIsSecretModalOpen(false)} className="absolute top-6 right-6 text-slate-600 dark:text-white/30 hover:text-slate-900 dark:hover:text-white"><X size={20}/></button>
                 <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white mb-6">Novo Segredo</h3>
                 <form onSubmit={handleCreateSecret} className="space-y-4">
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nome da Chave</label>
-                        <input required value={newKey} onChange={e=>setNewKey(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: AWS_ACCESS_KEY" />
+                        <label className="text-[10px] font-black uppercase text-slate-700 dark:text-white/50 tracking-widest">Nome da Chave</label>
+                        <input required value={newKey} onChange={e=>setNewKey(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: AWS_ACCESS_KEY" />
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Valor do Segredo (Senha/Token)</label>
-                        <input required type="password" value={newValue} onChange={e=>setNewValue(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-mono" placeholder="••••••••••••••" />
+                        <label className="text-[10px] font-black uppercase text-slate-700 dark:text-white/50 tracking-widest">Valor do Segredo (Senha/Token)</label>
+                        <input required type="password" value={newValue} onChange={e=>setNewValue(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-mono" placeholder="••••••••••••••" />
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Projeto</label>
-                        <select required value={newSecretProjectId} onChange={e=>setNewSecretProjectId(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
+                        <label className="text-[10px] font-black uppercase text-slate-700 dark:text-white/50 tracking-widest">Projeto</label>
+                        <select required value={newSecretProjectId} onChange={e=>setNewSecretProjectId(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500">
                             {projects.map(p => <option key={p.id} value={p.id} className="dark:bg-[#1a1b3b]">{p.name}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nota Opcional</label>
-                        <input value={newNote} onChange={e=>setNewNote(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Acesso Root Banco de Dados" />
+                        <label className="text-[10px] font-black uppercase text-slate-700 dark:text-white/50 tracking-widest">Nota Opcional</label>
+                        <input value={newNote} onChange={e=>setNewNote(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Acesso Root Banco de Dados" />
                     </div>
                     <button type="submit" disabled={saving || projects.length === 0} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl mt-4 uppercase text-[11px] tracking-widest disabled:opacity-50">
                         {saving ? 'Salvando...' : 'Criar Segredo Seguro'}
@@ -448,13 +448,13 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
       {/* Modal Criar Projeto */}
       {isProjectModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm p-4">
-            <div className="w-full max-w-sm bg-white dark:bg-[#1a1b3b] rounded-[2rem] border border-slate-300 dark:border-white/10 shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
-                <button onClick={() => setIsProjectModalOpen(false)} className="absolute top-6 right-6 text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white"><X size={20}/></button>
+            <div className="w-full max-w-sm bg-white dark:bg-[#1a1b3b] rounded-[2rem] border border-slate-400 dark:border-white/10 shadow-2xl p-8 relative animate-in zoom-in-95 duration-200">
+                <button onClick={() => setIsProjectModalOpen(false)} className="absolute top-6 right-6 text-slate-600 dark:text-white/30 hover:text-slate-900 dark:hover:text-white"><X size={20}/></button>
                 <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 dark:text-white mb-6">Novo Projeto</h3>
                 <form onSubmit={handleCreateProject} className="space-y-4">
                     <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 dark:text-white/50 tracking-widest">Nome do Projeto</label>
-                        <input required value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-300 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Produção Cloud" />
+                        <label className="text-[10px] font-black uppercase text-slate-700 dark:text-white/50 tracking-widest">Nome do Projeto</label>
+                        <input required value={newProjectName} onChange={e=>setNewProjectName(e.target.value)} className="w-full mt-1 bg-white shadow-sm border-slate-400 dark:bg-white/5 dark:shadow-none dark:border-white/10 border border-slate-400 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500" placeholder="Ex: Produção Cloud" />
                     </div>
                     <button type="submit" disabled={saving} className="w-full bg-slate-900 dark:bg-white text-white dark:text-black font-bold py-3 rounded-xl mt-2 uppercase text-[11px] tracking-widest disabled:opacity-50">
                         {saving ? 'Criando...' : 'Criar Projeto'}

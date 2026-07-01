@@ -86,7 +86,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[350px] sm:w-[400px] h-[550px] max-h-[85vh] bg-white rounded-2xl shadow-2xl z-50 flex flex-col border border-slate-200 overflow-hidden animate-slide-up origin-bottom-right">
+        <div className="fixed bottom-6 right-6 w-[350px] sm:w-[400px] h-[550px] max-h-[85vh] bg-white rounded-2xl shadow-2xl z-50 flex flex-col border border-slate-400 overflow-hidden animate-slide-up origin-bottom-right">
           
           {/* Header */}
           <div className="bg-gradient-to-r from-[#0f2d70] to-[#1e4baf] p-4 flex items-center justify-between">
@@ -120,7 +120,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
                     className={`max-w-[85%] rounded-2xl p-4 text-sm shadow-sm ${
                       msg.role === 'user' 
                         ? 'bg-blue-600 text-white rounded-br-none ml-auto' 
-                        : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
+                        : 'bg-white border border-slate-400 text-slate-800 rounded-bl-none'
                     }`}
                   >
                     <div 
@@ -151,7 +151,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm flex items-center gap-2 text-slate-400">
+                <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-slate-100 shadow-sm flex items-center gap-2 text-slate-600">
                   <Loader2 size={16} className="animate-spin" />
                   <span className="text-xs font-medium">Analisando o inventário...</span>
                 </div>
@@ -169,7 +169,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Pergunte sobre os ativos..."
-                className="flex-1 bg-slate-100 text-slate-800 placeholder:text-slate-400 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
+                className="flex-1 bg-slate-100 text-slate-800 placeholder:text-slate-600 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none"
                 disabled={isLoading}
               />
               <button 
@@ -180,7 +180,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
                 <Send size={18} />
               </button>
             </div>
-            <p className="text-[9px] text-center text-slate-400 mt-2 font-medium">O Copilot pode cometer erros. Verifique informações importantes.</p>
+            <p className="text-[9px] text-center text-slate-600 mt-2 font-medium">O Copilot pode cometer erros. Verifique informações importantes.</p>
           </div>
         </div>
       )}
