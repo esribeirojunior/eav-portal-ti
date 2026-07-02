@@ -1325,21 +1325,44 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
         
         if (!token) return res.status(400).json({ error: 'Token inválido ou vazio.' });
         
-        // Mosyle Manager (Educação) geralmente usa a Manager API
-        const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
         const fetch = (await import('node-fetch')).default;
+        
+        // 1. Fazer o Login para pegar o JWT Bearer Token
+        const loginResponse = await fetch('https://managerapi.mosyle.com/v2/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                "accessToken": token,
+                "email": config.email,
+                "password": config.password
+            })
+        });
+
+        if (!loginResponse.ok) {
+            const errText = await loginResponse.text();
+            return res.status(401).json({ error: 'Falha no login do Mosyle. Verifique o Email/Senha e o Token.', details: errText });
+        }
+
+        const bearerHeader = loginResponse.headers.get('authorization');
+        if (!bearerHeader) {
+            return res.status(500).json({ error: 'Mosyle não retornou o JWT Bearer Token no cabeçalho.' });
+        }
+        
+        // 2. Fazer a requisição para listar dispositivos usando o Bearer Token retornado
+        const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
         
         const response = await fetch(mosyleEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': bearerHeader
             },
             body: JSON.stringify({
                 "accessToken": token,
                 "operation": "list",
                 "options": {
-                    "os": "mac" // 'mac' ou 'ios'
+                    "os": "mac", // ou 'ios'
+                    "specific_columns": ["serial_number", "device_name", "osversion", "model"]
                 }
             })
         });
