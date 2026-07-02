@@ -17,9 +17,34 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     const [isConfigured, setIsConfigured] = useState(false);
 
     useEffect(() => {
-        // Here we would fetch if it is configured
-        // For now, mock it as false initially
+        // Fetch config status
+        const checkConfig = async () => {
+            try {
+                const sessionStr = localStorage.getItem('eav_session');
+                const session = sessionStr ? JSON.parse(sessionStr) : null;
+                const token = session?.token || '';
+                
+                const response = await fetch('/api/mosyle/config', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.configured) {
+                    setIsConfigured(true);
+                    if (data.email) setEmail(data.email);
+                }
+            } catch (err) {
+                console.error('Error checking Mosyle config', err);
+            }
+        };
+        checkConfig();
     }, []);
+
+    const getAuthToken = () => {
+        const sessionStr = localStorage.getItem('eav_session');
+        const session = sessionStr ? JSON.parse(sessionStr) : null;
+        return session?.token || '';
+    };
 
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,8 +52,18 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
         setStatus(null);
         
         try {
-            // Mock API save
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const response = await fetch('/api/mosyle/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: JSON.stringify({ email, password, token })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error || 'Erro ao salvar configurações');
             
             setIsConfigured(true);
             setStatus({ type: 'success', msg: 'Configurações salvas e criptografadas com sucesso!' });
@@ -44,10 +79,17 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
         setStatus(null);
         
         try {
-            // Mock sync process
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            const response = await fetch('/api/mosyle/sync', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+            });
             
-            setStatus({ type: 'success', msg: 'Sincronização concluída! 0 novos dispositivos encontrados.' });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error || 'Erro ao sincronizar dispositivos');
+            
+            setStatus({ type: 'success', msg: data.message || 'Sincronização concluída!' });
+            console.log('Dados do Mosyle:', data.rawData);
         } catch (error: any) {
             setStatus({ type: 'error', msg: error.message || 'Erro ao sincronizar dispositivos' });
         } finally {
@@ -55,12 +97,20 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
         }
     };
 
-    const handleDeactivate = () => {
-        setIsConfigured(false);
-        setToken('');
-        setEmail('');
-        setPassword('');
-        setStatus({ type: 'info', msg: 'Integração desativada.' });
+    const handleDeactivate = async () => {
+        try {
+            await fetch('/api/mosyle/deactivate', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+            });
+            setIsConfigured(false);
+            setToken('');
+            setEmail('');
+            setPassword('');
+            setStatus({ type: 'info', msg: 'Integração desativada e credenciais removidas.' });
+        } catch (error) {
+            setStatus({ type: 'error', msg: 'Erro ao desativar integração.' });
+        }
     };
 
     return (

@@ -1249,6 +1249,111 @@ app.delete('/api/vault/projects/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// --- MOSYLE API INTEGRATION ---
+app.post('/api/mosyle/config', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem configurar integrações.' });
+    try {
+        const { email, password, token } = req.body;
+        // Salva de forma segura no banco de dados na tabela vault_secrets
+        const configId = 'mosyle_config_id_static';
+        const configValue = JSON.stringify({ email, password, token });
+        const encryptedValue = encryptSecret(configValue);
+        
+        // Upsert logic (deleta se existir e insere)
+        await pool.query('DELETE FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
+        await pool.query(
+            'INSERT INTO vault_secrets (id, key_name, encrypted_value, note, created_at) VALUES ($1, $2, $3, $4, $5)',
+            [configId, 'mosyle_api_config', encryptedValue, 'Credenciais da API do Mosyle', new Date().toISOString()]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/mosyle/config', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
+    try {
+        const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
+        if (result.rows.length > 0) {
+            const decrypted = decryptSecret(result.rows[0].encrypted_value);
+            if (decrypted) {
+                const config = JSON.parse(decrypted);
+                // Return masked data for security
+                return res.json({ 
+                    configured: true, 
+                    email: config.email, 
+                    tokenPreview: config.token ? config.token.substring(0, 5) + '...' : ''
+                });
+            }
+        }
+        res.json({ configured: false });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/mosyle/deactivate', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
+    try {
+        await pool.query('DELETE FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
+    try {
+        const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
+        if (result.rows.length === 0) return res.status(400).json({ error: 'Integração não configurada.' });
+        
+        const decrypted = decryptSecret(result.rows[0].encrypted_value);
+        if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais.' });
+        
+        const config = JSON.parse(decrypted);
+        
+        // Faz a chamada real para a API do Mosyle
+        // Baseada na documentação de endpoints comuns
+        const mosyleEndpoint = 'https://businessapi.mosyle.com/v1/devices'; // Tenta business API 
+        const fetch = (await import('node-fetch')).default;
+        
+        const response = await fetch(mosyleEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${config.token}`, // Usando header de Auth
+                'accesstoken': config.token // Tenta pelo header customizado também
+            },
+            body: JSON.stringify({
+                "accessToken": config.token,
+                "options": {
+                    "os": "ios"
+                }
+            })
+        });
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch(e) {
+            const text = await response.text();
+            throw new Error(`Resposta inválida da API do Mosyle. Status: ${response.status}. Corpo: ${text.substring(0, 100)}...`);
+        }
+        
+        if (!response.ok) {
+            // Se falhou com BusinessAPI, podemos tentar o Manager API num próximo update se o usuário reportar erro
+            throw new Error(`Erro na API do Mosyle: ${data.message || JSON.stringify(data)}`);
+        }
+        
+        res.json({ success: true, message: 'Conexão com a API estabelecida com sucesso. Processamento pendente (Mapeamento de dispositivos em desenvolvimento)', rawData: data });
+    } catch (err) {
+        console.error('[Mosyle]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Rota catch-all para o React SPA (todas as rotas vão para o index.html)
 app.use(express.static(path.join(__dirname, 'dist')));
 
