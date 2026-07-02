@@ -1361,8 +1361,7 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                 "accessToken": token,
                 "operation": "list",
                 "options": {
-                    "os": "mac", // ou 'ios'
-                    "specific_columns": ["serial_number", "device_name", "osversion", "model"]
+                    "os": "mac" // 'mac' ou 'ios'
                 }
             })
         });
