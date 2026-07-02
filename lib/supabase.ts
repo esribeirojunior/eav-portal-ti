@@ -77,6 +77,12 @@ class MockSupabaseQueryBuilder implements PromiseLike<any> {
         return this;
     }
 
+    limit(count: number) {
+        // Backend simplificado ignora limit se isSingle já traz um, 
+        // mas a função precisa existir para o código não quebrar.
+        return this;
+    }
+
     private async executeQuery(): Promise<any> {
         try {
             const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;

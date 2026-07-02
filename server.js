@@ -345,8 +345,16 @@ app.post('/api/db', authenticateToken, async (req, res) => {
     const filterKeys = Object.keys(filters);
     
     if (filterKeys.length > 0) {
-      whereClause = 'WHERE ' + filterKeys.map(k => `${k} = ?`).join(' AND ');
-      params.push(...filterKeys.map(k => filters[k]));
+      const clauses = [];
+      for (const k of filterKeys) {
+        if (filters[k] === null) {
+          clauses.push(`${k} IS NULL`);
+        } else {
+          clauses.push(`${k} = ?`);
+          params.push(filters[k]);
+        }
+      }
+      whereClause = 'WHERE ' + clauses.join(' AND ');
     }
     
     if (ilikeCol && ilikeVal) {
