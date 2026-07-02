@@ -1306,13 +1306,21 @@ app.post('/api/mosyle/deactivate', authenticateToken, async (req, res) => {
 app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
     if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
     try {
-        const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
-        if (result.rows.length === 0) return res.status(400).json({ error: 'Integração não configurada.' });
+        let token = process.env.MOSYLE_ACCESS_TOKEN;
         
-        const decrypted = decryptSecret(result.rows[0].encrypted_value);
-        if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais.' });
+        // Se não tiver variável de ambiente, tenta pegar do banco
+        if (!token) {
+            const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
+            if (result.rows.length === 0) return res.status(400).json({ error: 'Token não configurado. Adicione no Environment Variables do Coolify ou pela interface.' });
+            
+            const decrypted = decryptSecret(result.rows[0].encrypted_value);
+            if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
+            
+            const config = JSON.parse(decrypted);
+            token = config.token;
+        }
         
-        const config = JSON.parse(decrypted);
+        if (!token) return res.status(400).json({ error: 'Token inválido ou vazio.' });
         
         // Mosyle Manager (Educação) geralmente usa a Manager API
         const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
@@ -1322,11 +1330,11 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.token}`, 
-                'accesstoken': config.token
+                'Authorization': `Bearer ${token}`, 
+                'accesstoken': token
             },
             body: JSON.stringify({
-                "accessToken": config.token,
+                "accessToken": token,
                 "options": {
                     "os": "ios" // Podemos tentar buscar iOS primeiro
                 }
