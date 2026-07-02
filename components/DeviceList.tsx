@@ -86,6 +86,31 @@ export function DeviceList({
   const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
   const [selectedRmmDevice, setSelectedRmmDevice] = useState<any>(null);
 
+  const [mosyleDevices, setMosyleDevices] = useState<any[]>([]);
+  const [isLoadingMosyle, setIsLoadingMosyle] = useState(false);
+
+  React.useEffect(() => {
+    if (activeTab === 'mosyle') {
+      setIsLoadingMosyle(true);
+      fetch('/api/db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ table: 'mosyle_devices' })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data) {
+          setMosyleDevices(data.data);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setIsLoadingMosyle(false));
+    }
+  }, [activeTab]);
+
   const availableDevices = devices.filter(d => d.status === 'Disponível');
   const inUseDevices = devices.filter(d => d.status === 'Em Uso');
   const maintenanceDevices = devices.filter(d => d.status === 'Manutenção');
@@ -280,7 +305,8 @@ export function DeviceList({
           {[
             { id: 'available', label: 'Estoque', count: availableDevices.length },
             { id: 'in_use', label: 'Em Uso', count: inUseDevices.length },
-            { id: 'maintenance', label: 'Manutenção', count: maintenanceDevices.length }
+            { id: 'maintenance', label: 'Manutenção', count: maintenanceDevices.length },
+            { id: 'mosyle', label: 'Mosyle (Apple)', count: mosyleDevices.length > 0 ? mosyleDevices.length : '?' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -393,6 +419,56 @@ export function DeviceList({
               <div className="space-y-1">
                 <p className="text-slate-700 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo OK</p>
                 <p className="text-slate-700/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo em manutenção</p>
+              </div>
+            </div>
+          )
+        ) : activeTab === 'mosyle' ? (
+          isLoadingMosyle ? (
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-4">
+              <RefreshCw size={32} className="animate-spin text-indigo-500" />
+              <p className="text-slate-500 dark:text-white/40 text-sm font-bold">Carregando dispositivos do Mosyle...</p>
+            </div>
+          ) : mosyleDevices.length > 0 ? (
+            mosyleDevices.map((device) => (
+              <div key={device.id} className="group relative bg-white dark:bg-slate-800/40 border border-slate-400 dark:border-indigo-500/20 hover:border-indigo-500/50 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-indigo-500/5 shadow-sm">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-500 dark:text-indigo-400 shrink-0">
+                    {device.os?.toLowerCase() === 'ios' ? <Smartphone size={24} /> : <Laptop size={24} />}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight truncate">{device.device_name || 'Desconhecido'}</h3>
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-white/50 tracking-wide mt-0.5 truncate">
+                      <span className="text-indigo-500 dark:text-indigo-400 font-bold">{device.model || 'Mac/iPad'}</span> <span className="opacity-70">• S/N: {device.serial_number}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-400 dark:border-white/5 pt-4 xl:pt-0">
+                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                    <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">OS</span>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-white/80 truncate uppercase">{device.os}</span>
+                  </div>
+                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                    <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Armazenamento</span>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-white/80 truncate">{device.total_disk ? `${Math.round(Number(device.total_disk))} GB` : 'N/A'}</span>
+                  </div>
+                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                    <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest mb-1">Status</span>
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 uppercase tracking-wider">
+                      Sincronizado
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-400 dark:border-white/10">
+              <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-500/5 rounded-[2rem] flex items-center justify-center text-indigo-400 border border-indigo-100 dark:border-indigo-500/10">
+                <Smartphone size={48} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-700 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Vazio</p>
+                <p className="text-slate-700/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum equipamento do Mosyle sincronizado ainda.</p>
               </div>
             </div>
           )
