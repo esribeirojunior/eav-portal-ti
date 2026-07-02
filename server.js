@@ -1317,7 +1317,9 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
             
             const config = JSON.parse(decrypted);
-            token = config.token;
+            token = config.token ? config.token.trim() : null;
+        } else {
+            token = token.trim();
         }
         
         if (!token) return res.status(400).json({ error: 'Token inválido ou vazio.' });
