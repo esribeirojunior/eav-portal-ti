@@ -1328,17 +1328,21 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
         const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
         const fetch = (await import('node-fetch')).default;
         
+        // Muitos endpoints do Mosyle exigem Basic Auth (email:senha) + header accesstoken
+        const authString = `${config.email}:${config.password}`;
+        const base64Auth = Buffer.from(authString).toString('base64');
+        
         const response = await fetch(mosyleEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, 
+                'Authorization': `Basic ${base64Auth}`,
                 'accesstoken': token
             },
             body: JSON.stringify({
-                "accessToken": token,
+                "operation": "list",
                 "options": {
-                    "os": "ios" // Podemos tentar buscar iOS primeiro
+                    "os": "mac" // 'mac' ou 'ios'
                 }
             })
         });
