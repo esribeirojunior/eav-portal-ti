@@ -180,6 +180,7 @@ async function initPostgresDB() {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS devices (id TEXT PRIMARY KEY, tag TEXT, serial_number TEXT, model TEXT, type TEXT, status TEXT, condition TEXT, last_seen TEXT, created_at TEXT, hostname TEXT, ip_address TEXT, mac_address TEXT, ram_gb INTEGER, cpu_model TEXT, os_version TEXT, is_accessory BOOLEAN DEFAULT false, invoice_number TEXT, supplier TEXT, purchase_date TEXT, warranty_expiry TEXT);
+      CREATE TABLE IF NOT EXISTS mosyle_devices (id TEXT PRIMARY KEY, deviceudid TEXT, serial_number TEXT, device_name TEXT, os TEXT, model TEXT, total_disk TEXT, battery_level TEXT, raw_data TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS maintenance_logs (id TEXT PRIMARY KEY, device_id TEXT, user_email TEXT, issue_description TEXT, resolution TEXT, cost DECIMAL, start_date TEXT, end_date TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS assignments (id TEXT PRIMARY KEY, device_id TEXT, user_name TEXT, user_email TEXT, department_id TEXT, assigned_at TEXT, returned_at TEXT, return_photo_url TEXT, user_role TEXT, grade TEXT, campus TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS department (id TEXT PRIMARY KEY, name TEXT);
@@ -1348,10 +1349,10 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             return res.status(500).json({ error: 'Mosyle não retornou o JWT Bearer Token no cabeçalho.' });
         }
         
-        // 2. Fazer a requisição para listar dispositivos usando o Bearer Token retornado
+        // Listar MACs
         const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
         
-        const response = await fetch(mosyleEndpoint, {
+        const responseMac = await fetch(mosyleEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1361,25 +1362,83 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                 "accessToken": token,
                 "operation": "list",
                 "options": {
-                    "os": "mac" // 'mac' ou 'ios'
+                    "os": "mac",
+                    "page_size": 1000
+                }
+            })
+        });
+
+        // Listar iOS (iPads)
+        const responseIos = await fetch(mosyleEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': bearerHeader
+            },
+            body: JSON.stringify({
+                "accessToken": token,
+                "operation": "list",
+                "options": {
+                    "os": "ios",
+                    "page_size": 1000
                 }
             })
         });
         
-        let data;
+        let dataMac, dataIos;
         try {
-            data = await response.json();
+            dataMac = await responseMac.json();
+            dataIos = await responseIos.json();
         } catch(e) {
-            const text = await response.text();
-            throw new Error(`Resposta inválida da API do Mosyle. Status: ${response.status}. Corpo: ${text.substring(0, 100)}...`);
+            throw new Error(`Erro ao ler resposta da API do Mosyle.`);
         }
         
-        if (!response.ok) {
-            // Se falhou com BusinessAPI, podemos tentar o Manager API num próximo update se o usuário reportar erro
-            throw new Error(`Erro na API do Mosyle: ${data.message || JSON.stringify(data)}`);
+        if (!responseMac.ok || !responseIos.ok) {
+            throw new Error(`Erro na API do Mosyle. Certifique-se de que o token é válido.`);
+        }
+
+        const allDevices = [
+            ...(dataMac?.response?.devices || []),
+            ...(dataIos?.response?.devices || [])
+        ];
+
+        // Mapear e salvar no banco de dados isolado (mosyle_devices)
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            // Apagamos a tabela atual de mosyle e inserimos a nova lista espelhada
+            await client.query('DELETE FROM mosyle_devices');
+            
+            for (const dev of allDevices) {
+                const id = Math.random().toString(36).substring(2, 9);
+                const modelStr = dev.device_model || dev.Model || dev.MachineModel || dev.MachineName || 'Desconhecido';
+                
+                await client.query(
+                    'INSERT INTO mosyle_devices (id, deviceudid, serial_number, device_name, os, model, total_disk, battery_level, raw_data, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+                    [
+                        id,
+                        dev.deviceudid || '',
+                        dev.serial_number || '',
+                        dev.device_name || dev.LocalHostName || '',
+                        dev.os || '',
+                        modelStr,
+                        dev.total_disk || '',
+                        dev.battery_level || '',
+                        JSON.stringify(dev),
+                        new Date().toISOString()
+                    ]
+                );
+            }
+            await client.query('COMMIT');
+        } catch (dbErr) {
+            await client.query('ROLLBACK');
+            throw new Error('Erro ao salvar dispositivos do Mosyle no banco de dados local: ' + dbErr.message);
+        } finally {
+            client.release();
         }
         
-        res.json({ success: true, message: 'Conexão com a API estabelecida com sucesso. Processamento pendente (Mapeamento de dispositivos em desenvolvimento)', rawData: data });
+        res.json({ success: true, message: `Sincronização concluída com sucesso! ${allDevices.length} dispositivos (Macs/iPads) foram mapeados e salvos em ambiente isolado.` });
     } catch (err) {
         console.error('[Mosyle]', err);
         res.status(500).json({ error: err.message });
