@@ -1,6 +1,6 @@
 import React from 'react';
 import { Device } from '../types';
-import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2 } from 'lucide-react';
+import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2, Wrench } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -180,11 +180,13 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                 <div key={entry.id} className="bg-white/5 border border-white/5 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-4 hover:border-white/10 transition-all group">
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                     <div className="flex items-center gap-3 w-full overflow-hidden">
-                      <div className="bg-indigo-500/10 w-9 h-9 rounded-lg text-indigo-400 flex items-center justify-center flex-shrink-0">
-                        <User size={16} />
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${entry.type === 'maintenance' ? 'bg-amber-500/10 text-amber-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                        {entry.type === 'maintenance' ? <Wrench size={16} /> : <User size={16} />}
                       </div>
                       <div className="flex-1 overflow-hidden">
-                        <p className="text-xs font-bold text-white/30 uppercase tracking-wider mb-1 text-left">Antigo Responsável</p>
+                        <p className="text-xs font-bold text-white/30 uppercase tracking-wider mb-1 text-left">
+                          {entry.type === 'maintenance' ? 'Registro de Manutenção' : 'Antigo Responsável'}
+                        </p>
                         <p className="text-sm sm:text-base font-black text-white uppercase text-left truncate">{entry.userName}</p>
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                           <p className="text-xs font-semibold text-white/50 uppercase truncate">{entry.userDepartment}</p>
@@ -221,6 +223,29 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                       )}
                     </div>
                   </div>
+
+                  {entry.type === 'maintenance' && (
+                    <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl space-y-3">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-amber-400/70 uppercase tracking-widest text-left">Defeito / Motivo Relatado</p>
+                        <p className="text-sm text-white/90 text-left whitespace-pre-wrap">{entry.issueDescription || 'Não informado'}</p>
+                      </div>
+                      {entry.resolution && (
+                        <div className="space-y-1 pt-2 border-t border-amber-500/10">
+                          <p className="text-[10px] font-bold text-amber-400/70 uppercase tracking-widest text-left">Resolução</p>
+                          <p className="text-sm text-white/90 text-left whitespace-pre-wrap">{entry.resolution}</p>
+                        </div>
+                      )}
+                      {entry.cost > 0 && (
+                        <div className="space-y-1 pt-2 border-t border-amber-500/10">
+                          <p className="text-[10px] font-bold text-amber-400/70 uppercase tracking-widest text-left">Custo Total</p>
+                          <p className="text-sm font-black text-amber-400 text-left">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entry.cost)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {entry.inspection && (
                     <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">

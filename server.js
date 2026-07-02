@@ -535,8 +535,12 @@ app.post('/api/db', authenticateToken, async (req, res) => {
     if (table === 'devices') {
       const allAssignmentsRes = await pool.query('SELECT * FROM assignments');
       const allDepartmentsRes = await pool.query('SELECT * FROM department');
+      const allMaintenanceRes = await pool.query('SELECT * FROM maintenance_logs');
+      
       const allAssignments = allAssignmentsRes.rows;
       const allDepartments = allDepartmentsRes.rows;
+      const allMaintenance = allMaintenanceRes.rows;
+      
       result = result.map(dev => {
         const devAssigns = allAssignments
           .filter(a => String(a.device_id) === String(dev.id))
@@ -544,7 +548,10 @@ app.post('/api/db', authenticateToken, async (req, res) => {
             const dept = allDepartments.find(d => String(d.id) === String(a.department_id));
             return { ...a, department: dept ? { name: dept.name } : null };
           });
-        return { ...dev, assignments: devAssigns };
+          
+        const devMaintenance = allMaintenance.filter(m => String(m.device_id) === String(dev.id));
+        
+        return { ...dev, assignments: devAssigns, maintenance_logs: devMaintenance };
       });
     }
 
