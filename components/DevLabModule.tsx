@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 interface DevLabModuleProps {
     onBack: () => void;
     userEmail?: string;
-    onSelectModule?: (module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab') => void;
+    onSelectModule?: (module: 'assets' | 'links' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'mosyle') => void;
 }
 
 const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) => {
@@ -233,6 +233,30 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
                                 </div>
                                 <div className="pt-4 flex items-center gap-3 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
                                     <span>Acessar</span>
+                                    <Activity size={14} />
+                                </div>
+                            </div>
+                        </button>
+
+                        {/* Mosyle MDM */}
+                        <button 
+                            onClick={() => onSelectModule && onSelectModule('mosyle')}
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-purple-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden lg:col-span-1"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-purple-600/10 transition-all" />
+                            <div className="relative z-10 space-y-8">
+                                <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-500 relative">
+                                    <Smartphone size={32} />
+                                    <div className="absolute -top-2 -right-2 bg-rose-500 text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-purple-600">Beta</div>
+                                </div>
+                                <div className="space-y-3">
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">Integração Mosyle</h3>
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                        Sincronização MDM de iPads e Macs via API.
+                                    </p>
+                                </div>
+                                <div className="pt-4 flex items-center gap-3 text-purple-600 dark:text-purple-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
+                                    <span>Configurar</span>
                                     <Activity size={14} />
                                 </div>
                             </div>

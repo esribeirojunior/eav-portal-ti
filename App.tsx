@@ -17,6 +17,7 @@ import { TasksModule } from './components/TasksModule';
 import { VaultModule } from './components/VaultModule';
 import { TutorialsModule } from './components/TutorialsModule';
 import DevLabModule from './components/DevLabModule';
+import { MosyleModule } from './components/MosyleModule';
 import { SettingsModule } from './components/SettingsModule';
 import { SignageModule } from './components/SignageModule';
 import { AuditLogModal } from './components/AuditLogModal';
@@ -467,7 +468,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   // --- STATE: Controle de Módulos ---
-  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage'>('selector');
+  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage' | 'mosyle'>('selector');
 
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
@@ -1168,7 +1169,17 @@ const App: React.FC = () => {
         <DevLabModule
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
+          userRole={userRole}
           onSelectModule={setCurrentModule}
+          userModules={userModules}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {currentModule === 'mosyle' && (
+        <MosyleModule
+          userEmail={userEmail}
+          onBack={() => setCurrentModule('lab')}
         />
       )}
 
