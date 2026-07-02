@@ -45,6 +45,8 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
             fetchMosyleDevices();
         }
     }, [isConfigured]);
+
+    useEffect(() => {
         // Fetch config status
         const checkConfig = async () => {
             try {
