@@ -314,7 +314,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
                 >
                   <div className="shrink-0">{item.icon}</div>
                   {item.label === 'Outro' && type === 'Outro' ? (
-                    <input autoFocus type="text" placeholder="Qual?" value={customType} onChange={(e) => setCustomType(sanitizeInput(e.target.value))} maxLength={20} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className={`bg-transparent border-b outline-none w-full px-1 text-[10px] font-black ${type === 'Outro' ? 'border-white/50 text-white placeholder:text-white/50' : 'border-slate-400 text-slate-900 dark:border-white/50 dark:text-white'}`} onClick={(e) => e.stopPropagation()} />
+                    <input autoFocus type="text" placeholder="Digite..." value={customType} onChange={(e) => setCustomType(sanitizeInput(e.target.value))} maxLength={15} pattern="^[a-zA-Z0-9\s\-_.(),/áàâãéèêíïóôõöúçñÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ]+$" title="Apenas letras, números e caracteres básicos são permitidos." className="w-full bg-white text-slate-900 rounded px-2 py-1 text-[10px] font-black outline-none border border-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-400" onClick={(e) => e.stopPropagation()} />
                   ) : <span className="flex-1 text-left leading-tight break-words">{item.label}</span>}
                 </button>
               ))}
