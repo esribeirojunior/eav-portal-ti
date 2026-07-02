@@ -1144,7 +1144,7 @@ const App: React.FC = () => {
       {currentModule === 'tasks' && (
         <TasksModule
           userEmail={userEmail}
-          onBack={() => setCurrentModule('selector')}
+          onBack={() => setCurrentModule('lab')}
         />
       )}
 
@@ -1152,14 +1152,14 @@ const App: React.FC = () => {
         <VaultModule
           userEmail={userEmail}
           userRole={userRole}
-          onBack={() => setCurrentModule('selector')}
+          onBack={() => setCurrentModule('lab')}
           onLogout={handleLogout}
         />
       )}
 
       {currentModule === 'tutorials' && (
         <TutorialsModule
-          onBack={() => setCurrentModule('selector')}
+          onBack={() => setCurrentModule('lab')}
           userEmail={userEmail}
         />
       )}
