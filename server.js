@@ -1314,22 +1314,21 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
         
         const config = JSON.parse(decrypted);
         
-        // Faz a chamada real para a API do Mosyle
-        // Baseada na documentação de endpoints comuns
-        const mosyleEndpoint = 'https://businessapi.mosyle.com/v1/devices'; // Tenta business API 
+        // Mosyle Manager (Educação) geralmente usa a Manager API
+        const mosyleEndpoint = 'https://managerapi.mosyle.com/v2/listdevices'; 
         const fetch = (await import('node-fetch')).default;
         
         const response = await fetch(mosyleEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.token}`, // Usando header de Auth
-                'accesstoken': config.token // Tenta pelo header customizado também
+                'Authorization': `Bearer ${config.token}`, 
+                'accesstoken': config.token
             },
             body: JSON.stringify({
                 "accessToken": config.token,
                 "options": {
-                    "os": "ios"
+                    "os": "ios" // Podemos tentar buscar iOS primeiro
                 }
             })
         });
