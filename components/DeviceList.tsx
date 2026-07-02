@@ -306,7 +306,7 @@ export function DeviceList({
           {activeTab === 'available' && userRole !== 'viewer' && (
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="px-5 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-white/5"
+              className="px-5 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-white/10"
               title="Importar do Excel"
             >
               <FileUp size={16} />
@@ -348,18 +348,18 @@ export function DeviceList({
               availableDevices.map((device) => (
                 <div
                   key={device.id}
-                  className="group relative bg-white/5 border border-white/5 hover:border-indigo-500/50 hover:bg-white/10 p-4 rounded-2xl flex flex-col items-center gap-3 transition-all cursor-pointer"
+                  className="group relative bg-white/10 border border-white/10 hover:border-indigo-500/50 hover:bg-white/20 p-4 rounded-2xl flex flex-col items-center gap-3 transition-all cursor-pointer"
                   onClick={() => handleAssignClick(device)}
                   title={`${device.model} - ${device.tag}`}
                 >
-                  <div className="text-white/40 group-hover:text-white group-hover:scale-110 transition-all">
+                  <div className="text-white/70 group-hover:text-white group-hover:scale-110 transition-all">
                     {getIcon(device.type)}
                   </div>
                   <div className="text-center">
-                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">
+                    <p className="text-[9px] font-black text-white/60 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">
                       {device.tag}
                     </p>
-                    <p className="text-[8px] font-bold text-white/10 uppercase truncate w-20 group-hover:text-white/40 transition-colors mt-0.5">
+                    <p className="text-[8px] font-bold text-white/50 uppercase truncate w-20 group-hover:text-white/80 transition-colors mt-0.5">
                       {device.model}
                     </p>
                   </div>

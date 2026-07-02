@@ -958,7 +958,7 @@ const App: React.FC = () => {
                           <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value as any)}
-                            className="appearance-none bg-white dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/60 outline-none hover:border-slate-400 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                            className="appearance-none bg-white dark:bg-white/10 border border-slate-400 dark:border-white/20 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/90 outline-none hover:border-slate-400 hover:dark:bg-white/20 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
                           >
                             {['Todos', 'Manutenção', ...Object.values(DeviceType)].map((cat) => (
                               <option key={cat} value={cat}>{cat}</option>
@@ -971,7 +971,7 @@ const App: React.FC = () => {
                           <select
                             value={selectedCampus}
                             onChange={(e) => setSelectedCampus(e.target.value as any)}
-                            className="appearance-none bg-white dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/60 outline-none hover:border-slate-400 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
+                            className="appearance-none bg-white dark:bg-white/10 border border-slate-400 dark:border-white/20 rounded-full py-3 px-5 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white/90 outline-none hover:border-slate-400 hover:dark:bg-white/20 focus:border-indigo-500/50 transition-all cursor-pointer shadow-sm w-32"
                           >
                             {['Todos', 'Álvares', 'Aeroporto', 'Álvares / Aeroporto'].map((cp) => (
                               <option key={cp} value={cp}>{cp}</option>
