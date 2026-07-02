@@ -1341,6 +1341,7 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                 'accesstoken': token
             },
             body: JSON.stringify({
+                "accessToken": token,
                 "operation": "list",
                 "options": {
                     "os": "mac" // 'mac' ou 'ios'
