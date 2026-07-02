@@ -163,8 +163,8 @@ export function DeviceList({
           {getIcon(device.type)}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight break-all line-clamp-2">{device.model}</h3>
-          <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 break-all line-clamp-2">
+          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight truncate">{device.model}</h3>
+          <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 truncate">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
           </p>
         </div>
@@ -236,8 +236,8 @@ export function DeviceList({
           {getIcon(device.type)}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight break-all line-clamp-2">{device.model}</h3>
-          <p className="text-[11px] font-medium text-rose-500/80 dark:text-rose-400/70 tracking-wide mt-0.5 break-all line-clamp-2">
+          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight truncate">{device.model}</h3>
+          <p className="text-[11px] font-medium text-rose-500/80 dark:text-rose-400/70 tracking-wide mt-0.5 truncate">
             <span className="text-rose-600 dark:text-rose-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber}</span>
           </p>
         </div>
