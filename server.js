@@ -1307,6 +1307,7 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
     if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
     try {
         let token = process.env.MOSYLE_ACCESS_TOKEN;
+        let config = { email: '', password: '' };
         
         // Se não tiver variável de ambiente, tenta pegar do banco
         if (!token) {
@@ -1316,7 +1317,7 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             const decrypted = decryptSecret(result.rows[0].encrypted_value);
             if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
             
-            const config = JSON.parse(decrypted);
+            config = JSON.parse(decrypted);
             token = config.token ? config.token.trim() : null;
         } else {
             token = token.trim();
@@ -1329,7 +1330,7 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
         const fetch = (await import('node-fetch')).default;
         
         // Muitos endpoints do Mosyle exigem Basic Auth (email:senha) + header accesstoken
-        const authString = `${config.email}:${config.password}`;
+        const authString = `${config.email || ''}:${config.password || ''}`;
         const base64Auth = Buffer.from(authString).toString('base64');
         
         const response = await fetch(mosyleEndpoint, {
