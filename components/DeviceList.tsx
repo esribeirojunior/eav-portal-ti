@@ -355,11 +355,11 @@ export function DeviceList({
                   <div className="text-white/70 group-hover:text-white group-hover:scale-110 transition-all">
                     {getIcon(device.type)}
                   </div>
-                  <div className="text-center">
-                    <p className="text-[9px] font-black text-white/60 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">
+                  <div className="text-center w-full px-2">
+                    <p className="text-[9px] font-black text-white/60 uppercase tracking-widest group-hover:text-indigo-400 transition-colors truncate w-full max-w-[100px] mx-auto">
                       {device.tag}
                     </p>
-                    <p className="text-[8px] font-bold text-white/50 uppercase truncate w-20 group-hover:text-white/80 transition-colors mt-0.5">
+                    <p className="text-[8px] font-bold text-white/50 uppercase truncate w-full max-w-[100px] mx-auto group-hover:text-white/80 transition-colors mt-0.5">
                       {device.model}
                     </p>
                   </div>
