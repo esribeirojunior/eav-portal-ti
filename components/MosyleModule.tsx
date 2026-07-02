@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, Smartphone, CloudLightning, Save, RefreshCw, Info, CheckCircle2, ShieldCheck, Play, Server, User, Power, Settings } from 'lucide-react';
+import { ChevronLeft, Key, Smartphone, CloudLightning, Save, RefreshCw, Info, CheckCircle2, ShieldCheck, Play, Server, User, Power, Settings, Laptop } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface MosyleModuleProps {
@@ -15,8 +15,36 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     const [syncing, setSyncing] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info', msg: string } | null>(null);
     const [isConfigured, setIsConfigured] = useState(false);
+    const [mosyleDevices, setMosyleDevices] = useState<any[]>([]);
+    const [isLoadingMosyle, setIsLoadingMosyle] = useState(false);
+
+    const fetchMosyleDevices = async () => {
+        setIsLoadingMosyle(true);
+        try {
+            const res = await fetch('/api/db', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({ table: 'mosyle_devices' })
+            });
+            const data = await res.json();
+            if (data && data.data) {
+                setMosyleDevices(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching mosyle devices', error);
+        } finally {
+            setIsLoadingMosyle(false);
+        }
+    };
 
     useEffect(() => {
+        if (isConfigured) {
+            fetchMosyleDevices();
+        }
+    }, [isConfigured]);
         // Fetch config status
         const checkConfig = async () => {
             try {
@@ -86,6 +114,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
             
             setStatus({ type: 'success', msg: data.message || 'Sincronização concluída!' });
             console.log('Dados do Mosyle:', data.rawData);
+            fetchMosyleDevices();
         } catch (error: any) {
             setStatus({ type: 'error', msg: error.message || 'Erro ao sincronizar dispositivos' });
         } finally {
@@ -205,6 +234,66 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                         >
                                             Desativar
                                         </button>
+                                    </div>
+                                    
+                                    {/* Lista de Dispositivos Mosyle */}
+                                    <div className="pt-8 border-t border-white/10 mt-8">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h3 className="font-bold text-lg">Inventário Sincronizado</h3>
+                                            <span className="px-3 py-1 rounded-full bg-white/10 text-white/60 text-xs font-bold">{mosyleDevices.length} equipamentos</span>
+                                        </div>
+                                        
+                                        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                                          {isLoadingMosyle ? (
+                                            <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                                              <RefreshCw size={24} className="animate-spin text-indigo-500" />
+                                              <p className="text-white/40 text-sm font-bold">Carregando dispositivos...</p>
+                                            </div>
+                                          ) : mosyleDevices.length > 0 ? (
+                                            mosyleDevices.map((device) => (
+                                              <div key={device.id} className="group relative bg-black/20 border border-white/5 hover:border-indigo-500/30 p-4 rounded-xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-black/40 shadow-sm">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/50 shrink-0">
+                                                    {device.os?.toLowerCase() === 'ios' ? <Smartphone size={24} /> : <Laptop size={24} />}
+                                                  </div>
+                                                  <div className="flex flex-col min-w-0">
+                                                    <h3 className="text-[14px] font-semibold text-white tracking-tight truncate">{device.device_name || 'Desconhecido'}</h3>
+                                                    <p className="text-[11px] font-medium text-white/40 tracking-wide mt-0.5 truncate">
+                                                      <span className="text-indigo-400 font-bold">{device.model || 'Mac/iPad'}</span> <span className="opacity-70">• S/N: {device.serial_number}</span>
+                                                    </p>
+                                                  </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-white/5 pt-4 xl:pt-0">
+                                                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">OS</span>
+                                                    <span className="text-[11px] font-bold text-white/80 truncate uppercase">{device.os}</span>
+                                                  </div>
+                                                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Armazenamento</span>
+                                                    <span className="text-[11px] font-bold text-white/80 truncate">{device.total_disk ? `${Math.round(Number(device.total_disk))} GB` : 'N/A'}</span>
+                                                  </div>
+                                                  <div className="flex flex-col items-start xl:items-end min-w-0">
+                                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-1">Status</span>
+                                                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                                                      Sincronizado
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            ))
+                                          ) : (
+                                            <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 bg-black/20 rounded-2xl border border-dashed border-white/10">
+                                              <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 border border-white/10">
+                                                <Smartphone size={32} />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <p className="text-white/40 font-[1000] uppercase tracking-[0.2em] text-xs">Vazio</p>
+                                                <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Nenhum equipamento sincronizado ainda.</p>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
