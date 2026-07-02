@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Beaker, ChevronLeft, Phone, RefreshCw, Loader2, Info, LayoutGrid, Clock, Users, ShieldCheck, Activity, PhoneCall, PhoneForwarded, PhoneOff, Search, BookOpen, ListTodo } from 'lucide-react';
+import { Beaker, ChevronLeft, Phone, RefreshCw, Loader2, Info, LayoutGrid, Clock, Users, ShieldCheck, Activity, PhoneCall, PhoneForwarded, PhoneOff, Search, BookOpen, ListTodo, Smartphone } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface DevLabModuleProps {
