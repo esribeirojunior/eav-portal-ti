@@ -780,7 +780,7 @@ const App: React.FC = () => {
   );
 
   // Filtra fora acessórios virtuais (criados pela Entrega Rápida) da listagem e contagem geral do inventário
-  const activeDevices = devices.filter(d => d.serialNumber !== 'ACESSÓRIO');
+  const activeDevices = devices.filter(d => !(d.serialNumber || '').startsWith('ACESSÓRIO'));
 
   const stats = {
     total: activeDevices.length,

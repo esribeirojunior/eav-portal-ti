@@ -83,7 +83,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       if (devices && assignments) {
         const accessoryDevIds = new Set(
           devices
-            .filter(d => d.serial_number === 'ACESSÓRIO' || d.serialNumber === 'ACESSÓRIO')
+            .filter(d => (d.serial_number || '').startsWith('ACESSÓRIO') || (d.serialNumber || '').startsWith('ACESSÓRIO'))
             .map(d => d.id)
         );
         
@@ -367,7 +367,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
         .insert([{
           id: deviceId,
           tag,
-          serial_number: 'ACESSÓRIO',
+          serial_number: `ACESSÓRIO-${deviceId}`,
           model: finalModel,
           type: mappedType,
           status: 'Em Uso',
