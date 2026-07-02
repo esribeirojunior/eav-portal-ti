@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Building2, Plus, Trash2, Shield, Settings2 } from 'lucide-react';
+import { Users, Building2, Plus, Trash2, Shield, Settings2, Edit2, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ModulePermissionsModal } from './ModulePermissionsModal';
 import { EmployeesModule } from './EmployeesModule';
@@ -17,9 +17,10 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
     const [newUserPassword, setNewUserPassword] = useState('');
     const [configuringUser, setConfiguringUser] = useState<any>(null);
     
-    // Departments state
     const [departments, setDepartments] = useState<any[]>([]);
     const [newDepartmentName, setNewDepartmentName] = useState('');
+    const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(null);
+    const [editDepartmentName, setEditDepartmentName] = useState('');
 
     useEffect(() => {
         if (activeTab === 'users') fetchUsers();
@@ -126,6 +127,20 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
             if (!error) {
                 setNewDepartmentName('');
+                fetchDepartments();
+            } else {
+                console.error(error);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleSaveEditDepartment = async (id: string) => {
+        try {
+            const { error } = await supabase.from('department').update({ name: editDepartmentName }).eq('id', id);
+            if (!error) {
+                setEditingDepartmentId(null);
                 fetchDepartments();
             } else {
                 console.error(error);
@@ -294,16 +309,55 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                 <div className="border border-slate-400 dark:border-white/5 rounded-2xl overflow-hidden grid grid-cols-2 gap-4 p-4">
                                     {departments.sort((a,b) => a.name.localeCompare(b.name)).map((dept) => (
                                         <div key={dept.id} className="flex items-center justify-between p-4 border border-slate-400 dark:border-white/5 rounded-xl hover:border-indigo-500/30 transition-colors bg-slate-50/50 dark:bg-white/5">
-                                            <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                                                <Building2 size={16} className="text-slate-700" />
-                                                {dept.name}
-                                            </span>
-                                            <button 
-                                                onClick={() => handleDeleteDepartment(dept.id, dept.name)}
-                                                className="p-1.5 text-slate-700 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {editingDepartmentId === dept.id ? (
+                                                <div className="flex-1 flex items-center gap-2 mr-4">
+                                                    <input
+                                                        type="text"
+                                                        value={editDepartmentName}
+                                                        onChange={(e) => setEditDepartmentName(e.target.value)}
+                                                        className="w-full bg-white dark:bg-[#0c0d21] border border-indigo-500 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <span className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                                    <Building2 size={16} className="text-slate-700" />
+                                                    {dept.name}
+                                                </span>
+                                            )}
+                                            
+                                            <div className="flex items-center gap-1">
+                                                {editingDepartmentId === dept.id ? (
+                                                    <>
+                                                        <button onClick={() => handleSaveEditDepartment(dept.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors">
+                                                            <Save size={16} />
+                                                        </button>
+                                                        <button onClick={() => setEditingDepartmentId(null)} className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
+                                                            <X size={16} />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingDepartmentId(dept.id);
+                                                                setEditDepartmentName(dept.name);
+                                                            }}
+                                                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+                                                            title="Editar Setor"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                                                            className="p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            title="Remover Setor"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                     {departments.length === 0 && (
