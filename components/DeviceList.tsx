@@ -16,7 +16,8 @@ import {
   LayoutDashboard,
   FileDown,
   FileUp,
-  Trash2
+  Trash2,
+  Wrench
 } from 'lucide-react';
 import { ImportModal } from './ImportModal';
 import { SectorDetailModal } from './SectorDetailModal';
@@ -197,6 +198,15 @@ export function DeviceList({
             className="flex-1 xl:flex-none flex items-center justify-center px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-[1000] uppercase text-[10px] tracking-widest transition-all shadow-sm active:scale-95"
           >
             ENTREGAR
+          </button>
+        )}
+        {userRole !== 'viewer' && (
+          <button
+            onClick={() => onMaintenance(device)}
+            className="flex items-center justify-center bg-slate-100 hover:bg-amber-100 dark:bg-white/5 dark:hover:bg-amber-500/20 text-slate-800 hover:text-amber-600 dark:text-white/40 dark:hover:text-amber-500 px-3 py-2.5 rounded-xl transition-all border border-slate-400 dark:border-white/5 hover:border-amber-200 dark:hover:border-amber-500/30 active:scale-95 group/maint"
+            title="Enviar para Manutenção"
+          >
+            <Wrench size={16} className="group-hover/maint:rotate-12 transition-transform" />
           </button>
         )}
         {device.condition && device.condition.includes('Sistema:') && (
@@ -496,12 +506,21 @@ export function DeviceList({
                                           <History size={14} />
                                         </button>
                                     {userRole !== 'viewer' && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); onReturn(device); }}
-                                        className="custody-return-btn"
-                                      >
-                                        Devolver
-                                      </button>
+                                      <>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); onMaintenance(device); }}
+                                          className="custody-history-btn hover:!bg-amber-500/20 !text-slate-800 dark:!text-white/40 hover:!text-amber-600 dark:hover:!text-amber-500"
+                                          title="Enviar para Manutenção"
+                                        >
+                                          <Wrench size={14} />
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); onReturn(device); }}
+                                          className="custody-return-btn"
+                                        >
+                                          Devolver
+                                        </button>
+                                      </>
                                     )}
                                   </div>
                                 </div>
