@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, isTestMode } from './lib/supabase';
+import { apiClient, isTestMode } from './lib/apiClient';
 import { Device, DeviceStatus, DeviceType, Assignment, UserRole, TechnicalInspection } from './types';
 import { DeviceList } from './components/DeviceList';
 import { Dashboard } from './components/Dashboard';
@@ -24,7 +24,7 @@ import { SignageModule } from './components/SignageModule';
 import { AuditLogModal } from './components/AuditLogModal';
 import { UserProfile } from './components/UserProfile';
 import { Copilot } from './components/Copilot';
-import { logAuditAction } from './lib/supabase';
+import { logAuditAction } from './lib/apiClient';
 import {
   Plus,
   Search,
@@ -132,7 +132,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
     setGoogleError(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await apiClient.auth.signInWithPassword({
         email: email,
         password: pass,
       });
@@ -161,7 +161,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
     setError(false);
     setGoogleError(null);
     try {
-      const { data, error } = await (supabase.auth as any).signInWithGoogle(response.credential);
+      const { data, error } = await (apiClient.auth as any).signInWithGoogle(response.credential);
       if (error) throw error;
       if (data.user) {
         onLogin(data.user.email);
@@ -421,10 +421,10 @@ const App: React.FC = () => {
       if (userEmail.toLowerCase().includes('erisson.junior') && userRole !== 'superadmin') {
         setUserRole('superadmin');
         localStorage.setItem('user_role', 'superadmin');
-        supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
+        apiClient.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
       } else {
         // Busca o cargo atualizado do banco de dados em segundo plano para qualquer outro usuário
-        supabase.from('authorized_users').select('role, modules').ilike('email', userEmail).maybeSingle().then(({ data }) => {
+        apiClient.from('authorized_users').select('role, modules').ilike('email', userEmail).maybeSingle().then(({ data }) => {
           if (data) {
             if (data.role && data.role !== userRole) {
               setUserRole(data.role);
@@ -495,7 +495,7 @@ const App: React.FC = () => {
     if (!silent) setLoading(true);
     try {
       if (!silent) console.log(`📡 [Fetch] Buscando dados do inventário... (Tentativas restantes: ${retries})`);
-      const { data: devicesData, error } = await supabase
+      const { data: devicesData, error } = await apiClient
         .from('devices')
         .select(`
           *,
@@ -592,7 +592,7 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await apiClient.auth.signOut();
     } catch (err) {
       console.error("Erro ao deslogar:", err);
     } finally {
@@ -649,14 +649,14 @@ const App: React.FC = () => {
   const handleDeleteHistory = async (assignmentId: string) => {
     try {
       // 1. Busca dados do registro antes de deletar
-      const { data: assignment } = await supabase
+      const { data: assignment } = await apiClient
         .from('assignments')
         .select('device_id, returned_at')
         .eq('id', assignmentId)
         .single();
 
       // 2. Deleta o registro
-      const { error } = await supabase
+      const { error } = await apiClient
         .from('assignments')
         .delete()
         .eq('id', assignmentId);
@@ -665,7 +665,7 @@ const App: React.FC = () => {
 
       // 3. Se era uma custódia ativa, volta dispositivo para DISPONÍVEL
       if (assignment && !assignment.returned_at) {
-        await supabase
+        await apiClient
           .from('devices')
           .update({ status: DeviceStatus.AVAILABLE })
           .eq('id', assignment.device_id);
@@ -698,7 +698,7 @@ const App: React.FC = () => {
 
       // 1. Deletar histórico (opcional, dependendo do ON DELETE CASCADE no banco)
       // Supabase geralmente lida com isso se configurado, mas vamos garantir
-      const { error: historyError } = await supabase
+      const { error: historyError } = await apiClient
         .from('assignments')
         .delete()
         .eq('device_id', device.id);
@@ -706,7 +706,7 @@ const App: React.FC = () => {
       if (historyError) throw historyError;
 
       // 2. Deletar o dispositivo
-      const { error } = await supabase
+      const { error } = await apiClient
         .from('devices')
         .delete()
         .eq('id', device.id);
@@ -733,14 +733,14 @@ const App: React.FC = () => {
       localStorage.setItem('user_authenticated', 'true');
       localStorage.setItem('user_email', email.toLowerCase());
       
-      const { data } = await supabase.from('authorized_users').select('role, modules').ilike('email', email).maybeSingle();
+      const { data } = await apiClient.from('authorized_users').select('role, modules').ilike('email', email).maybeSingle();
       let role = data?.role || 'admin';
       
       // Fallback de segurança garantido para o Super Admin
       if (email.toLowerCase().includes('erisson.junior')) {
           role = 'superadmin';
           // Força a atualização no banco silenciosamente caso tenha falhado
-          supabase.from('authorized_users').update({ role: 'superadmin' }).ilike('email', email).then(() => {});
+          apiClient.from('authorized_users').update({ role: 'superadmin' }).ilike('email', email).then(() => {});
       }
       
       setUserRole(role);
@@ -1037,7 +1037,7 @@ const App: React.FC = () => {
                   if (!device.currentAssignment) return;
 
                   // 1. Atualiza a tabela assignments (fecha a entrega)
-                  const { error: assignError } = await supabase
+                  const { error: assignError } = await apiClient
                     .from('assignments')
                     .update({
                       returned_at: new Date().toISOString(), // Ou endDate, dependendo do seu banco
@@ -1048,7 +1048,7 @@ const App: React.FC = () => {
                   if (assignError) throw assignError;
 
                   // 2. Atualiza o status do dispositivo para DISPONÍVEL
-                  const { error: deviceUpdateError } = await supabase
+                  const { error: deviceUpdateError } = await apiClient
                     .from('devices')
                     .update({ status: DeviceStatus.AVAILABLE })
                     .eq('id', device.id);

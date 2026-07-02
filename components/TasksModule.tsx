@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import { ITTask, ITTaskComment } from '../types';
 import {
     CheckCircle2,
@@ -52,7 +52,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     const fetchTasks = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const { data, error } = await apiClient
                 .from('it_tasks')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -68,7 +68,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
 
     const fetchComments = async (taskId: string) => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await apiClient
                 .from('it_task_comments')
                 .select('*')
                 .eq('task_id', taskId)
@@ -84,7 +84,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('it_tasks')
                 .insert([{
                     title: newTaskTitle,
@@ -111,7 +111,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
 
     const handleUpdateStatus = async (taskId: string, newStatus: string) => {
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('it_tasks')
                 .update({ status: newStatus })
                 .eq('id', taskId);
@@ -130,7 +130,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     const handleDeleteTask = async (taskId: string) => {
         if (!window.confirm('Tem certeza que deseja excluir esta tarefa?')) return;
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('it_tasks')
                 .delete()
                 .eq('id', taskId);
@@ -151,7 +151,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
         if (!selectedTask || !newComment.trim()) return;
 
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('it_task_comments')
                 .insert([{
                     task_id: selectedTask.id,

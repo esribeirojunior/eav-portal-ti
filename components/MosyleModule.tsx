@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Key, Smartphone, CloudLightning, Save, RefreshCw, Info, CheckCircle2, ShieldCheck, Play, Server, User, Power, Settings, Laptop } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 
 interface MosyleModuleProps {
     userEmail?: string;

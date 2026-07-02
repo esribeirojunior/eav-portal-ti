@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, User, Building, Save, Laptop, Monitor, Headphones, MousePointer, Keyboard, Settings, Cable, History, Calendar, Search, Trash2 } from 'lucide-react';
-import { supabase, logAuditAction } from '../lib/supabase';
+import { apiClient, logAuditAction } from '../lib/apiClient';
 import { DeviceType } from '../types';
 
 interface AccessoryModalProps {
@@ -77,8 +77,8 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
   const fetchHistory = async () => {
     setHistoryLoading(true);
     try {
-      const { data: devices } = await supabase.from('devices').select('*');
-      const { data: assignments } = await supabase.from('assignments').select('*');
+      const { data: devices } = await apiClient.from('devices').select('*');
+      const { data: assignments } = await apiClient.from('assignments').select('*');
       
       if (devices && assignments) {
         const accessoryDevIds = new Set(
@@ -121,14 +121,14 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
     try {
       setLoading(true);
       // Apaga o assignment
-      const { error: assignError } = await supabase
+      const { error: assignError } = await apiClient
         .from('assignments')
         .delete()
         .eq('id', item.id);
       if (assignError) throw assignError;
 
       // Apaga o device virtual (acessório)
-      const { error: deviceError } = await supabase
+      const { error: deviceError } = await apiClient
         .from('devices')
         .delete()
         .eq('id', item.device_id);
@@ -152,7 +152,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       setLoading(true);
       
       // 1. Registrar devolução no histórico
-      const { error: assignError } = await supabase
+      const { error: assignError } = await apiClient
         .from('assignments')
         .update({ returned_at: new Date().toISOString() })
         .eq('id', item.id);
@@ -160,7 +160,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       if (assignError) throw assignError;
       
       // 2. Atualizar status do dispositivo virtual
-      const { error: deviceError } = await supabase
+      const { error: deviceError } = await apiClient
         .from('devices')
         .update({ status: 'Disponível' })
         .eq('id', item.device_id);
@@ -240,7 +240,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       setSuggestions([]);
 
       const fetchDepartments = async () => {
-        const { data } = await supabase.from('department').select('*').order('name');
+        const { data } = await apiClient.from('department').select('*').order('name');
         if (data) setDepartments(data);
       };
       fetchDepartments();
@@ -267,7 +267,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
     }
 
     try {
-      const { data: assignments } = await supabase
+      const { data: assignments } = await apiClient
         .from('assignments')
         .select(`
           user_name,
@@ -362,7 +362,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       const accRandomNum = Math.floor(1000 + Math.random() * 9000);
       const tag = `EAV-ACC-${accRandomNum}`;
 
-      const { error: deviceError } = await supabase
+      const { error: deviceError } = await apiClient
         .from('devices')
         .insert([{
           id: deviceId,
@@ -377,7 +377,7 @@ export function AccessoryModal({ isOpen, onClose, onSuccess, userEmail }: Access
       if (deviceError) throw deviceError;
 
       // 2. Create assignment
-      const { error: assignError } = await supabase
+      const { error: assignError } = await apiClient
         .from('assignments')
         .insert([
           {

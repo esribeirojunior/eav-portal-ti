@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import { 
   Users, 
   Search, 
@@ -37,7 +37,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
 
   useEffect(() => {
     const loadData = async () => {
-      const { data: deptData } = await supabase.from('department').select('*').order('name');
+      const { data: deptData } = await apiClient.from('department').select('*').order('name');
       if (deptData) setDepartments(deptData);
       
       await fetchEmployees();
@@ -54,7 +54,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
     setLoading(true);
     try {
       // Fetch all assignments to aggregate users
-      const { data, error } = await supabase
+      const { data, error } = await apiClient
         .from('assignments')
         .select('user_name, user_email, department_id, campus');
 
@@ -107,7 +107,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
     setSaving(true);
     try {
       // Update ALL assignments that match this user_name
-      const { error } = await supabase
+      const { error } = await apiClient
         .from('assignments')
         .update({
           user_email: editEmail,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, User, Building, Save, Laptop, Monitor, Headphones, MousePointer, Keyboard, Settings } from 'lucide-react';
-import { supabase, logAuditAction } from '../lib/supabase';
+import { apiClient, logAuditAction } from '../lib/apiClient';
 import { DeviceType } from '../types';
 
 interface AssignmentModalProps {
@@ -69,7 +69,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
       setSuggestions([]);
 
       const fetchDepartments = async () => {
-        const { data } = await supabase.from('department').select('*').order('name');
+        const { data } = await apiClient.from('department').select('*').order('name');
         if (data) setDepartments(data);
       };
       fetchDepartments();
@@ -97,7 +97,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
 
     try {
       // 1. Busca usuários unicos do histórico de atribuições PELO CARGO
-      const { data: assignments } = await supabase
+      const { data: assignments } = await apiClient
         .from('assignments')
         .select(`
           user_name,
@@ -187,7 +187,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
     setLoading(true);
 
     try {
-      const { error: assignError } = await supabase
+      const { error: assignError } = await apiClient
         .from('assignments')
         .insert([
           {
@@ -204,7 +204,7 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
 
       if (assignError) throw assignError;
 
-      const { error: deviceError } = await supabase
+      const { error: deviceError } = await apiClient
         .from('devices')
         .update({ status: 'Em Uso' }) // Fixed: Case sensitive match with DeviceStatus.IN_USE
         .eq('id', device.id);

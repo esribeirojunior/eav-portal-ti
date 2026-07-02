@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, ChevronLeft, Search, Loader2, Plus, X, Save, Trash2, AlertCircle, RefreshCw, FileText, HelpCircle, Settings, User, Video, PlayCircle, CheckCircle, Share2, Copy, Link } from 'lucide-react';
 import { Tutorial } from '../types';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 
 interface TutorialsModuleProps {
     onBack: () => void;
@@ -106,7 +106,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
             const filePath = `videos/${fileName}`;
 
             // Upload para o bucket 'tutorials'
-            const { data, error: uploadError } = await supabase.storage
+            const { data, error: uploadError } = await apiClient.storage
                 .from('tutorials')
                 .upload(filePath, file, {
                     cacheControl: '3600',
@@ -116,7 +116,7 @@ const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutoria
             if (uploadError) throw uploadError;
 
             // Pegar URL pública
-            const { data: { publicUrl } } = supabase.storage
+            const { data: { publicUrl } } = apiClient.storage
                 .from('tutorials')
                 .getPublicUrl(filePath);
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import { DeviceType, DeviceStatus, UserRole } from '../types';
 
 interface ImportModalProps {
@@ -61,7 +61,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
 
     React.useEffect(() => {
         const fetchDepts = async () => {
-            const { data } = await supabase.from('department').select('id, name');
+            const { data } = await apiClient.from('department').select('id, name');
             if (data) setDepartments(data);
         };
         fetchDepts();
@@ -136,7 +136,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
             let currentDepts = [...departments];
 
             // 0. Busca todos os usuários já existentes para Fuzzy Matching
-            const { data: existingUsers } = await supabase
+            const { data: existingUsers } = await apiClient
                 .from('assignments')
                 .select('user_name')
                 .is('returned_at', null);
@@ -212,7 +212,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                 }
 
                 // 1. Upsert Device
-                const { data: deviceData, error: deviceError } = await supabase
+                const { data: deviceData, error: deviceError } = await apiClient
                     .from('devices')
                     .upsert({
                         tag,
@@ -264,7 +264,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
 
                             if (!dept) {
                                 console.log("Criando setor inexistente:", normalizedDeptName);
-                                const { data: newDept, error: deptError } = await supabase
+                                const { data: newDept, error: deptError } = await apiClient
                                     .from('department')
                                     .insert({ name: normalizedDeptName.toUpperCase() })
                                     .select()
@@ -287,7 +287,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                     }
 
                     // Verifica se já existe uma atribuição ativa para este dispositivo
-                    const { data: activeAssignment } = await supabase
+                    const { data: activeAssignment } = await apiClient
                         .from('assignments')
                         .select('id, user_name')
                         .eq('device_id', deviceData.id)
@@ -297,12 +297,12 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                     if (activeAssignment) {
                         if ((activeAssignment as any).user_name.toLowerCase().trim() !== finalUserName.toLowerCase().trim()) {
                             // Se o usuário mudou, fecha o anterior e abre um novo
-                            await supabase
+                            await apiClient
                                 .from('assignments')
                                 .update({ returned_at: new Date().toISOString() })
                                 .eq('id', activeAssignment.id);
 
-                            const { error: assignError } = await supabase.from('assignments').insert({
+                            const { error: assignError } = await apiClient.from('assignments').insert({
                                 device_id: deviceData.id,
                                 user_name: finalUserName,
                                 user_email: userEmail,
@@ -314,14 +314,14 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                             if (assignError) console.error("Erro ao criar atribuição para novo usuário:", tag, assignError);
                         } else if (userEmail) {
                             // O usuário é o mesmo, mas vamos garantir que o e-mail seja atualizado caso esteja vazio no banco
-                            await supabase
+                            await apiClient
                                 .from('assignments')
                                 .update({ user_email: userEmail })
                                 .eq('id', activeAssignment.id);
                         }
                     } else {
                         // Não há atribuição ativa, cria uma nova
-                        const { error: assignError } = await supabase.from('assignments').insert({
+                        const { error: assignError } = await apiClient.from('assignments').insert({
                             device_id: deviceData.id,
                             user_name: finalUserName,
                             user_email: userEmail,
@@ -340,7 +340,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                     }
                 } else if (status === DeviceStatus.AVAILABLE) {
                     // Se o dispositivo ficou disponível, fecha qualquer atribuição ativa
-                    const { data: activeAssignment } = await supabase
+                    const { data: activeAssignment } = await apiClient
                         .from('assignments')
                         .select('id')
                         .eq('device_id', deviceData.id)
@@ -348,7 +348,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
                         .maybeSingle();
 
                     if (activeAssignment) {
-                        await supabase
+                        await apiClient
                             .from('assignments')
                             .update({ returned_at: new Date().toISOString() })
                             .eq('id', activeAssignment.id);

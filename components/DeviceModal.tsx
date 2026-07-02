@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Monitor, Laptop, Tablet, Smartphone, Box, Save, ScanLine, Tag, Camera, Loader2, Sparkles, Headphones, MousePointer, Keyboard, Settings, ChevronRight, Cpu, Tv } from 'lucide-react';
-import { supabase, logAuditAction } from '../lib/supabase';
+import { apiClient, logAuditAction } from '../lib/apiClient';
 import { analyzeDeviceLabel } from '../lib/gemini';
 
 interface DeviceModalProps {
@@ -29,7 +29,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
     if (isOpen) {
       const fetchModels = async () => {
         try {
-          const { data } = await supabase.from('devices').select('model');
+          const { data } = await apiClient.from('devices').select('model');
           if (data) {
             const uniqueModels = Array.from(new Set((data as any[]).map(d => d.model).filter(Boolean))) as string[];
             setSuggestedModels(uniqueModels);
@@ -140,7 +140,7 @@ export function DeviceModal({ isOpen, onClose, onSuccess, userEmail }: DeviceMod
 
     try {
       console.log('📡 Enviando para o banco...');
-      const { data: insertData, error } = await supabase.from('devices').insert([{
+      const { data: insertData, error } = await apiClient.from('devices').insert([{
         tag,
         serial_number: serial,
         model,

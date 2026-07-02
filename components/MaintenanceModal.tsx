@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Wrench, Save, CheckCircle2, DollarSign } from 'lucide-react';
-import { supabase, logAuditAction } from '../lib/supabase';
+import { apiClient, logAuditAction } from '../lib/apiClient';
 import { DeviceStatus } from '../types';
 
 interface MaintenanceModalProps {
@@ -35,7 +35,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, device, userEmail
     try {
       if (isFinishing) {
         // Encontra o log de manutenção aberto (sem end_date)
-        const { data: openLog, error: logError } = await supabase
+        const { data: openLog, error: logError } = await apiClient
           .from('maintenance_logs')
           .select('id')
           .eq('device_id', device.id)
@@ -48,7 +48,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, device, userEmail
 
         if (openLog) {
           // Atualiza o log com a resolução, custo e data de término
-          const { error: updateError } = await supabase
+          const { error: updateError } = await apiClient
             .from('maintenance_logs')
             .update({
               resolution: resolution,
@@ -61,7 +61,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, device, userEmail
         }
 
         // Volta o dispositivo para Disponível
-        const { error: deviceError } = await supabase
+        const { error: deviceError } = await apiClient
           .from('devices')
           .update({ status: DeviceStatus.AVAILABLE })
           .eq('id', device.id);
@@ -74,14 +74,14 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, device, userEmail
         // Entrando em Manutenção
         // Se tinha alguém usando, devolve a máquina primeiro
         if (device.currentAssignment) {
-          await supabase
+          await apiClient
             .from('assignments')
             .update({ returned_at: new Date().toISOString() })
             .eq('id', device.currentAssignment.id);
         }
 
         // Cria o registro na tabela maintenance_logs
-        const { error: insertError } = await supabase
+        const { error: insertError } = await apiClient
           .from('maintenance_logs')
           .insert([{
             id: Math.random().toString(36).substring(2, 9),
@@ -95,7 +95,7 @@ export function MaintenanceModal({ isOpen, onClose, onSuccess, device, userEmail
         if (insertError) throw insertError;
 
         // Atualiza status
-        const { error: deviceError } = await supabase
+        const { error: deviceError } = await apiClient
           .from('devices')
           .update({ status: DeviceStatus.MAINTENANCE })
           .eq('id', device.id);

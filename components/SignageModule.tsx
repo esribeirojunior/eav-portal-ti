@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MonitorPlay, ChevronLeft, Search, CheckCircle2, XCircle, LayoutGrid, RotateCcw, Power } from 'lucide-react';
 import { Device, DeviceStatus } from '../types';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 
 interface SignageModuleProps {
     onBack: () => void;
@@ -21,7 +21,7 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
 
     const fetchSignageDevices = async () => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await apiClient
                 .from('devices')
                 .select(`
                     *,

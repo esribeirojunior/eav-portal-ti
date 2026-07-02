@@ -2,7 +2,7 @@
 
 export const isTestMode = false; // Set to false to enable local login screen
 
-class MockSupabaseQueryBuilder implements PromiseLike<any> {
+class ApiQueryBuilder implements PromiseLike<any> {
     private table: string;
     private filters: any = {};
     private updateData: any = null;
@@ -121,9 +121,9 @@ class MockSupabaseQueryBuilder implements PromiseLike<any> {
     }
 }
 
-export const supabase = {
+export const apiClient = {
     from: (table: string) => {
-        return new MockSupabaseQueryBuilder(table);
+        return new ApiQueryBuilder(table);
     },
     auth: {
         signInWithPassword: async ({ email, password }: any) => {
@@ -197,7 +197,7 @@ export const supabase = {
 
 export async function logAuditAction(email: string, action: string, details: string, resourceType?: string, resourceId?: string) {
     try {
-        await supabase.from('audit_logs').insert([{
+        await apiClient.from('audit_logs').insert([{
             user_email: email,
             action,
             details,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Building2, Plus, Trash2, Shield, Settings2, Edit2, Save, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import { ModulePermissionsModal } from './ModulePermissionsModal';
 import { EmployeesModule } from './EmployeesModule';
 
@@ -36,7 +36,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchUsers = async () => {
         try {
-            const { data, error } = await supabase.from('authorized_users').select('*').order('created_at', { ascending: false });
+            const { data, error } = await apiClient.from('authorized_users').select('*').order('created_at', { ascending: false });
             if (data) setUsers(data);
             if (error) console.error(error);
         } catch (error) {
@@ -46,7 +46,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const fetchDepartments = async () => {
         try {
-            const { data, error } = await supabase.from('department').select('*');
+            const { data, error } = await apiClient.from('department').select('*');
             if (data) setDepartments(data);
             if (error) console.error(error);
         } catch (error) {
@@ -60,7 +60,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
             const id = Math.random().toString(36).substring(2, 9);
             const pwd = newUserPassword || 'eav@123';
             
-            const { error } = await supabase.from('authorized_users').insert([{
+            const { error } = await apiClient.from('authorized_users').insert([{
                 id,
                 email: newUserEmail,
                 password: pwd,
@@ -85,7 +85,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
             // Atualiza o estado da tela imediatamente para o usuário não ficar esperando (Optimistic UI Update)
             setUsers(prevUsers => prevUsers.map(u => u.id === id ? { ...u, role: newRole } : u));
             
-            const { error } = await supabase.from('authorized_users').update({ role: newRole }).eq('id', id);
+            const { error } = await apiClient.from('authorized_users').update({ role: newRole }).eq('id', id);
             
             if (error) {
                 alert('Erro do Banco de Dados: ' + (error.message || JSON.stringify(error)));
@@ -109,7 +109,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         if (!window.confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
 
         try {
-            await supabase.from('authorized_users').delete().eq('id', id);
+            await apiClient.from('authorized_users').delete().eq('id', id);
             fetchUsers();
         } catch (error) {
             console.error(error);
@@ -120,7 +120,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         e.preventDefault();
         try {
             const id = Math.random().toString(36).substring(2, 9);
-            const { error } = await supabase.from('department').insert([{
+            const { error } = await apiClient.from('department').insert([{
                 id,
                 name: newDepartmentName
             }]);
@@ -138,7 +138,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
 
     const handleSaveEditDepartment = async (id: string) => {
         try {
-            const { error } = await supabase.from('department').update({ name: editDepartmentName }).eq('id', id);
+            const { error } = await apiClient.from('department').update({ name: editDepartmentName }).eq('id', id);
             if (!error) {
                 setEditingDepartmentId(null);
                 fetchDepartments();
@@ -155,9 +155,9 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
         
         try {
             // Desvincular o setor dos históricos (assignments) primeiro para não ocorrer o cascade delete e apagar os colaboradores que usam os dispositivos
-            await supabase.from('assignments').update({ department_id: null }).eq('department_id', id);
+            await apiClient.from('assignments').update({ department_id: null }).eq('department_id', id);
 
-            await supabase.from('department').delete().eq('id', id);
+            await apiClient.from('department').delete().eq('id', id);
             fetchDepartments();
         } catch (error) {
             console.error(error);

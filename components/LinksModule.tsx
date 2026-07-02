@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, ChevronLeft, Monitor, Globe, Cloud, Cpu, Loader2, Plus, X, Save, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import { Shortcut } from '../types';
 
 interface LinksModuleProps {
@@ -31,7 +31,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
             setError(null);
             console.log(`📡 [LinksModule] Buscando atalhos... (Tentativas restantes: ${retries})`);
 
-            const { data, error: sbError } = await supabase
+            const { data, error: sbError } = await apiClient
                 .from('shortcuts')
                 .select('*')
                 .order('title', { ascending: true });
@@ -63,7 +63,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
         e.preventDefault();
         setSaving(true);
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('shortcuts')
                 .insert([{
                     title,
@@ -90,7 +90,7 @@ function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
     const handleDelete = async (id: string) => {
         if (!window.confirm('Deseja excluir este atalho?')) return;
         try {
-            const { error } = await supabase
+            const { error } = await apiClient
                 .from('shortcuts')
                 .delete()
                 .eq('id', id);

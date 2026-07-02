@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 import {
     X,
     Search,
@@ -52,7 +52,7 @@ export const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose })
                 }, 15000);
             });
 
-            const fetchPromise = supabase
+            const fetchPromise = apiClient
                 .from('audit_logs')
                 .select('*')
                 .order('created_at', { ascending: false });

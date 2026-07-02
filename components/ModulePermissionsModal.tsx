@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Box, ExternalLink, Beaker, CheckSquare, Activity, Key, BookOpen, MonitorPlay } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { apiClient } from '../lib/apiClient';
 
 interface ModulePermissionsModalProps {
     isOpen: boolean;
@@ -47,7 +47,7 @@ export const ModulePermissionsModal = ({ isOpen, onClose, user, onSaved }: Modul
         setLoading(true);
         try {
             const modulesStr = JSON.stringify(selectedModules);
-            const { error } = await supabase.from('authorized_users').update({ modules: modulesStr }).eq('id', user.id);
+            const { error } = await apiClient.from('authorized_users').update({ modules: modulesStr }).eq('id', user.id);
             if (error) throw error;
             onSaved();
             onClose();
