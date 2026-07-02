@@ -20,9 +20,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
         // Fetch config status
         const checkConfig = async () => {
             try {
-                const sessionStr = localStorage.getItem('eav_session');
-                const session = sessionStr ? JSON.parse(sessionStr) : null;
-                const token = session?.token || '';
+                const token = localStorage.getItem('auth_token') || '';
                 
                 const response = await fetch('/api/mosyle/config', {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -41,9 +39,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     }, []);
 
     const getAuthToken = () => {
-        const sessionStr = localStorage.getItem('eav_session');
-        const session = sessionStr ? JSON.parse(sessionStr) : null;
-        return session?.token || '';
+        return localStorage.getItem('auth_token') || '';
     };
 
     const handleSaveConfig = async (e: React.FormEvent) => {
