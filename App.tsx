@@ -1184,7 +1184,7 @@ const App: React.FC = () => {
            <SettingsModule userEmail={userEmail} />
            <button 
               onClick={() => setCurrentModule('selector')}
-              className="absolute top-6 right-6 p-3 bg-white dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-xl text-slate-800 hover:text-slate-800 dark:hover:text-white shadow-sm hover:shadow-md transition-all z-50"
+              className="absolute top-6 right-6 px-4 py-3 bg-white dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-xl text-slate-800 dark:text-white/80 dark:hover:text-white hover:text-slate-900 shadow-sm hover:shadow-md transition-all z-50 text-xs font-black uppercase tracking-widest"
            >
               Voltar ao Início
            </button>
