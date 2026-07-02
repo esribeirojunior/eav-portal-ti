@@ -9,6 +9,7 @@ import { AccessoryModal } from './components/AccessoryModal';
 import { ReturnModal } from './components/ReturnModal';
 import { ImportModal } from './components/ImportModal';
 import { HistoryModal } from './components/HistoryModal';
+import { MaintenanceModal } from './components/MaintenanceModal';
 import { InspectionModal } from './components/InspectionModal';
 import { ModuleSelector } from './components/ModuleSelector';
 import { CustodyView } from './components/CustodyView';
@@ -448,6 +449,7 @@ const App: React.FC = () => {
   const [assigningDevice, setAssigningDevice] = useState<Device | null>(null);
   const [returningDevice, setReturningDevice] = useState<Device | null>(null);
   const [inspectingDevice, setInspectingDevice] = useState<Device | null>(null);
+  const [maintenanceDevice, setMaintenanceDevice] = useState<Device | null>(null);
   const [viewingHistory, setViewingHistory] = useState<Device | null>(null);
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'info' } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<DeviceType | 'Todos' | 'Manutenção'>('Todos');
@@ -508,6 +510,15 @@ const App: React.FC = () => {
             returned_at,
             return_photo_url,
             campus
+          ),
+          maintenance_logs (
+            id,
+            issue_description,
+            resolution,
+            cost,
+            start_date,
+            end_date,
+            user_email
           )
         `)
         .order('tag', { ascending: true });
@@ -525,10 +536,30 @@ const App: React.FC = () => {
           startDate: a.assigned_at,
           endDate: a.returned_at,
           returnPhoto: a.return_photo_url,
-          campus: a.campus
+          campus: a.campus,
+          type: 'assignment'
         }));
 
-        const sortedHistory = mappedHistory.sort((a: any, b: any) =>
+        const mappedMaintenance = (device.maintenance_logs || []).map((m: any) => ({
+          id: m.id,
+          userName: 'MANUTENÇÃO',
+          userEmail: m.user_email,
+          userDepartment: 'T.I.',
+          userRole: 'Manutenção',
+          userGrade: '',
+          startDate: m.start_date,
+          endDate: m.end_date,
+          returnPhoto: null,
+          campus: 'N/A',
+          type: 'maintenance',
+          issueDescription: m.issue_description,
+          resolution: m.resolution,
+          cost: m.cost
+        }));
+
+        const combinedHistory = [...mappedHistory, ...mappedMaintenance];
+
+        const sortedHistory = combinedHistory.sort((a: any, b: any) =>
           new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
         );
 
@@ -579,57 +610,6 @@ const App: React.FC = () => {
   const showNotification = (message: string) => {
     setNotification({ message, type: 'success' });
     setTimeout(() => setNotification(null), 3000);
-  };
-
-  const handleMaintenance = async (device: Device) => {
-    try {
-      const enteringMaintenance = device.status !== DeviceStatus.MAINTENANCE;
-      const newStatus = enteringMaintenance ? DeviceStatus.MAINTENANCE : DeviceStatus.AVAILABLE;
-
-      // Lógica Real (Supabase)
-      if (enteringMaintenance) {
-        const { error: assignError } = await supabase
-          .from('assignments')
-          .insert([{
-            device_id: device.id,
-            user_name: 'MANUTENÇÃO', // Corrigido para user_name
-            department_id: 'TI',    // Corrigido para department_id
-            assigned_at: new Date().toISOString() // Corrigido para assigned_at
-          }]);
-        if (assignError) throw assignError;
-      } else {
-        if (device.currentAssignment) {
-          const { error: closeError } = await supabase
-            .from('assignments')
-            .update({ returned_at: new Date().toISOString() })
-            .eq('id', device.currentAssignment.id);
-          if (closeError) throw closeError;
-        }
-      }
-
-      const { error } = await supabase
-        .from('devices')
-        .update({ status: newStatus })
-        .eq('id', device.id);
-
-      if (error) throw error;
-
-      await fetchDevices();
-
-      // LOG DE AUDITORIA: MANUTENÇÃO
-      logAuditAction(
-        userEmail,
-        'MANUTENÇÃO',
-        `${enteringMaintenance ? 'Entrou' : 'Saiu'} da manutenção: ${device.tag}`,
-        'DEVICE',
-        device.id
-      );
-
-      showNotification(`Ativo ${device.tag} movido para ${newStatus}`);
-    } catch (err) {
-      console.error("Erro ao mudar status:", err);
-      showNotification("Erro ao atualizar status.");
-    }
   };
 
   const handleExportCSV = () => {
@@ -1002,7 +982,7 @@ const App: React.FC = () => {
                     onAssign={setAssigningDevice}
                     onReturn={setReturningDevice}
                     onHistory={setViewingHistory}
-                    onMaintenance={handleMaintenance}
+                    onMaintenance={(device) => setMaintenanceDevice(device)}
                     onDelete={handleDeleteDevice}
                     onRefresh={fetchDevices}
                     userRole={userRole}
@@ -1089,6 +1069,30 @@ const App: React.FC = () => {
               }}
             />
 
+            <InspectionModal
+              isOpen={!!inspectingDevice}
+              onClose={() => setInspectingDevice(null)}
+              onSuccess={() => {
+                fetchDevices();
+                setInspectingDevice(null);
+                showNotification("Inspeção técnica registrada com sucesso!");
+              }}
+              device={inspectingDevice}
+              userEmail={userEmail}
+            />
+            
+            <MaintenanceModal
+              isOpen={!!maintenanceDevice}
+              onClose={() => setMaintenanceDevice(null)}
+              onSuccess={() => {
+                fetchDevices();
+                setMaintenanceDevice(null);
+                showNotification("Fluxo de manutenção concluído!");
+              }}
+              device={maintenanceDevice}
+              userEmail={userEmail}
+            />
+
             <HistoryModal
               isOpen={!!viewingHistory}
               onClose={() => setViewingHistory(null)}
@@ -1096,17 +1100,6 @@ const App: React.FC = () => {
               onDelete={handleDeleteHistory}
             />
 
-            <InspectionModal
-              isOpen={!!inspectingDevice}
-              onClose={() => setInspectingDevice(null)}
-              device={inspectingDevice}
-              onConfirm={async (device: Device, inspection: any) => {
-                // Lógica de inspeção aqui (se necessário)
-                await fetchDevices();
-                setInspectingDevice(null);
-                showNotification('Inspeção registrada!');
-              }}
-            />
 
             <AccessoryModal
               isOpen={isAccessoryModalOpen}
