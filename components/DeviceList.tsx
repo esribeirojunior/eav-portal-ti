@@ -96,6 +96,12 @@ export function DeviceList({
 
   // Função de segurança para depuração
   const handleAssignClick = (device: any) => {
+    // Se for dispositivo do RMM (Triagem), direciona para o modal RMM (Atribuição Rápida)
+    if (device.condition && device.condition.includes('Sistema:')) {
+      setSelectedRmmDevice(device);
+      return;
+    }
+
     if (typeof onAssign === 'function') {
       onAssign(device);
     } else {
@@ -203,10 +209,10 @@ export function DeviceList({
       <div className="flex items-center gap-2 w-full xl:w-auto mt-4 xl:mt-0 justify-end">
         {userRole !== 'viewer' && (
           <button
-            onClick={() => handleAssignClick(device)}
+            onClick={(e) => { e.stopPropagation(); handleAssignClick(device); }}
             className="flex-1 xl:flex-none flex items-center justify-center px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-[1000] uppercase text-[10px] tracking-widest transition-all shadow-sm active:scale-95"
           >
-            ENTREGAR
+            {device.condition?.includes('Sistema:') ? 'ATRIBUIR RMM' : 'ENTREGAR'}
           </button>
         )}
         {userRole !== 'viewer' && (
