@@ -78,7 +78,7 @@ export function DeviceList({
   searchQuery,
   userRole
 }: DeviceListProps) {
-  const [activeTab, setActiveTab] = useState<'available' | 'in_use' | 'maintenance'>('available');
+  const [activeTab, setActiveTab] = useState<'available' | 'in_use' | 'maintenance' | 'triage'>('available');
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false); // Default to card view
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({});
@@ -87,9 +87,12 @@ export function DeviceList({
   const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
   const [selectedRmmDevice, setSelectedRmmDevice] = useState<any>(null);
 
-  const availableDevices = devices.filter(d => d.status === 'Disponível');
-  const inUseDevices = devices.filter(d => d.status === 'Em Uso');
-  const maintenanceDevices = devices.filter(d => d.status === 'Manutenção');
+  // Isolar dispositivos de triagem
+  const triageDevices = devices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department);
+
+  const availableDevices = devices.filter(d => d.status === 'Disponível' && !triageDevices.find(t => t.id === d.id));
+  const inUseDevices = devices.filter(d => d.status === 'Em Uso' && !triageDevices.find(t => t.id === d.id));
+  const maintenanceDevices = devices.filter(d => d.status === 'Manutenção' && !triageDevices.find(t => t.id === d.id));
 
   // Função de segurança para depuração
   const handleAssignClick = (device: any) => {
@@ -129,7 +132,7 @@ export function DeviceList({
   // --- LÓGICA DE AGRUPAMENTO (POSSE) OTIMIZADA COM useMemo ---
   const sortedSectors = useMemo(() => {
     const groups = inUseDevices.reduce((acc: any, device) => {
-      const department = device.custom_department || device.currentAssignment?.userDepartment || 'TRIAGEM';
+      const department = device.custom_department || device.currentAssignment?.userDepartment || 'Sem Setor';
       const userName = device.custom_user || device.currentAssignment?.userName || 'Pendente';
 
       if (!acc[department]) {
@@ -296,7 +299,8 @@ export function DeviceList({
           {[
             { id: 'available', label: 'Estoque', count: availableDevices.length },
             { id: 'in_use', label: 'Em Uso', count: inUseDevices.length },
-            { id: 'maintenance', label: 'Manutenção', count: maintenanceDevices.length }
+            { id: 'maintenance', label: 'Manutenção', count: maintenanceDevices.length },
+            { id: 'triage', label: 'Triagem', count: triageDevices.length }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -413,6 +417,20 @@ export function DeviceList({
               <div className="space-y-1">
                 <p className="text-slate-700 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo OK</p>
                 <p className="text-slate-700/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo em manutenção</p>
+              </div>
+            </div>
+          )
+        ) : activeTab === 'triage' ? (
+          triageDevices.length > 0 ? (
+            triageDevices.map(renderDeviceCard)
+          ) : (
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-400 dark:border-white/10">
+              <div className="w-24 h-24 bg-amber-50 dark:bg-amber-500/5 rounded-[2rem] flex items-center justify-center text-amber-500 dark:text-amber-500/20 border border-amber-100 dark:border-amber-500/10">
+                <CheckCircle2 size={48} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-700 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Tudo Organizado</p>
+                <p className="text-slate-700/50 dark:text-white/10 text-[10px] font-black uppercase tracking-widest">Nenhum ativo pendente na triagem</p>
               </div>
             </div>
           )
