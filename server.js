@@ -193,9 +193,11 @@ async function initPostgresDB() {
     `);
     
     // Assegura que colunas novas existam caso as tabelas tenham sido criadas numa versão anterior
-    await pool.query(`
-      ALTER TABLE assignments ADD COLUMN IF NOT EXISTS user_email TEXT;
-    `);
+      await pool.query(`
+        ALTER TABLE assignments ADD COLUMN IF NOT EXISTS user_email TEXT;
+        ALTER TABLE devices ADD COLUMN IF NOT EXISTS custom_department TEXT;
+        ALTER TABLE devices ADD COLUMN IF NOT EXISTS custom_user TEXT;
+      `);
       
       // Add role column if it doesn't exist (ignore error if it does)
       try { await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'"); } catch (e) {}

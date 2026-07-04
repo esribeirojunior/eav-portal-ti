@@ -189,6 +189,12 @@ export function DeviceList({
             return <span className="status-badge status-badge-disponivel">DISPONÍVEL</span>;
           })()}
         </div>
+        {device.condition && device.condition.includes('Sistema:') && !device.custom_department && (
+          <div className="flex flex-col items-start xl:items-end min-w-0 animate-pulse">
+            <span className="text-[9px] font-black text-amber-500/50 uppercase tracking-widest mb-1">Atribuição</span>
+            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-[10px] font-bold text-amber-500 border border-amber-500/20">PENDENTE</span>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 w-full xl:w-auto mt-4 xl:mt-0 justify-end">
@@ -374,7 +380,11 @@ export function DeviceList({
                     </p>
                   </div>
                   {/* Status Indicator */}
-                  <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  {device.condition && device.condition.includes('Sistema:') && !device.custom_department ? (
+                     <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse" title="Atribuição Pendente" />
+                  ) : (
+                     <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  )}
                 </div>
               ))
             ) : (

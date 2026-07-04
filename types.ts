@@ -52,20 +52,22 @@ export interface Assignment {
   campus?: string;
 }
 
-export interface Device {
-  id: string;
-  tag: string; // Internal asset number
-  serialNumber: string;
-  model: string;
-  type: DeviceType;
-  status: DeviceStatus;
-  currentAssignment?: Assignment;
-  history: Assignment[];
-  responsible?: string;
-  department?: string;
-  condition?: string;
-  ip_address?: string;
-}
+  export interface Device {
+    id: string;
+    tag: string; // Internal asset number
+    serialNumber: string;
+    model: string;
+    type: DeviceType;
+    status: DeviceStatus;
+    currentAssignment?: Assignment;
+    history: Assignment[];
+    responsible?: string;
+    department?: string;
+    condition?: string;
+    ip_address?: string;
+    custom_department?: string;
+    custom_user?: string;
+  }
 
 export interface InventoryStats {
   total: number;
