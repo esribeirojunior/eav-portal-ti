@@ -129,8 +129,8 @@ export function DeviceList({
   // --- LÓGICA DE AGRUPAMENTO (POSSE) OTIMIZADA COM useMemo ---
   const sortedSectors = useMemo(() => {
     const groups = inUseDevices.reduce((acc: any, device) => {
-      const department = device.currentAssignment?.userDepartment || 'Sem Setor';
-      const userName = device.currentAssignment?.userName || 'Sem Nome';
+      const department = device.custom_department || device.currentAssignment?.userDepartment || 'TRIAGEM';
+      const userName = device.custom_user || device.currentAssignment?.userName || 'Pendente';
 
       if (!acc[department]) {
         acc[department] = { department, users: {} };
