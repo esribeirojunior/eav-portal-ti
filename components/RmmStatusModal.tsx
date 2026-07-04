@@ -46,7 +46,7 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
     const specs = { 
       hostname: '', os: 'Desconhecido', cpu: 'Desconhecido', ram: 'Desconhecido', 
       diskTotal: 0, diskFree: 0, user: 'N/A', mac: 'N/A', ip: 'N/A',
-      uptime: 'N/A', wifi: 'N/A', battery: 'N/A', monitors: 'N/A'
+      uptime: 'N/A', wifi: 'N/A', battery: 'N/A', monitors: 'N/A', rustdesk: ''
     };
     if (!condition) return specs;
     
@@ -63,6 +63,7 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
       if(p.startsWith('Wi-Fi:')) specs.wifi = p.replace('Wi-Fi:', '').trim();
       if(p.startsWith('Bateria:')) specs.battery = p.replace('Bateria:', '').trim();
       if(p.startsWith('Monitores:')) specs.monitors = p.replace('Monitores:', '').trim();
+      if(p.startsWith('RustDesk ID:')) specs.rustdesk = p.replace('RustDesk ID:', '').trim();
       if(p.startsWith('HD:')) {
          const hdMatch = p.match(/HD:\s*([\d.]+)GB\s*\(([\d.]+)GB/);
          if (hdMatch) {
@@ -117,11 +118,19 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
   const openRemoteDesktop = async () => {
     try {
       const targetIp = specs.ip && specs.ip !== 'N/A' ? specs.ip : specs.hostname;
-      // Arquitetura Web: Em vez de disparar no servidor (o que abriria a tela la no servidor),
+      if (targetIp) {
+      // Arquitetura Web: Em vez de rodar comando no servidor (que só tem linux e tá na nuvem),
       // pedimos ao navegador local do usuario para abrir o aplicativo VNC instalado nele.
       window.location.href = `vnc://${targetIp}`;
+      }
     } catch (e) {
       console.error("Erro ao iniciar acesso remoto", e);
+    }
+  };
+
+  const openRustDesk = () => {
+    if (specs.rustdesk) {
+      window.location.href = `rustdesk://${specs.rustdesk}`;
     }
   };
 
@@ -185,18 +194,29 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={openRemoteDesktop}
-                  disabled={!specs.ip || specs.ip === 'N/A'}
-                  className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${
-                    !specs.ip || specs.ip === 'N/A'
-                      ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
-                      : 'bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-500 shadow-emerald-500/20 active:scale-95'
-                  }`}
-                >
-                  <MonitorSmartphone size={14} />
-                  Conectar (VNC)
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {specs.rustdesk && (
+                    <button
+                      onClick={openRustDesk}
+                      className="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 bg-red-600 text-white hover:bg-red-500 border border-red-500 shadow-red-500/20 active:scale-95"
+                    >
+                      <MonitorSmartphone size={14} />
+                      RustDesk
+                    </button>
+                  )}
+                  <button
+                    onClick={openRemoteDesktop}
+                    disabled={!specs.ip || specs.ip === 'N/A'}
+                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${
+                      !specs.ip || specs.ip === 'N/A'
+                        ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-500 shadow-emerald-500/20 active:scale-95'
+                    }`}
+                  >
+                    <MonitorSmartphone size={14} />
+                    VNC (Local)
+                  </button>
+                </div>
               </div>
 
               {/* Hardware Stats */}

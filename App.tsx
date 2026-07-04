@@ -1232,7 +1232,7 @@ const App: React.FC = () => {
       </button>
 
       {/* EAV COPILOT (Chatbot IA) */}
-      <Copilot userRole={userRole} />
+      <Copilot userRole={userRole} userEmail={userEmail} />
     </div >
   );
 };

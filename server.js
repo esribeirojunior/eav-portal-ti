@@ -586,7 +586,8 @@ app.post('/api/agent/sync', async (req, res) => {
     wifi_ssid,
     battery_health,
     monitors,
-    campus
+    campus,
+    rustdesk_id
   } = req.body;
 
   if (!serial_number && !hostname) {
@@ -606,6 +607,7 @@ app.post('/api/agent/sync', async (req, res) => {
     if (wifi_ssid !== undefined) technicalInfo += ` | Wi-Fi: ${wifi_ssid}`;
     if (battery_health !== undefined) technicalInfo += ` | Bateria: ${battery_health}`;
     if (monitors !== undefined) technicalInfo += ` | Monitores: ${monitors}`;
+    if (rustdesk_id) technicalInfo += ` | RustDesk ID: ${rustdesk_id}`;
 
     let targetDevice;
     let actionStr;
@@ -1067,7 +1069,7 @@ app.post('/api/auth/google', async (req, res) => {
 
 // --- AI COPILOT ROUTE ---
 app.post('/api/ai/chat', async (req, res) => {
-  const { message, history = [], userRole = 'admin' } = req.body;
+  const { message, history = [], userRole = 'admin', userEmail = 'Desconhecido' } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória' });
   
   if (!process.env.OPENAI_API_KEY) {
@@ -1121,8 +1123,10 @@ Responda de forma direta, amigável e em Português usando os dados fornecidos. 
 Use as tabelas de auditoria para saber as últimas ações, movimentações ou "último equipamento" adicionado/alterado.
 Formate a resposta usando Markdown (listas, negrito) para ficar bonito no chat.
 
-REGRA DE PERMISSÃO (MUITO IMPORTANTE):
-O usuário conversando com você tem o nível de acesso: "${userRole}".
+REGRA DE PERMISSÃO E IDENTIDADE (MUITO IMPORTANTE):
+O e-mail/identificação do usuário atual conversando com você é: "${userEmail}". 
+Se ele se referir a si mesmo (ex: "meus itens", "no meu nome"), filtre os dados procurando por este e-mail/identificação.
+O nível de acesso dele é: "${userRole}".
 Se o acesso for "viewer" (Somente Leitura) e o usuário pedir para você cadastrar, adicionar, alterar, emprestar ou excluir qualquer ativo ou dado, VOCÊ ESTÁ ESTRITAMENTE PROIBIDA de aceitar o comando. Você deve responder educadamente que ele possui acesso de "Somente Leitura" e não tem permissão para realizar alterações no sistema.
 
 REGRA MUITO IMPORTANTE DE ACESSO REMOTO:

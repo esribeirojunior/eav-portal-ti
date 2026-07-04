@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Loader2, Sparkles } from 'lucide-react';
 
-export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
+export function Copilot({ userRole = 'admin', userEmail = '' }: { userRole?: string, userEmail?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>([
     { role: 'ai', text: 'Olá! Sou o **EAV Copilot**, seu assistente de TI integrado ao inventário. Como posso te ajudar hoje?' }
@@ -27,7 +27,7 @@ export function Copilot({ userRole = 'admin' }: { userRole?: string }) {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, history: messages, userRole })
+        body: JSON.stringify({ message: userMessage, history: messages, userRole, userEmail })
       });
 
       const data = await response.json();
