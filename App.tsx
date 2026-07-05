@@ -866,26 +866,26 @@ const App: React.FC = () => {
                   </button>
                   
                   <div className="mt-4 px-2 pt-2">
-                      <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mb-2">Inventário</p>
+                      <p className="text-[9px] font-bold text-slate-700 dark:text-white/30 uppercase tracking-widest mb-2">Inventário</p>
                       
-                      <button onClick={() => { setSubView('inventory'); setInventoryTab('available'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('available'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                           <div className="flex items-center gap-3"><Package size={16} /> Estoque</div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.available}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white/40'}`}>{stats.available}</span>
                       </button>
                       
-                      <button onClick={() => { setSubView('inventory'); setInventoryTab('in_use'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('in_use'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                           <div className="flex items-center gap-3"><MonitorPlay size={16} /> Em Uso</div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.inUse}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white/40'}`}>{stats.inUse}</span>
                       </button>
                       
-                      <button onClick={() => { setSubView('inventory'); setInventoryTab('maintenance'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('maintenance'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                           <div className="flex items-center gap-3"><Wrench size={16} /> Manutenção</div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.maintenance}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white/40'}`}>{stats.maintenance}</span>
                       </button>
                       
-                      <button onClick={() => { setSubView('inventory'); setInventoryTab('triage'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('triage'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
                           <div className="flex items-center gap-3"><ClipboardCheck size={16} /> Triagem</div>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.triage}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white/40'}`}>{stats.triage}</span>
                       </button>
                   </div>
                 </div>
