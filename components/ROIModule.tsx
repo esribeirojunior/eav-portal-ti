@@ -76,8 +76,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                         à parte (como TeamViewer Premium). 
                         <br/><br/>
                         O sistema interno desenvolvido para a Escola EAV engloba inventário ilimitado, telemetria automatizada e conexão remota VNC nativa 
-                        em um único ecossistema centralizado. Isso isenta a instituição de qualquer custo com licenciamento externo, permitindo que a escola aumente 
-                        o número de computadores indefinidamente sem gerar novos boletos de software para o departamento de TI.
+                        em um único ecossistema centralizado. 
+                        <br/><br/>
+                        <strong className="text-indigo-900 dark:text-indigo-300">Construído para o Crescimento Futuro:</strong> A arquitetura própria isenta a instituição de qualquer custo com licenciamento externo por dispositivo, permitindo que a escola aumente 
+                        o seu parque tecnológico indefinidamente sem gerar novos boletos de software para o departamento de TI. A escalabilidade financeira do EAV Portal é infinita.
                     </p>
                 </div>
 
