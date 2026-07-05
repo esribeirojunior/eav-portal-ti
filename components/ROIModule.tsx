@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, ArrowUpRight, BarChart2, HardDrive, Network, X } from 'lucide-react';
+import { TrendingUp, DollarSign, ArrowUpRight, BarChart2, HardDrive, Network, X, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ROIModuleProps {
@@ -9,6 +9,7 @@ interface ROIModuleProps {
 export function ROIModule({ onBack }: ROIModuleProps) {
     // Slider values
     const [endpoints, setEndpoints] = useState<number>(150);
+    const [showNotes, setShowNotes] = useState<boolean>(false);
 
     // Market Costs Reference
     const rmmCostPerDevice = 198; // R$ 198 / year per device (approx US$ 36 * 5.50)
@@ -213,6 +214,56 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Roteiro de Apresentação (Apenas TI) */}
+                <div className="bg-amber-50 dark:bg-amber-900/10 rounded-[2rem] border border-amber-200 dark:border-amber-500/20 overflow-hidden">
+                    <button 
+                        onClick={() => setShowNotes(!showNotes)}
+                        className="w-full flex items-center justify-between p-6 hover:bg-amber-100/50 dark:hover:bg-amber-500/10 transition-colors"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-amber-100 dark:bg-amber-500/20 rounded-xl">
+                                <Lightbulb size={20} className="text-amber-600 dark:text-amber-500" />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-sm font-black text-amber-900 dark:text-amber-500 uppercase tracking-widest">Roteiro de Apresentação (TI)</h3>
+                                <p className="text-[11px] font-medium text-amber-700/70 dark:text-amber-500/60 mt-0.5">Tópicos e gatilhos mentais para usar durante a reunião com a diretoria</p>
+                            </div>
+                        </div>
+                        {showNotes ? <ChevronUp size={20} className="text-amber-600" /> : <ChevronDown size={20} className="text-amber-600" />}
+                    </button>
+                    
+                    {showNotes && (
+                        <div className="px-6 pb-6 pt-2 border-t border-amber-200/50 dark:border-amber-500/10">
+                            <ul className="space-y-4 mt-4">
+                                <li className="flex gap-3">
+                                    <span className="text-amber-500 font-black">1.</span>
+                                    <p className="text-sm text-amber-900/80 dark:text-amber-200/70 font-medium">
+                                        <strong className="text-amber-900 dark:text-amber-400">Contexto da Dor:</strong> "Hoje, o mercado cobra em dólar e por dispositivo para gerenciar TI. Se fôssemos contratar soluções profissionais como ManageEngine e TeamViewer Corporate, nosso custo cresceria proporcionalmente a cada novo notebook comprado."
+                                    </p>
+                                </li>
+                                <li className="flex gap-3">
+                                    <span className="text-amber-500 font-black">2.</span>
+                                    <p className="text-sm text-amber-900/80 dark:text-amber-200/70 font-medium">
+                                        <strong className="text-amber-900 dark:text-amber-400">A Solução Interna (EAV Portal):</strong> "Em vez de alugar software, nós construímos a nossa própria plataforma centralizada (EAV Portal). Ela faz o mesmo que as gigantes de mercado, mas com licenciamento ilimitado."
+                                    </p>
+                                </li>
+                                <li className="flex gap-3">
+                                    <span className="text-amber-500 font-black">3.</span>
+                                    <p className="text-sm text-amber-900/80 dark:text-amber-200/70 font-medium">
+                                        <strong className="text-amber-900 dark:text-amber-400">Ação Interativa (Demonstração):</strong> <i className="opacity-70">(Mova o slider neste momento)</i> "Vejam o que acontece se dobrarmos de tamanho. O custo de mercado explode. O nosso custo se mantém em R$ 0 de licenciamento. A economia projetada em 5 anos paga dezenas de equipamentos novos."
+                                    </p>
+                                </li>
+                                <li className="flex gap-3">
+                                    <span className="text-amber-500 font-black">4.</span>
+                                    <p className="text-sm text-amber-900/80 dark:text-amber-200/70 font-medium">
+                                        <strong className="text-amber-900 dark:text-amber-400">O Fechamento:</strong> "A TI da EAV deixou de ser um centro de custo para ser um centro de inteligência e lucro indireto, gerando economia real e blindando a escola para o crescimento futuro."
+                                    </p>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
             </div>
