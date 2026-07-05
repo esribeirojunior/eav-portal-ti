@@ -555,7 +555,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 </div>
                                 <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-1">
                                     Referência: ManageEngine Endpoint Central (Professional Cloud)<br/>
-                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(rmmCostPerDevice)} por dispositivo/ano</strong> <span className="opacity-70">(Baseado no plano de US$ 6.545,00 para 500 endpoints)</span>
+                                    Custo Base Calculado: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(marketRMM)} / ano</strong> <span className="opacity-70">(Média de {formatCurrency(marketRMM / endpoints)} por máquina na tier atual)</span>
                                 </p>
                             </div>
 
