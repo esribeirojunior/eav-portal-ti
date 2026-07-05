@@ -49,6 +49,8 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     const savings3Years = marketTotal * 3;
     const savings5Years = marketTotal * 5;
 
+    const anyDeskCost = 4405.00; // R$ 4405 / year (AnyDesk Advanced)
+
     // Data for the Graph
     const data = [
         {
@@ -56,6 +58,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             Mercado: marketTotal,
             ManageEngine: marketRMM,
             TeamViewer: teamViewerCost,
+            AnyDesk: anyDeskCost,
             EAV: eavCost,
         },
         {
@@ -63,6 +66,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             Mercado: marketTotal * 3,
             ManageEngine: marketRMM * 3,
             TeamViewer: teamViewerCost * 3,
+            AnyDesk: anyDeskCost * 3,
             EAV: eavCost,
         },
         {
@@ -70,6 +74,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             Mercado: marketTotal * 5,
             ManageEngine: marketRMM * 5,
             TeamViewer: teamViewerCost * 5,
+            AnyDesk: anyDeskCost * 5,
             EAV: eavCost,
         },
     ];
@@ -219,9 +224,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 700 }} />
                                             <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '1rem', color: '#fff', fontSize: '16px' }} formatter={(value: number) => formatCurrency(value)} />
                                             <Legend wrapperStyle={{ paddingTop: '30px', fontSize: '16px', fontWeight: 800, color: '#fff' }} />
-                                            <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[8, 8, 0, 0]} barSize={30} isAnimationActive={false} />
-                                            <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[8, 8, 0, 0]} barSize={30} isAnimationActive={false} />
-                                            <Bar dataKey="EAV" name="EAV Portal" fill="#10b981" radius={[8, 8, 0, 0]} barSize={30} isAnimationActive={false} />
+                                            <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
+                                            <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
+                                            <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
+                                            <Bar dataKey="EAV" name="EAV Portal" fill="#10b981" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -468,9 +474,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                         formatter={(value: number) => formatCurrency(value)}
                                     />
                                     <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 700 }} />
-                                    <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={20} isAnimationActive={false} />
-                                    <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[4, 4, 0, 0]} barSize={20} isAnimationActive={false} />
-                                    <Bar dataKey="EAV" name="EAV Portal" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} isAnimationActive={false} />
+                                    <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
+                                    <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
+                                    <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
+                                    <Bar dataKey="EAV" name="EAV Portal" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
