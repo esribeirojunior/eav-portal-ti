@@ -23,6 +23,7 @@ import { SettingsModule } from './components/SettingsModule';
 import { SignageModule } from './components/SignageModule';
 import { AuditLogModal } from './components/AuditLogModal';
 import { UserProfile } from './components/UserProfile';
+import { ROIModule } from './components/ROIModule';
 import { Copilot } from './components/Copilot';
 import { logAuditAction } from './lib/apiClient';
 import {
@@ -1215,7 +1216,13 @@ const App: React.FC = () => {
           userEmail={userEmail}
         />
       )}
- 
+
+      {currentModule === 'roi' && (
+        <ROIModule
+          onBack={() => setCurrentModule('selector')}
+        />
+      )}
+
       {currentModule === 'settings' && (
         <div className="flex w-full h-screen overflow-hidden bg-slate-100 dark:bg-[#0c0d21] transition-colors relative">
            <SettingsModule userEmail={userEmail} />

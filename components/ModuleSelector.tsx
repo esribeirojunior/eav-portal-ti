@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users, MonitorPlay } from 'lucide-react';
+import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users, MonitorPlay, TrendingUp } from 'lucide-react';
 
 interface ModuleSelectorProps {
-    onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage') => void;
+    onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage' | 'roi') => void;
     onLogout: () => void;
     userEmail?: string;
     userRole?: string;
@@ -141,6 +141,27 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                         </p>
                                     </div>
                                     <div className="mt-6 flex items-center text-[13px] font-semibold text-blue-700 dark:text-blue-500 group-hover:gap-2 transition-all">
+                                        <span className="mr-2">→</span> Acessar
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Estatísticas e ROI */}
+                            {hasModule('assets') && (
+                                <button 
+                                    onClick={() => onSelectModule('roi')}
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-slate-400 dark:border-white/5 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:border-emerald-600/50 hover:shadow-lg hover:shadow-emerald-900/10 min-h-[280px]"
+                                >
+                                    <div>
+                                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
+                                            <TrendingUp size={24} className="text-emerald-600" />
+                                        </div>
+                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Estatísticas e ROI</h4>
+                                        <p className="text-sm text-slate-800 dark:text-slate-300 leading-relaxed font-medium">
+                                            Acompanhe o retorno sobre o investimento e a economia financeira da operação.
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-emerald-600 dark:text-emerald-500 group-hover:gap-2 transition-all">
                                         <span className="mr-2">→</span> Acessar
                                     </div>
                                 </button>
