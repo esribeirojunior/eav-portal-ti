@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, ArrowUpRight, BarChart2, HardDrive, Network, X, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, DollarSign, ArrowUpRight, BarChart2, HardDrive, Network, X, Lightbulb, ChevronDown, ChevronUp, Play, ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ROIModuleProps {
@@ -10,6 +10,11 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     // Slider values
     const [endpoints, setEndpoints] = useState<number>(150);
     const [showNotes, setShowNotes] = useState<boolean>(false);
+
+    // Presentation Mode States
+    const [isPresentation, setIsPresentation] = useState<boolean>(false);
+    const [currentSlide, setCurrentSlide] = useState<number>(0);
+    const totalSlides = 5;
 
     // Market Costs Reference
     const rmmCostPerDevice = 72; // R$ 72 / year per device (approx US$ 13.09 * 5.50 based on the $6545/500 tier)
@@ -47,25 +52,287 @@ export function ROIModule({ onBack }: ROIModuleProps) {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
+    const renderSlideContent = () => {
+        switch(currentSlide) {
+            case 0:
+                return (
+                    <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in p-8">
+                        <div className="p-6 bg-indigo-500/20 rounded-full border border-indigo-500/30 mb-4 shadow-[0_0_50px_rgba(99,102,241,0.2)]">
+                            <TrendingUp size={64} className="text-indigo-400" />
+                        </div>
+                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white max-w-5xl leading-[1.1]">
+                            Evolução e Independência Tecnológica: <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">O Impacto do EAV Portal</span>
+                        </h1>
+                        <div className="w-24 h-1.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full my-8"></div>
+                        <div className="flex flex-col items-center">
+                            <p className="text-3xl font-black text-slate-200">Erisson Ribeiro de Souza Junior</p>
+                            <p className="text-xl font-bold text-slate-400 mt-2">Analista de Suporte II</p>
+                            <p className="text-sm text-indigo-400 mt-2 uppercase tracking-[0.2em] font-black bg-indigo-500/10 px-4 py-2 rounded-lg border border-indigo-500/20">
+                                Ayko / Outsourcing - Escola Americana de Vitória
+                            </p>
+                        </div>
+                    </div>
+                );
+            case 1:
+                return (
+                    <div className="flex flex-col justify-center h-full max-w-6xl mx-auto space-y-12 animate-fade-in w-full px-8">
+                        <div>
+                            <h2 className="text-4xl md:text-5xl font-black text-rose-400 mb-4">1. O Desafio de Mercado</h2>
+                            <p className="text-xl md:text-2xl text-slate-300 font-medium">O alto custo das ferramentas tradicionais de prateleira (SaaS).</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="bg-slate-800/60 p-10 rounded-[2rem] border border-rose-500/20 shadow-2xl relative overflow-hidden">
+                                <div className="absolute -right-10 -top-10 opacity-5">
+                                    <HardDrive size={200} />
+                                </div>
+                                <HardDrive size={40} className="text-rose-400 mb-6" />
+                                <h3 className="text-3xl font-black text-white mb-3">Gestão de Ativos (RMM)</h3>
+                                <p className="text-lg text-slate-400 mb-8 font-medium leading-relaxed">Soluções profissionais (ManageEngine / NinjaOne) cobram licenças individuais por dispositivo.</p>
+                                <div className="p-6 bg-slate-900/80 rounded-2xl border border-white/5">
+                                    <p className="text-xs text-rose-300/80 uppercase font-black tracking-widest mb-2">Custo Base (ManageEngine Cloud Prof.)</p>
+                                    <p className="text-4xl font-black text-rose-400 mb-2">US$ 6.545,00<span className="text-xl text-slate-500 font-bold"> / ano</span></p>
+                                    <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full">Base para 500 computadores</span>
+                                </div>
+                            </div>
+                            <div className="bg-slate-800/60 p-10 rounded-[2rem] border border-rose-500/20 shadow-2xl relative overflow-hidden">
+                                <div className="absolute -right-10 -top-10 opacity-5">
+                                    <Network size={200} />
+                                </div>
+                                <Network size={40} className="text-rose-400 mb-6" />
+                                <h3 className="text-3xl font-black text-white mb-3">Acesso Remoto T.I</h3>
+                                <p className="text-lg text-slate-400 mb-8 font-medium leading-relaxed">Ferramentas de acesso desacompanhado e suporte remoto cobram pacotes caros por número de conexões.</p>
+                                <div className="p-6 bg-slate-900/80 rounded-2xl border border-white/5">
+                                    <p className="text-xs text-rose-300/80 uppercase font-black tracking-widest mb-2">Custo Base (TeamViewer Corporate)</p>
+                                    <p className="text-4xl font-black text-rose-400 mb-2">R$ 6.802,80<span className="text-xl text-slate-500 font-bold"> / ano</span></p>
+                                    <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full">Referência: AnyDesk Advanced (R$ 4.405/ano)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 2:
+                return (
+                    <div className="flex flex-col justify-center h-full max-w-6xl mx-auto space-y-12 animate-fade-in w-full px-8">
+                        <div>
+                            <h2 className="text-4xl md:text-5xl font-black text-emerald-400 mb-4">2. A Solução: EAV Portal</h2>
+                            <p className="text-xl md:text-2xl text-slate-300 font-medium">Centralização e independência total através de desenvolvimento próprio.</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                                <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
+                                    <HardDrive size={40} />
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-4">Inventário Ilimitado</h3>
+                                <p className="text-slate-400 font-medium leading-relaxed">Gestão de centenas de endpoints sem adicionar custos fixos por máquina na fatura da escola.</p>
+                            </div>
+                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                                <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
+                                    <Activity size={40} />
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-4">Telemetria Real-time</h3>
+                                <p className="text-slate-400 font-medium leading-relaxed">Monitoramento online/offline integrado através do nosso próprio serviço cliente (RMM Service).</p>
+                            </div>
+                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                                <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
+                                    <Network size={40} />
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-4">Acesso Remoto Nativo</h3>
+                                <p className="text-slate-400 font-medium leading-relaxed">Túneis VNC embutidos diretamente no portal web. Dispensa assinaturas do TeamViewer ou AnyDesk.</p>
+                            </div>
+                        </div>
+                        <div className="bg-slate-800/80 p-8 rounded-[2rem] border border-slate-700 text-center mt-4">
+                            <p className="text-2xl text-slate-200 font-bold">Resultado: <strong className="text-emerald-400 font-black">Autonomia Absoluta</strong> e um ecossistema 100% customizado para a EAV.</p>
+                        </div>
+                    </div>
+                );
+            case 3:
+                return (
+                    <div className="flex flex-col h-full max-w-6xl mx-auto w-full px-8 animate-fade-in pt-12 overflow-y-auto custom-scrollbar pb-24">
+                        <div className="mb-10 shrink-0 text-center">
+                            <h2 className="text-4xl md:text-5xl font-black text-indigo-400 mb-4">3. Simulador de Economia e ROI</h2>
+                            <p className="text-xl text-slate-300 font-medium">Arraste o controle para simular o crescimento do parque tecnológico.</p>
+                        </div>
+                        
+                        <div className="bg-slate-800/60 rounded-[2.5rem] border border-slate-700 p-10 shadow-2xl flex flex-col md:flex-row gap-16 items-center mb-10 shrink-0">
+                            <div className="flex-1 w-full">
+                                <h2 className="text-3xl font-black text-white mb-8">Volume (Endpoints)</h2>
+                                <input 
+                                    type="range" 
+                                    min="50" 
+                                    max="1000" 
+                                    step="50"
+                                    value={endpoints} 
+                                    onChange={(e) => setEndpoints(Number(e.target.value))}
+                                    className="w-full h-4 cursor-pointer accent-indigo-500"
+                                />
+                                <div className="flex justify-between mt-6 text-sm font-bold text-slate-400">
+                                    <span>50 PCs</span>
+                                    <span>1000 PCs</span>
+                                </div>
+                            </div>
+                            
+                            <div className="w-56 h-56 rounded-full border-[10px] border-indigo-500 flex flex-col items-center justify-center bg-indigo-500/10 shadow-[0_0_50px_rgba(99,102,241,0.2)] flex-shrink-0">
+                                <span className="text-7xl font-black text-indigo-400 leading-none">{endpoints}</span>
+                                <span className="text-sm font-black uppercase tracking-widest text-indigo-400/50 mt-3">Equipamentos</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 shrink-0">
+                            <div className="bg-slate-800/60 p-10 rounded-[2.5rem] border border-slate-700 shadow-xl">
+                                <h3 className="text-2xl font-black text-white mb-8">Comparativo (5 Anos)</h3>
+                                <div className="h-80 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={data} margin={{ top: 20, right: 0, left: -10, bottom: 0 }}>
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 14, fontWeight: 700 }} />
+                                            <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 700 }} />
+                                            <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '1rem', color: '#fff', fontSize: '16px' }} formatter={(value: number) => formatCurrency(value)} />
+                                            <Legend wrapperStyle={{ paddingTop: '30px', fontSize: '16px', fontWeight: 800, color: '#fff' }} />
+                                            <Bar dataKey="Mercado" name="Mercado ($)" fill="#f43f5e" radius={[8, 8, 0, 0]} barSize={60} isAnimationActive={false} />
+                                            <Bar dataKey="EAV" name="EAV Portal" fill="#10b981" radius={[8, 8, 0, 0]} barSize={60} isAnimationActive={false} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-6">
+                                <div className="bg-emerald-900/30 p-10 rounded-[2.5rem] border border-emerald-500/30 shadow-2xl relative overflow-hidden h-full flex flex-col justify-center">
+                                    <div className="absolute -top-10 -right-10 p-4 opacity-10">
+                                        <DollarSign size={200} className="text-emerald-500" />
+                                    </div>
+                                    <h3 className="text-base font-black text-emerald-400/80 uppercase tracking-widest mb-4 relative z-10">Economia Total Projetada (5 Anos)</h3>
+                                    <p className="text-6xl md:text-7xl font-black text-emerald-400 tracking-tighter relative z-10 mb-4">{formatCurrency(savings5Years)}</p>
+                                    <div className="w-16 h-1 bg-emerald-500/50 rounded-full mb-6 relative z-10"></div>
+                                    <p className="text-lg text-emerald-100/70 relative z-10 max-w-md font-medium leading-relaxed">
+                                        Dinheiro que permanece no caixa da instituição e pode ser reinvestido em melhorias físicas, laboratórios e novos computadores.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 4:
+                return (
+                    <div className="flex flex-col items-center justify-center h-full text-center space-y-10 animate-fade-in max-w-5xl mx-auto px-8 relative">
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent -z-10 blur-3xl"></div>
+                        <div className="p-8 bg-amber-500/20 rounded-full border border-amber-500/30 mb-4 shadow-[0_0_60px_rgba(245,158,11,0.2)]">
+                            <Lightbulb size={80} className="text-amber-400" />
+                        </div>
+                        <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.2]">
+                            A TI deixou de ser um centro de custo para ser um <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">centro de inteligência</span>.
+                        </h2>
+                        <div className="w-32 h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full my-8"></div>
+                        <p className="text-2xl text-slate-300 leading-relaxed font-medium">
+                            Construímos um portal com <strong className="text-white font-black">Escalabilidade Infinita</strong>. A escola pode dobrar ou triplicar o número de equipamentos e o nosso custo de software não sofrerá um centavo de reajuste.
+                        </p>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    if (isPresentation) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-slate-950 text-white flex flex-col overflow-hidden">
+                <style>{`
+                    .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                    @keyframes fadeIn { from { opacity: 0; transform: scale(0.98) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+                    .custom-scrollbar::-webkit-scrollbar { width: 10px; }
+                    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+                `}</style>
+                
+                {/* Header da Apresentação */}
+                <div className="h-20 border-b border-white/5 flex items-center justify-between px-8 shrink-0 bg-slate-900/80 backdrop-blur-xl z-50">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                            <TrendingUp size={20} className="text-indigo-400" />
+                        </div>
+                        <span className="font-black text-xl text-white tracking-wide">Apresentação Executiva</span>
+                    </div>
+                    
+                    <button 
+                        onClick={() => setIsPresentation(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all text-sm font-bold border border-white/10 hover:border-white/20"
+                    >
+                        Encerrar Apresentação <X size={18} />
+                    </button>
+                </div>
+
+                {/* Conteudo do Slide */}
+                <div className="flex-1 overflow-hidden relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
+                    {renderSlideContent()}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="h-24 border-t border-white/5 flex items-center justify-between px-10 shrink-0 bg-slate-900/80 backdrop-blur-xl z-50">
+                    <div className="flex items-center gap-3">
+                        {Array.from({ length: totalSlides }).map((_, idx) => (
+                            <div 
+                                key={idx} 
+                                className={`h-2.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-16 bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'w-3 bg-white/10'}`}
+                            />
+                        ))}
+                    </div>
+                    
+                    <div className="flex items-center gap-6">
+                        <button 
+                            onClick={() => setCurrentSlide(prev => Math.max(0, prev - 1))}
+                            disabled={currentSlide === 0}
+                            className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+                        >
+                            <ChevronLeft size={28} />
+                        </button>
+                        <span className="font-black text-slate-400 text-lg w-20 text-center tracking-widest">
+                            {currentSlide + 1} / {totalSlides}
+                        </span>
+                        <button 
+                            onClick={() => setCurrentSlide(prev => Math.min(totalSlides - 1, prev + 1))}
+                            disabled={currentSlide === totalSlides - 1}
+                            className="p-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-20 disabled:bg-white/5 disabled:cursor-not-allowed transition-all text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95"
+                        >
+                            <ChevronRight size={28} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // NORMAL DASHBOARD
     return (
         <div className="h-full bg-slate-50 dark:bg-[#0c0d21] overflow-y-auto custom-scrollbar">
             {/* Cabecalho Principal */}
             <div className="p-8 pb-4">
-                <div className="flex items-center gap-4 mb-2">
-                    <button onClick={onBack} className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-white/60">
-                        <X size={20} />
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 mb-2">
+                        <button onClick={onBack} className="p-2 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-600 dark:text-white/60">
+                            <X size={20} />
+                        </button>
+                        <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20">
+                            <TrendingUp size={24} />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Economia e ROI</h1>
+                            <p className="text-sm font-medium text-slate-500 dark:text-white/40 mt-1">Impacto financeiro do EAV Portal comparado ao mercado (ManageEngine, TeamViewer, etc)</p>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        onClick={() => {
+                            setCurrentSlide(0);
+                            setIsPresentation(true);
+                        }}
+                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/25 transition-all hover:-translate-y-0.5"
+                    >
+                        <Play size={18} fill="currentColor" />
+                        Iniciar Apresentação Executiva
                     </button>
-                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20">
-                        <TrendingUp size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Economia e ROI</h1>
-                        <p className="text-sm font-medium text-slate-500 dark:text-white/40 mt-1">Impacto financeiro do EAV Portal comparado ao mercado (ManageEngine, TeamViewer, etc)</p>
-                    </div>
                 </div>
             </div>
 
-            <div className="px-8 pb-8 space-y-6">
+            <div className="px-8 pb-8 space-y-6 mt-4">
                 
                 {/* Texto Explicativo */}
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-[2rem] border border-indigo-100 dark:border-indigo-500/20">
