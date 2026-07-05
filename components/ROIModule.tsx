@@ -296,8 +296,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                     <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in max-w-5xl mx-auto px-8 relative">
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent -z-10 blur-3xl"></div>
                         
-                        <h2 className="text-7xl font-black text-white tracking-tight mb-2">Muito Obrigado.</h2>
-                        <p className="text-xl text-slate-400 font-medium mb-12">Estamos à disposição para dúvidas.</p>
+                        <h2 className="text-7xl font-black text-white tracking-tight mb-12">Muito Obrigado.</h2>
                         
                         <div className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 backdrop-blur-sm mt-12 w-full max-w-xl text-left flex items-center gap-6 shadow-2xl relative">
                             <div className="w-20 h-20 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 font-black text-3xl border border-indigo-500/30 shrink-0">
