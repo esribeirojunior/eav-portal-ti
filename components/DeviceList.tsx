@@ -212,7 +212,7 @@ export function DeviceList({
             onClick={(e) => { e.stopPropagation(); handleAssignClick(device); }}
             className="flex-1 xl:flex-none flex items-center justify-center px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-[1000] uppercase text-[10px] tracking-widest transition-all shadow-sm active:scale-95"
           >
-            {device.condition?.includes('Sistema:') ? 'ATRIBUIR RMM' : 'ENTREGAR'}
+            {device.condition?.includes('Sistema:') ? 'ATRIBUIR' : 'ENTREGAR'}
           </button>
         )}
         {userRole !== 'viewer' && (
@@ -222,15 +222,6 @@ export function DeviceList({
             title="Enviar para Manutenção"
           >
             <Wrench size={16} className="group-hover/maint:rotate-12 transition-transform" />
-          </button>
-        )}
-        {device.condition && device.condition.includes('Sistema:') && (
-          <button
-            onClick={() => setSelectedRmmDevice(device)}
-            className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 px-3 py-2.5 rounded-xl transition-all border border-slate-400 dark:border-indigo-500/20 active:scale-95 group/rmm"
-            title="Ver Status do PC"
-          >
-            <Activity size={16} className="group-hover/rmm:scale-110 transition-transform" />
           </button>
         )}
         <button
