@@ -12,7 +12,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
 
     // Market Costs Reference
     const rmmCostPerDevice = 198; // R$ 198 / year per device (approx US$ 36 * 5.50)
-    const teamViewerCost = 4800; // R$ 4800 / year (fixed)
+    const teamViewerCost = 6802.80; // R$ 6802,80 / year (TeamViewer Corporate)
     
     // Calculated Costs
     const marketRMM = endpoints * rmmCostPerDevice;
@@ -181,7 +181,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     </div>
                                     <span className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(marketRMM)}</span>
                                 </div>
-                                <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium">Equivalente a ManageEngine/NinjaOne (US$ 36/dispositivo)</p>
+                                <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-1">
+                                    Referência: ManageEngine / NinjaOne<br/>
+                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(rmmCostPerDevice)} por dispositivo/ano</strong> <span className="opacity-70">(aprox. US$ 36,00 convertidos)</span>
+                                </p>
                             </div>
 
                             <div className="h-px w-full bg-slate-200 dark:bg-white/5"></div>
@@ -194,7 +197,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     </div>
                                     <span className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(teamViewerCost)}</span>
                                 </div>
-                                <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium">Equivalente a licença TeamViewer Premium</p>
+                                <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-1">
+                                    Referência: TeamViewer Corporate (Para ~500 endpoints)<br/>
+                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(teamViewerCost)} fixo/ano</strong>
+                                </p>
                             </div>
                             
                             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 mt-8">
