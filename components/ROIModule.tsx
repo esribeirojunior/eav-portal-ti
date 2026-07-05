@@ -228,9 +228,14 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <h3 className="text-base font-black text-emerald-400/80 uppercase tracking-widest mb-4 relative z-10">Economia Total Projetada (5 Anos)</h3>
                                     <p className="text-6xl md:text-7xl font-black text-emerald-400 tracking-tighter relative z-10 mb-4">{formatCurrency(savings5Years)}</p>
                                     <div className="w-16 h-1 bg-emerald-500/50 rounded-full mb-6 relative z-10"></div>
-                                    <p className="text-lg text-emerald-100/70 relative z-10 max-w-md font-medium leading-relaxed">
+                                    <p className="text-lg text-emerald-100/70 relative z-10 max-w-md font-medium leading-relaxed mb-6">
                                         Dinheiro que permanece no caixa da instituição e pode ser reinvestido em melhorias físicas, laboratórios e novos computadores.
                                     </p>
+                                    <div className="relative z-10 p-4 bg-emerald-950/40 rounded-xl border border-emerald-500/20">
+                                        <p className="text-xs text-emerald-400/80 font-medium">
+                                            * Cálculo projetado utilizando como base os custos comerciais do <strong className="text-emerald-300">ManageEngine Professional Cloud</strong> e do <strong className="text-emerald-300">TeamViewer Corporate</strong>, aplicados ao volume de equipamentos selecionado.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
