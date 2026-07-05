@@ -58,19 +58,33 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     }, [isPresentation]);
 
     // Market Costs Reference
-    const rmmCostPerDevice = 72; // R$ 72 / year per device (approx US$ 13.09 * 5.50 based on the $6545/500 tier)
-    const teamViewerCost = 6802.80; // R$ 6802,80 / year (TeamViewer Corporate)
+    const getManageEngineCost = (numEndpoints: number) => {
+        const dollarRate = 5.50; // Cotação aproximada do Dólar + Impostos (IOF)
+        let usdCost = 0;
+        
+        if (numEndpoints <= 50) usdCost = 1045;
+        else if (numEndpoints <= 100) usdCost = 1895;
+        else if (numEndpoints <= 250) usdCost = 3745;
+        else if (numEndpoints <= 500) usdCost = 6545;
+        else if (numEndpoints <= 1000) usdCost = 11245;
+        else if (numEndpoints <= 2500) usdCost = 23395;
+        else if (numEndpoints <= 5000) usdCost = 37445;
+        else usdCost = 56145; // 10000
+
+        return usdCost * dollarRate;
+    };
+
+    const teamViewerCost = 6802.80; // R$ 6802,80 / ano (TeamViewer Corporate)
+    const anyDeskCost = 4405.00; // R$ 4405 / ano (AnyDesk Advanced)
     
     // Calculated Costs
-    const marketRMM = endpoints * rmmCostPerDevice;
+    const marketRMM = getManageEngineCost(endpoints);
     const marketTotal = marketRMM + teamViewerCost;
     const eavCost = 0; // The platform costs zero in extra licensing
 
     const savings1Year = marketTotal;
     const savings3Years = marketTotal * 3;
     const savings5Years = marketTotal * 5;
-
-    const anyDeskCost = 4405.00; // R$ 4405 / year (AnyDesk Advanced)
 
     // Data for the Graph
     const data = [
