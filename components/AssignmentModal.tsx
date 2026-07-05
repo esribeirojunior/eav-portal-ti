@@ -120,31 +120,61 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
       // 2. Processa os dados para agrupar por usuário e encontrar dispositivos ativos
       const userMap = new Map<string, UserSuggestion>();
 
-      assignments.forEach((assignment: any) => {
-        const name = assignment.user_name;
+      if (assignments) {
+        assignments.forEach((assignment: any) => {
+          const name = assignment.user_name;
 
-        if (!userMap.has(name)) {
-          userMap.set(name, {
-            userName: name,
-            departmentId: assignment.department_id,
-            campus: assignment.campus,
-            grade: assignment.grade,
-            activeDevices: [],
-            email: assignment.user_email || ''
-          });
-        }
-
-        const userData = userMap.get(name)!;
-
-        // Se ainda não foi devolvido, é um dispositivo ativo
-        if (!assignment.returned_at && assignment.device) {
-          // Evita duplicatas de dispositivos
-          const hasDevice = userData.activeDevices.some(d => d.tag === assignment.device.tag);
-          if (!hasDevice) {
-            userData.activeDevices.push(assignment.device);
+          if (!userMap.has(name)) {
+            userMap.set(name, {
+              userName: name,
+              departmentId: assignment.department_id,
+              campus: assignment.campus,
+              grade: assignment.grade,
+              activeDevices: [],
+              email: assignment.user_email || ''
+            });
           }
-        }
-      });
+
+          const userData = userMap.get(name)!;
+
+          // Se ainda não foi devolvido, é um dispositivo ativo
+          if (!assignment.returned_at && assignment.device) {
+            // Evita duplicatas de dispositivos
+            const hasDevice = userData.activeDevices.some((d: any) => d.tag === assignment.device.tag);
+            if (!hasDevice) {
+              userData.activeDevices.push(assignment.device);
+            }
+          }
+        });
+      }
+
+      // 3. Busca também nos devices (Atribuição Rápida)
+      const { data: rawDevices } = await apiClient
+        .from('devices')
+        .select('custom_user, custom_department, model, type, tag')
+        .ilike('custom_user', `%${query}%`);
+
+      if (rawDevices) {
+        rawDevices.forEach((d: any) => {
+          if (!d.custom_user) return;
+          const name = d.custom_user;
+          if (!userMap.has(name)) {
+            userMap.set(name, {
+              userName: name,
+              departmentId: d.custom_department || '',
+              campus: 'Álvares', // Default
+              grade: '',
+              activeDevices: [],
+              email: ''
+            });
+          }
+          const userData = userMap.get(name)!;
+          const hasDevice = userData.activeDevices.some((ad: any) => ad.tag === d.tag);
+          if (!hasDevice) {
+            userData.activeDevices.push(d);
+          }
+        });
+      }
 
       setSuggestions(Array.from(userMap.values()).slice(0, 5));
       setShowSuggestions(true);

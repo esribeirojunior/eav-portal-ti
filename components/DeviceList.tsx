@@ -559,6 +559,7 @@ export function DeviceList({
         isOpen={!!selectedRmmDevice}
         onClose={() => setSelectedRmmDevice(null)}
         device={selectedRmmDevice}
+        onAssign={onAssign}
       />
     </div>
   );

@@ -30,6 +30,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
   
   // Modal state
   const [editingEmployee, setEditingEmployee] = useState<EmployeeProfile | null>(null);
+  const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editDepartment, setEditDepartment] = useState('');
   const [saving, setSaving] = useState(false);
@@ -110,6 +111,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
       const { error } = await apiClient
         .from('assignments')
         .update({
+          user_name: editName,
           user_email: editEmail,
           department_id: editDepartment
         })
@@ -124,6 +126,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
         if (emp.user_name === editingEmployee.user_name) {
           return {
             ...emp,
+            user_name: editName,
             user_email: editEmail,
             department_id: editDepartment,
             hasMissingData: !editEmail || !editDepartment
@@ -240,6 +243,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
                       <button
                         onClick={() => {
                           setEditingEmployee(emp);
+                          setEditName(emp.user_name);
                           setEditEmail(emp.user_email);
                           setEditDepartment(emp.department_id);
                         }}
@@ -285,10 +289,16 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
               ) : (
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-slate-500">Nome do Usuário (Fixo)</label>
-                    <div className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-400 dark:border-slate-700 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-2">
-                      <Users size={16} className="text-slate-700" />
-                      {editingEmployee.user_name}
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-slate-500">Nome do Usuário</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Ex: João da Silva"
+                        className="w-full bg-white dark:bg-slate-800 border border-slate-400 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm font-semibold text-slate-800 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none placeholder:text-slate-700 dark:placeholder:text-slate-800"
+                      />
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-700" size={16} />
                     </div>
                   </div>
 

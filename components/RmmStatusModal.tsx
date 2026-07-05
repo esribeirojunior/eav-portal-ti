@@ -31,57 +31,13 @@ interface RmmStatusModalProps {
   isOpen: boolean;
   onClose: () => void;
   device: Device | null;
+  device: Device | null;
+  onAssign?: (device: any) => void;
 }
 
-export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps) {
+export function RmmStatusModal({ isOpen, onClose, device, onAssign }: RmmStatusModalProps) {
   const [pingStatus, setPingStatus] = React.useState<'idle' | 'loading' | 'online' | 'offline' | 'pinging'>('idle');
   const [pingTime, setPingTime] = React.useState<string>('');
-  
-  const [customDept, setCustomDept] = React.useState('');
-  const [customUser, setCustomUser] = React.useState('');
-  const [isSaving, setIsSaving] = React.useState(false);
-  const [departments, setDepartments] = React.useState<string[]>([]);
-  const [saveSuccess, setSaveSuccess] = React.useState(false);
-
-  React.useEffect(() => {
-    const fetchDepts = async () => {
-      try {
-        const { data } = await apiClient.from('department').select('name');
-        if (data) setDepartments((data as any[]).map(d => d.name).sort());
-      } catch (e) { }
-    };
-    if (isOpen) fetchDepts();
-  }, [isOpen]);
-
-  React.useEffect(() => {
-    setCustomDept(device?.custom_department || '');
-    setCustomUser(device?.custom_user || '');
-    setSaveSuccess(false);
-  }, [device?.id, isOpen]);
-
-  const handleSaveAssigment = async () => {
-    if (!device) return;
-    setIsSaving(true);
-    setSaveSuccess(false);
-    try {
-      await apiClient.from('devices').update({
-        custom_department: customDept,
-        custom_user: customUser
-      }).eq('id', device.id);
-      
-      // Update local object for immediate UI feedback
-      device.custom_department = customDept;
-      device.custom_user = customUser;
-      
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (e) {
-      console.error(e);
-      alert('Erro ao salvar.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   // Resetar estado do ping ao abrir outro dispositivo
   React.useEffect(() => {
@@ -269,56 +225,28 @@ export function RmmStatusModal({ isOpen, onClose, device }: RmmStatusModalProps)
                 </div>
               </div>
 
-              {/* Atribuição Rápida (Para Inventário) */}
-              <div className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-white/20 transition-all flex flex-col gap-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-indigo-500/20 text-indigo-400">
-                    <UserCircle size={16} />
+              {/* Botão de Entrega Oficial (Substitui Atribuição Rápida) */}
+              <div className="bg-white/5 p-5 rounded-2xl border border-white/5 hover:border-white/20 transition-all flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/20 text-blue-400">
+                    <UserCircle size={18} />
                   </div>
                   <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Atribuição Rápida (Tabela)</h3>
-                    <p className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">Define quem usa este PC no inventário</p>
+                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Entrega Oficial de Equipamento</h3>
+                    <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">Gerar Termo de Responsabilidade</p>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-white/50 uppercase tracking-widest flex items-center gap-2">
-                      <Building size={10} /> Setor (Departamento)
-                    </label>
-                    <select 
-                      value={customDept}
-                      onChange={(e) => setCustomDept(e.target.value)}
-                      className="w-full bg-slate-900/50 text-white border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-bold appearance-none cursor-pointer"
-                    >
-                      <option value="">-- SELECIONE --</option>
-                      {departments.map((d, i) => <option key={i} value={d}>{d}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-white/50 uppercase tracking-widest flex items-center gap-2">
-                      <UserCircle size={10} /> Responsável
-                    </label>
-                    <input 
-                      type="text"
-                      placeholder="Ex: Maria (Recepção)..."
-                      value={customUser}
-                      onChange={(e) => setCustomUser(e.target.value)}
-                      className="w-full bg-slate-900/50 text-white border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-bold placeholder:text-white/20"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end mt-2">
-                  <button 
-                    onClick={handleSaveAssigment}
-                    disabled={isSaving}
-                    className="px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 disabled:opacity-50"
-                  >
-                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : saveSuccess ? <CheckCircle size={14} /> : <Save size={14} />}
-                    {isSaving ? 'Salvando...' : saveSuccess ? 'Salvo!' : 'Salvar Atribuição'}
-                  </button>
-                </div>
+                <button 
+                  onClick={() => {
+                    if (onAssign) onAssign(device);
+                    onClose();
+                  }}
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-500 border border-blue-500 shadow-blue-500/20 active:scale-95"
+                >
+                  <Save size={14} />
+                  Realizar Entrega
+                </button>
               </div>
 
               {/* Hardware Stats */}

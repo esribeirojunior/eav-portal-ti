@@ -571,6 +571,13 @@ app.post('/api/db', authenticateToken, async (req, res) => {
 
 // Endpoint para sincronização do Agente RMM (Monitoramento Local)
 app.post('/api/agent/sync', async (req, res) => {
+  // Segurança Simples: Token Invisível
+  const authHeader = req.headers['authorization'];
+  if (authHeader !== 'Bearer EAV-SECURE-SYNC-2026-X1900') {
+    console.warn('[SECURITY] Tentativa de sync bloqueada por token inválido:', req.ip);
+    return res.status(401).json({ error: 'Unauthorized: Invalid Agent Token' });
+  }
+
   const {
     hostname,
     username,
