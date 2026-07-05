@@ -260,6 +260,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
                 <input
                   required
                   type="email"
+                  autoComplete="email"
                   placeholder="EMAIL"
                   className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-400 group-hover:border-slate-400'} rounded-2xl py-4 pl-12 pr-4 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-700`}
                   value={email}
@@ -277,6 +278,7 @@ const LoginScreen: React.FC<{ onLogin: (email: string) => void }> = ({ onLogin }
                 <input
                   required
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="SENHA"
                   className={`w-full bg-slate-100 border ${error ? 'border-red-500' : 'border-slate-400 group-hover:border-slate-400'} rounded-2xl py-4 pl-12 pr-12 text-xs font-black tracking-widest text-slate-800 outline-none focus:border-[#0c59cf] focus:ring-2 focus:ring-[#0c59cf]/10 transition-all placeholder:text-slate-700`}
                   value={pass}
