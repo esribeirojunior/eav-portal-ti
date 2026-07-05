@@ -357,6 +357,7 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                 <Tooltip 
                   cursor={{ fill: 'transparent' }} 
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '0.75rem', color: '#fff', fontSize: '12px', outline: 'none' }} 
+                  itemStyle={{ color: '#fff' }}
                   formatter={(value: number) => [value, 'Quantidade']}
                 />
                 <Bar dataKey="value" name="Quantidade" fill="#10b981" radius={[0, 4, 4, 0]} barSize={12} isAnimationActive={false}>
@@ -401,6 +402,7 @@ export const Dashboard: React.FC<Props> = ({ stats, devices, onImportClick, onEx
                 </Pie>
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '0.75rem', color: '#fff', outline: 'none' }} 
+                  itemStyle={{ color: '#fff' }}
                   formatter={(value: number) => [value, 'Quantidade']}
                 />
               </PieChart>
