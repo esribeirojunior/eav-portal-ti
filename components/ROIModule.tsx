@@ -66,6 +66,21 @@ export function ROIModule({ onBack }: ROIModuleProps) {
 
             <div className="px-8 pb-8 space-y-6">
                 
+                {/* Texto Explicativo */}
+                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-[2rem] border border-indigo-100 dark:border-indigo-500/20">
+                    <h2 className="text-lg font-black text-indigo-900 dark:text-indigo-400 mb-2">Entendendo este Painel de Economia</h2>
+                    <p className="text-sm font-medium text-indigo-800/80 dark:text-indigo-300/80 leading-relaxed">
+                        Este módulo demonstra o Retorno Sobre o Investimento (ROI) gerado pelo uso do EAV Portal. 
+                        No mercado atual de TI corporativa, ferramentas profissionais de Gestão de Ativos e RMM (como ManageEngine, NinjaOne ou Lansweeper) 
+                        cobram licenças em dólar baseadas no número de computadores monitorados. Além disso, o suporte remoto por múltiplos técnicos requer licenças 
+                        à parte (como TeamViewer Premium). 
+                        <br/><br/>
+                        O sistema interno desenvolvido para a Escola EAV engloba inventário ilimitado, telemetria automatizada e conexão remota VNC nativa 
+                        em um único ecossistema centralizado. Isso isenta a instituição de qualquer custo com licenciamento externo, permitindo que a escola aumente 
+                        o número de computadores indefinidamente sem gerar novos boletos de software para o departamento de TI.
+                    </p>
+                </div>
+
                 {/* Simulador Interativo */}
                 <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                     <div className="flex flex-col md:flex-row gap-12 items-center">
