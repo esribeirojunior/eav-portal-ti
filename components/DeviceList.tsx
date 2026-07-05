@@ -460,9 +460,6 @@ export function DeviceList({
                     onClick={() => toggleSector(sector.department)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg" style={{ backgroundColor: config.color }}>
-                        <Building size={22} className="text-white opacity-90" />
-                      </div>
                       <div>
                         <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{sector.department}</h3>
                         <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
