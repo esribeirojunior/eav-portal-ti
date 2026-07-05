@@ -200,10 +200,15 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     </div>
                                     <span className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(teamViewerCost)}</span>
                                 </div>
-                                <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-1">
-                                    Referência: TeamViewer Corporate (Para ~500 endpoints)<br/>
-                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(teamViewerCost)} fixo/ano</strong>
-                                </p>
+                                <div className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-2 space-y-1">
+                                    <p>
+                                        • TeamViewer Corporate (500 unid): <strong className="text-slate-700 dark:text-white/80">{formatCurrency(teamViewerCost)} fixo/ano</strong>
+                                    </p>
+                                    <p>
+                                        • AnyDesk Advanced (2 canais/1000 unid): <strong className="text-slate-700 dark:text-white/80">{formatCurrency(4405.44)} fixo/ano</strong>
+                                    </p>
+                                    <p className="pt-1 opacity-70 italic">* O cálculo de projeção utiliza o TeamViewer como referência comercial.</p>
+                                </div>
                             </div>
                             
                             <div className="p-4 rounded-xl bg-slate-100 dark:bg-white/5 mt-8">
