@@ -365,7 +365,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                     loop 
                     muted 
                     playsInline 
-                    className="absolute inset-0 w-full h-full object-cover opacity-[0.15] pointer-events-none z-0"
+                    className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none z-0"
                 >
                     <source src="/presentation-bg.mp4" type="video/mp4" />
                 </video>
@@ -389,7 +389,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
 
                 {/* Conteudo do Slide */}
                 <div className="flex-1 overflow-hidden relative z-10">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950/80 to-slate-950/95" />
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/30 via-slate-950/60 to-slate-950/80" />
                     <div className="relative z-20 h-full">
                         {renderSlideContent()}
                     </div>
