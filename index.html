@@ -505,61 +505,32 @@
             box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2) !important;
         }
 
-        /* Custom Scrollbar - Global */
+        /* Custom Scrollbar - Global - Modern Mac Style */
         ::-webkit-scrollbar {
-            width: 14px;
-            height: 14px;
+            width: 8px;
+            height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #2b2b2b;
-            border-left: 1px solid #1a1a1a;
-        }
-
-        body.light ::-webkit-scrollbar-track {
-            background: #2b2b2b; /* Mantendo escuro no light mode conforme screenshot */
-            border-left: 1px solid #1a1a1a;
+            background: transparent;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #686868;
-            border: 3px solid #2b2b2b;
-            border-radius: 8px;
-        }
-
-        body.light ::-webkit-scrollbar-thumb {
-            background: #686868;
-            border: 3px solid #2b2b2b;
+            background: rgba(156, 163, 175, 0.4);
+            border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #858585;
+            background: rgba(156, 163, 175, 0.7);
         }
 
-        ::-webkit-scrollbar-button:single-button {
-            background-color: #2b2b2b;
-            display: block;
-            border-style: solid;
-            height: 14px;
-            width: 14px;
+        /* Dark Mode Scrollbar adjustments (if your app uses .dark class on body) */
+        body.dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
         }
-        
-        /* Up Arrow */
-        ::-webkit-scrollbar-button:single-button:vertical:decrement {
-            border-width: 0 4px 5px 4px;
-            border-color: transparent transparent #777 transparent;
-        }
-        ::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
-            border-color: transparent transparent #aaa transparent;
-        }
-        
-        /* Down Arrow */
-        ::-webkit-scrollbar-button:single-button:vertical:increment {
-            border-width: 5px 4px 0 4px;
-            border-color: #777 transparent transparent transparent;
-        }
-        ::-webkit-scrollbar-button:single-button:vertical:increment:hover {
-            border-color: #aaa transparent transparent transparent;
+
+        body.dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
         }
         *:focus { outline: none !important; }
     </style>
