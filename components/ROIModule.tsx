@@ -14,7 +14,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     // Presentation Mode States
     const [isPresentation, setIsPresentation] = useState<boolean>(false);
     const [currentSlide, setCurrentSlide] = useState<number>(0);
-    const totalSlides = 5;
+    const totalSlides = 6;
 
     React.useEffect(() => {
         if (isPresentation) {
@@ -287,12 +287,32 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             <Lightbulb size={80} className="text-amber-400" />
                         </div>
                         <h2 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.2]">
-                            A TI deixou de ser um centro de custo para ser um <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">centro de inteligência</span>.
+                            A tecnologia como <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">acelerador de resultados</span>.
                         </h2>
                         <div className="w-32 h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full my-8"></div>
                         <p className="text-2xl text-slate-300 leading-relaxed font-medium">
-                            Construímos um portal com <strong className="text-white font-black">Escalabilidade Infinita</strong>. A escola pode dobrar ou triplicar o número de equipamentos e o nosso custo de software não sofrerá um centavo de reajuste.
+                            Construímos um portal com <strong className="text-white font-black">Escalabilidade Infinita</strong>. A instituição pode dobrar ou triplicar o número de equipamentos e a nossa fundação tecnológica irá acompanhar esse crescimento nativamente, sem reajustes, limites ou licenciamentos adicionais.
                         </p>
+                    </div>
+                );
+            case 5:
+                return (
+                    <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in max-w-5xl mx-auto px-8 relative">
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent -z-10 blur-3xl"></div>
+                        
+                        <h2 className="text-7xl font-black text-white tracking-tight mb-2">Muito Obrigado.</h2>
+                        <p className="text-xl text-slate-400 font-medium mb-12">Estamos à disposição para dúvidas.</p>
+                        
+                        <div className="bg-slate-900/50 p-8 rounded-3xl border border-white/5 backdrop-blur-sm mt-12 w-full max-w-xl text-left flex items-center gap-6 shadow-2xl relative">
+                            <div className="w-20 h-20 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 font-black text-3xl border border-indigo-500/30 shrink-0">
+                                ER
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black text-white mb-1">Erisson Ribeiro de Souza Junior</h3>
+                                <p className="text-indigo-400 font-medium uppercase tracking-widest text-xs mb-4">Analista de Suporte II</p>
+                                <span className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-bold shadow-inner">Ayko / Outsourcing - Escola Americana de Vitória</span>
+                            </div>
+                        </div>
                     </div>
                 );
             default:
