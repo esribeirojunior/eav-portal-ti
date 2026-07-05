@@ -18,7 +18,7 @@ const StaticLegend = () => (
         </div>
         <div className="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50 shadow-lg">
             <div className="w-3 h-3 rounded-full bg-[#10b981]"></div>
-            <span className="font-bold text-sm" style={{ color: '#10b981' }}>Portal de Gestão de TI</span>
+            <span className="font-bold text-sm" style={{ color: '#10b981' }}>Portal de Gestão de Ativos de TI</span>
         </div>
     </div>
 );
@@ -127,7 +127,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             <TrendingUp size={64} className="text-indigo-400" />
                         </div>
                         <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white max-w-5xl leading-[1.1]">
-                            Evolução e Independência Tecnológica: <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">O Impacto do Portal de Gestão de TI</span>
+                            Evolução e Independência Tecnológica: <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">O Impacto do Portal de Gestão de Ativos de TI</span>
                         </h1>
                         <div className="w-24 h-1.5 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full my-8"></div>
                         <div className="flex flex-col items-center">
@@ -186,7 +186,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                 return (
                     <div className="flex flex-col justify-center h-full max-w-6xl mx-auto space-y-12 animate-fade-in w-full px-8">
                         <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-emerald-400 mb-4">2. A Solução: Portal de Gestão de TI</h2>
+                            <h2 className="text-4xl md:text-5xl font-black text-emerald-400 mb-4">2. A Solução: Portal de Gestão de Ativos de TI</h2>
                             <p className="text-xl md:text-2xl text-slate-300 font-medium">Centralização e independência total através de desenvolvimento próprio.</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -261,7 +261,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                             <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
-                                            <Bar dataKey="EAV" name="Portal de Gestão de TI" fill="#10b981" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
+                                            <Bar dataKey="EAV" name="Portal de Gestão de Ativos de TI" fill="#10b981" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -413,7 +413,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                         </div>
                         <div>
                             <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Economia e ROI</h1>
-                            <p className="text-sm font-medium text-slate-500 dark:text-white/40 mt-1">Impacto financeiro do Portal de Gestão de TI comparado ao mercado (ManageEngine, TeamViewer, etc)</p>
+                            <p className="text-sm font-medium text-slate-500 dark:text-white/40 mt-1">Impacto financeiro do Portal de Gestão de Ativos de TI comparado ao mercado (ManageEngine, TeamViewer, etc)</p>
                         </div>
                     </div>
                     
@@ -436,7 +436,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-[2rem] border border-indigo-100 dark:border-indigo-500/20">
                     <h2 className="text-lg font-black text-indigo-900 dark:text-indigo-400 mb-2">Entendendo este Painel de Economia</h2>
                     <p className="text-sm font-medium text-indigo-800/80 dark:text-indigo-300/80 leading-relaxed">
-                        Este módulo demonstra o Retorno Sobre o Investimento (ROI) gerado pelo uso do Portal de Gestão de TI. 
+                        Este módulo demonstra o Retorno Sobre o Investimento (ROI) gerado pelo uso do Portal de Gestão de Ativos de TI. 
                         No mercado atual de TI corporativa, ferramentas profissionais de Gestão de Ativos e RMM (como ManageEngine, NinjaOne ou Lansweeper) 
                         cobram licenças em dólar baseadas no número de computadores monitorados. Além disso, o suporte remoto por múltiplos técnicos requer licenças 
                         à parte (como TeamViewer Premium). 
@@ -445,7 +445,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                         em um único ecossistema centralizado. 
                         <br/><br/>
                         <strong className="text-indigo-900 dark:text-indigo-300">Construído para o Crescimento Futuro:</strong> A arquitetura própria isenta a instituição de qualquer custo com licenciamento externo por dispositivo, permitindo que a escola aumente 
-                        o seu parque tecnológico indefinidamente sem gerar novos boletos de software para o departamento de TI. A escalabilidade financeira do Portal de Gestão de TI é infinita.
+                        o seu parque tecnológico indefinidamente sem gerar novos boletos de software para o departamento de TI. A escalabilidade financeira do Portal de Gestão de Ativos de TI é infinita.
                         <br/><br/>
                         <strong className="text-indigo-900 dark:text-indigo-300">Projeção Extremamente Conservadora:</strong> Os valores de mercado projetados neste simulador representam o cenário mais básico possível. A cotação base reflete o plano de entrada, cobrindo apenas 1 único técnico, sem gerenciamento de servidores, sem licenças avançadas de segurança (EDR) e sem os altos custos de consultoria para implantação de um sistema de terceiros. Se o ambiente real da Escola fosse cotado integralmente com todos os seus recursos atuais, o custo das soluções comerciais (a barra vermelha do gráfico) seria facilmente o dobro do projetado aqui.
                     </p>
@@ -511,7 +511,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                     {/* Grafico */}
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
                         <h3 className="text-lg font-black text-slate-800 dark:text-white mb-1">Projeção de Custos a Longo Prazo</h3>
-                        <p className="text-xs text-slate-500 dark:text-white/40 mb-8 font-medium">Comparativo entre softwares comerciais (licenciamento) e o Portal de Gestão de TI</p>
+                        <p className="text-xs text-slate-500 dark:text-white/40 mb-8 font-medium">Comparativo entre softwares comerciais (licenciamento) e o Portal de Gestão de Ativos de TI</p>
                         <div className="h-72 w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -532,7 +532,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
-                                    <Bar dataKey="EAV" name="Portal de Gestão de TI" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
+                                    <Bar dataKey="EAV" name="Portal de Gestão de Ativos de TI" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -620,7 +620,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 <li className="flex gap-3">
                                     <span className="text-amber-500 font-black">2.</span>
                                     <p className="text-sm text-amber-900/80 dark:text-amber-200/70 font-medium">
-                                        <strong className="text-amber-900 dark:text-amber-400">A Solução Interna (Portal de Gestão de TI):</strong> "Em vez de alugar software, nós construímos a nossa própria plataforma centralizada (Portal de Gestão de TI). Ela faz o mesmo que as gigantes de mercado, mas com licenciamento ilimitado."
+                                        <strong className="text-amber-900 dark:text-amber-400">A Solução Interna (Portal de Gestão de Ativos de TI):</strong> "Em vez de alugar software, nós construímos a nossa própria plataforma centralizada (Portal de Gestão de Ativos de TI). Ela faz o mesmo que as gigantes de mercado, mas com licenciamento ilimitado."
                                     </p>
                                 </li>
                                 <li className="flex gap-3">
