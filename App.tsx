@@ -46,7 +46,11 @@ import {
   Moon,
   FileUp,
   FileDown,
-  MapPin
+  MapPin,
+  Package,
+  MonitorPlay,
+  Wrench,
+  ClipboardCheck
 } from 'lucide-react';
 
 // --- LOGO COMPONENT ---
@@ -394,6 +398,7 @@ const App: React.FC = () => {
   });
   const [devices, setDevices] = useState<Device[]>([]);
   const [subView, setSubView] = useState<'menu' | 'inventory' | 'dashboard'>('menu');
+  const [inventoryTab, setInventoryTab] = useState<'available' | 'in_use' | 'maintenance' | 'triage'>('available');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string>(() => {
@@ -763,10 +768,17 @@ const App: React.FC = () => {
   // Filtra fora acessórios virtuais (criados pela Entrega Rápida) da listagem e contagem geral do inventário
   const activeDevices = devices.filter(d => !(d.serialNumber || '').startsWith('ACESSÓRIO'));
 
+  const triageDevicesForStats = activeDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department);
+  const availableDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
+  const inUseDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));
+  const maintenanceDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.MAINTENANCE && !triageDevicesForStats.find(t => t.id === d.id));
+
   const stats = {
     total: activeDevices.length,
-    available: activeDevices.filter(d => d.status === DeviceStatus.AVAILABLE).length,
-    inUse: activeDevices.filter(d => d.status === DeviceStatus.IN_USE).length,
+    available: availableDevicesForStats.length,
+    inUse: inUseDevicesForStats.length,
+    maintenance: maintenanceDevicesForStats.length,
+    triage: triageDevicesForStats.length,
   };
 
   const filteredDevices = activeDevices.filter(d => {
@@ -852,10 +864,30 @@ const App: React.FC = () => {
                     <LayoutDashboard size={18} />
                     Dashboard
                   </button>
-                  <button onClick={() => setSubView('inventory')} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' || subView === 'menu') ? 'bg-[#5b61f8] text-white shadow-lg shadow-indigo-500/20' : 'text-slate-800 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
-                    <ClipboardList size={18} />
-                    Inventário
-                  </button>
+                  
+                  <div className="mt-4 px-2 pt-2">
+                      <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-widest mb-2">Inventário</p>
+                      
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('available'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-3"><Package size={16} /> Estoque</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.available}</span>
+                      </button>
+                      
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('in_use'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-3"><MonitorPlay size={16} /> Em Uso</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'in_use') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.inUse}</span>
+                      </button>
+                      
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('maintenance'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-3"><Wrench size={16} /> Manutenção</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'maintenance') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.maintenance}</span>
+                      </button>
+                      
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('triage'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-600 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-3"><ClipboardCheck size={16} /> Triagem</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'triage') ? 'bg-indigo-400 text-white' : 'bg-slate-200 dark:bg-white/10 dark:text-white/40'}`}>{stats.triage}</span>
+                      </button>
+                  </div>
                 </div>
               </div>
 
@@ -979,6 +1011,7 @@ const App: React.FC = () => {
                 ) : (
                   <DeviceList
                     devices={filteredDevices}
+                    activeTab={inventoryTab}
                     onAssign={setAssigningDevice}
                     onReturn={setReturningDevice}
                     onHistory={setViewingHistory}

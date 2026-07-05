@@ -62,6 +62,7 @@ interface DeviceListProps {
   onDelete?: (device: any) => void;
   onEdit?: (device: any) => void;
   onRefresh?: () => void;
+  activeTab?: 'available' | 'in_use' | 'maintenance' | 'triage';
   searchQuery?: string;
   userRole?: string;
 }
@@ -75,10 +76,10 @@ export function DeviceList({
   onDelete,
   onEdit,
   onRefresh,
+  activeTab = 'available',
   searchQuery,
   userRole
 }: DeviceListProps) {
-  const [activeTab, setActiveTab] = useState<'available' | 'in_use' | 'maintenance' | 'triage'>('available');
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false); // Default to card view
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({});
@@ -290,35 +291,9 @@ export function DeviceList({
     <div className="space-y-8 animate-fade-in">
 
 
-      {/* Tabs Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-white/5 pb-2">
-        <div className="flex gap-8 overflow-x-auto w-full md:w-auto no-scrollbar">
-          {[
-            { id: 'available', label: 'Estoque', count: availableDevices.length },
-            { id: 'in_use', label: 'Em Uso', count: inUseDevices.length },
-            { id: 'maintenance', label: 'Manutenção', count: maintenanceDevices.length },
-            { id: 'triage', label: 'Triagem', count: triageDevices.length }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`pb-4 md:pb-6 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative flex items-center gap-3 whitespace-nowrap ${activeTab === tab.id
-                ? 'text-white'
-                : 'text-white/20 hover:text-white/40'
-                }`}
-            >
-              {tab.label}
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-white/5 text-white/20'}`}>
-                {tab.count}
-              </span>
-              {activeTab === tab.id && (
-                <div className="absolute bottom-[-1px] md:bottom-[-9px] left-0 w-full h-1 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end px-2">
+      {/* Header Actions */}
+      <div className="flex items-center justify-end w-full mb-4 px-2">
+        <div className="flex items-center gap-3">
           {/* Export/Import Buttons */}
           {activeTab === 'available' && userRole !== 'viewer' && (
             <button
