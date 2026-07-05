@@ -12,7 +12,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     const [showNotes, setShowNotes] = useState<boolean>(false);
 
     // Market Costs Reference
-    const rmmCostPerDevice = 198; // R$ 198 / year per device (approx US$ 36 * 5.50)
+    const rmmCostPerDevice = 72; // R$ 72 / year per device (approx US$ 13.09 * 5.50 based on the $6545/500 tier)
     const teamViewerCost = 6802.80; // R$ 6802,80 / year (TeamViewer Corporate)
     
     // Calculated Costs
@@ -185,8 +185,8 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <span className="text-sm font-black text-slate-800 dark:text-white">{formatCurrency(marketRMM)}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-1">
-                                    Referência: ManageEngine / NinjaOne<br/>
-                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(rmmCostPerDevice)} por dispositivo/ano</strong> <span className="opacity-70">(aprox. US$ 36,00 convertidos)</span>
+                                    Referência: ManageEngine Endpoint Central (Professional Cloud)<br/>
+                                    Valor Base Real: <strong className="text-slate-700 dark:text-white/80">{formatCurrency(rmmCostPerDevice)} por dispositivo/ano</strong> <span className="opacity-70">(Baseado no plano de US$ 6.545,00 para 500 endpoints)</span>
                                 </p>
                             </div>
 
