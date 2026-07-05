@@ -227,7 +227,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <Network size={40} />
                                 </div>
                                 <h3 className="text-2xl font-black text-white mb-4">Acesso Remoto Nativo</h3>
-                                <p className="text-slate-400 font-medium leading-relaxed">Integração de motor open-source (RustDesk) para acesso direto. Dispensa assinaturas do TeamViewer ou AnyDesk.</p>
+                                <p className="text-slate-400 font-medium leading-relaxed">Integração de motor open-source para acesso direto. Dispensa assinaturas do TeamViewer ou AnyDesk.</p>
                             </div>
                         </div>
                         <div className="bg-slate-800/80 p-8 rounded-[2rem] border border-slate-700 text-center mt-4">
@@ -459,7 +459,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                         cobram licenças em dólar baseadas no número de computadores monitorados. Além disso, o suporte remoto por múltiplos técnicos requer licenças 
                         à parte (como TeamViewer Premium). 
                         <br/><br/>
-                        O sistema interno desenvolvido para a Escola EAV engloba inventário ilimitado, telemetria automatizada e conexão remota open-source (RustDesk) integrada 
+                        O sistema interno desenvolvido para a Escola EAV engloba inventário ilimitado, telemetria automatizada e conexão remota open-source integrada 
                         em um único ecossistema centralizado. 
                         <br/><br/>
                         <strong className="text-indigo-900 dark:text-indigo-300">Construído para o Crescimento Futuro:</strong> A arquitetura própria isenta a instituição de qualquer custo com licenciamento externo por dispositivo, permitindo que a escola aumente 
