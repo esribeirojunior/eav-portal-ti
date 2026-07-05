@@ -446,6 +446,8 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                         <br/><br/>
                         <strong className="text-indigo-900 dark:text-indigo-300">Construído para o Crescimento Futuro:</strong> A arquitetura própria isenta a instituição de qualquer custo com licenciamento externo por dispositivo, permitindo que a escola aumente 
                         o seu parque tecnológico indefinidamente sem gerar novos boletos de software para o departamento de TI. A escalabilidade financeira do Portal de Gestão de TI é infinita.
+                        <br/><br/>
+                        <strong className="text-indigo-900 dark:text-indigo-300">Projeção Extremamente Conservadora:</strong> Os valores de mercado projetados neste simulador representam o cenário mais básico possível. A cotação base reflete o plano de entrada, cobrindo apenas 1 único técnico, sem gerenciamento de servidores, sem licenças avançadas de segurança (EDR) e sem os altos custos de consultoria para implantação de um sistema de terceiros. Se o ambiente real da Escola fosse cotado integralmente com todos os seus recursos atuais, o custo das soluções comerciais (a barra vermelha do gráfico) seria facilmente o dobro do projetado aqui.
                     </p>
                 </div>
 
