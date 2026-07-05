@@ -196,7 +196,7 @@ export function RmmStatusModal({ isOpen, onClose, device, onAssign }: RmmStatusM
                   <div>
                     <h3 className="text-xs font-black text-white uppercase tracking-widest">Acesso Remoto Direto</h3>
                     <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">
-                      Conecta via VNC usando a Máquina Mestre
+                      Acesso seguro via rede local (VNC) ou externa (Agente EAV)
                     </p>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export function RmmStatusModal({ isOpen, onClose, device, onAssign }: RmmStatusM
                       className="px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 bg-red-600 text-white hover:bg-red-500 border border-red-500 shadow-red-500/20 active:scale-95"
                     >
                       <MonitorSmartphone size={14} />
-                      RustDesk
+                      Suporte Externo
                     </button>
                   )}
                   <button
