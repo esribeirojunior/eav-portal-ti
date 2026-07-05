@@ -83,6 +83,31 @@ export function ROIModule({ onBack }: ROIModuleProps) {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     };
 
+    const renderCustomLegend = (props: any) => {
+        const { payload } = props;
+        return (
+            <div className="flex flex-wrap justify-center gap-4 pt-6">
+                {payload.map((entry: any, index: number) => {
+                    let domain = '';
+                    if (entry.value === 'ManageEngine') domain = 'manageengine.com';
+                    if (entry.value === 'TeamViewer') domain = 'teamviewer.com';
+                    if (entry.value === 'AnyDesk') domain = 'anydesk.com';
+                    
+                    return (
+                        <div key={`item-${index}`} className="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50 shadow-lg">
+                            {domain ? (
+                                <img src={`https://logo.clearbit.com/${domain}`} alt={entry.value} className="w-6 h-6 rounded-md object-contain bg-white p-[2px]" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            ) : (
+                                <div className="w-6 h-6 rounded-md bg-emerald-500 flex items-center justify-center text-[10px] font-black text-white shadow-inner">EAV</div>
+                            )}
+                            <span style={{ color: entry.color }} className="font-bold text-sm">{entry.value}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const renderSlideContent = () => {
         switch(currentSlide) {
             case 0:
@@ -223,7 +248,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 14, fontWeight: 700 }} />
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 700 }} />
                                             <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '1rem', color: '#fff', fontSize: '16px' }} formatter={(value: number) => formatCurrency(value)} />
-                                            <Legend wrapperStyle={{ paddingTop: '30px', fontSize: '16px', fontWeight: 800, color: '#fff' }} />
+                                            <Legend content={renderCustomLegend} />
                                             <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
@@ -473,7 +498,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                         itemStyle={{ color: '#fff', fontWeight: 800 }}
                                         formatter={(value: number) => formatCurrency(value)}
                                     />
-                                    <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 700 }} />
+                                    <Legend content={renderCustomLegend} />
                                     <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
