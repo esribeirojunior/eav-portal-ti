@@ -16,6 +16,26 @@ export function ROIModule({ onBack }: ROIModuleProps) {
     const [currentSlide, setCurrentSlide] = useState<number>(0);
     const totalSlides = 5;
 
+    React.useEffect(() => {
+        if (isPresentation) {
+            if (document.body.classList.contains('light')) {
+                document.body.classList.remove('light');
+                document.body.setAttribute('data-was-light', 'true');
+            }
+        } else {
+            if (document.body.getAttribute('data-was-light') === 'true') {
+                document.body.classList.add('light');
+                document.body.removeAttribute('data-was-light');
+            }
+        }
+        return () => {
+            if (document.body.getAttribute('data-was-light') === 'true') {
+                document.body.classList.add('light');
+                document.body.removeAttribute('data-was-light');
+            }
+        };
+    }, [isPresentation]);
+
     // Market Costs Reference
     const rmmCostPerDevice = 72; // R$ 72 / year per device (approx US$ 13.09 * 5.50 based on the $6545/500 tier)
     const teamViewerCost = 6802.80; // R$ 6802,80 / year (TeamViewer Corporate)
@@ -91,7 +111,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 <div className="p-6 bg-slate-900/80 rounded-2xl border border-white/5">
                                     <p className="text-xs text-rose-300/80 uppercase font-black tracking-widest mb-2">Custo Base (ManageEngine Cloud Prof.)</p>
                                     <p className="text-4xl font-black text-rose-400 mb-2">US$ 6.545,00<span className="text-xl text-slate-500 font-bold"> / ano</span></p>
-                                    <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full">Base para 500 computadores</span>
+                                    <div className="flex flex-col gap-3">
+                                        <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full w-max">Base para 500 computadores</span>
+                                        <a href="https://www.manageengine.com/products/desktop-central/pricing.html" target="_blank" rel="noreferrer" className="text-xs text-rose-300/50 hover:text-rose-300 underline transition-colors">Fonte: ManageEngine Pricing</a>
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-slate-800/60 p-10 rounded-[2rem] border border-rose-500/20 shadow-2xl relative overflow-hidden">
@@ -104,7 +127,10 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 <div className="p-6 bg-slate-900/80 rounded-2xl border border-white/5">
                                     <p className="text-xs text-rose-300/80 uppercase font-black tracking-widest mb-2">Custo Base (TeamViewer Corporate)</p>
                                     <p className="text-4xl font-black text-rose-400 mb-2">R$ 6.802,80<span className="text-xl text-slate-500 font-bold"> / ano</span></p>
-                                    <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full">Referência: AnyDesk Advanced (R$ 4.405/ano)</span>
+                                    <div className="flex flex-col gap-3">
+                                        <span className="text-sm text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full w-max">Referência: AnyDesk Advanced (R$ 4.405/ano)</span>
+                                        <a href="https://anydesk.com/pt/encomendar" target="_blank" rel="noreferrer" className="text-xs text-rose-300/50 hover:text-rose-300 underline transition-colors">Fonte: AnyDesk Pricing</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
