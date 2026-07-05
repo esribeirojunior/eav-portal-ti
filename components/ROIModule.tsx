@@ -359,8 +359,19 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
                 `}</style>
                 
+                {/* Video de Background */}
+                <video 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="absolute inset-0 w-full h-full object-cover opacity-[0.15] pointer-events-none z-0"
+                >
+                    <source src="/presentation-bg.mp4" type="video/mp4" />
+                </video>
+                
                 {/* Header da Apresentação */}
-                <div className="h-20 border-b border-white/5 flex items-center justify-between px-8 shrink-0 bg-slate-900/80 backdrop-blur-xl z-50">
+                <div className="h-20 border-b border-white/5 flex items-center justify-between px-8 shrink-0 bg-slate-900/60 backdrop-blur-xl z-50 relative">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
                             <TrendingUp size={20} className="text-indigo-400" />
@@ -377,8 +388,11 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                 </div>
 
                 {/* Conteudo do Slide */}
-                <div className="flex-1 overflow-hidden relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
-                    {renderSlideContent()}
+                <div className="flex-1 overflow-hidden relative z-10">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950/80 to-slate-950/95" />
+                    <div className="relative z-20 h-full">
+                        {renderSlideContent()}
+                    </div>
                 </div>
 
                 {/* Footer Controls */}
