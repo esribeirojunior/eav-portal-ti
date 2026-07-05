@@ -98,7 +98,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 step="50"
                                 value={endpoints} 
                                 onChange={(e) => setEndpoints(Number(e.target.value))}
-                                className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                className="w-full h-3 cursor-pointer accent-emerald-500"
                             />
                             <div className="flex justify-between mt-3 text-xs font-bold text-slate-400">
                                 <span>50 PCs</span>
