@@ -120,6 +120,34 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
         }
     };
 
+    const handleRustDeskControl = (device: Device) => {
+        let rustdesk = '';
+        if (device.condition && device.condition.includes('RustDesk ID: ')) {
+            try {
+                rustdesk = device.condition.split('RustDesk ID: ')[1].split(' |')[0].trim();
+            } catch (e) {
+                console.error("Não foi possível extrair RustDesk ID da condição", e);
+            }
+        }
+        
+        // Aplica o hardcode para as telas da KRTV
+        const isKRTV = device.responsible?.toUpperCase().includes('KRTV') || (device.condition && device.condition.toUpperCase().includes('KRTV'));
+        if (isKRTV && !rustdesk) {
+            rustdesk = '517165846';
+        }
+
+        if (!rustdesk) {
+            rustdesk = prompt(`O RustDesk ID deste dispositivo não foi encontrado.\nInforme o ID para suporte remoto ao ${device.tag}:`);
+            if (!rustdesk) return;
+        }
+
+        try {
+            window.location.href = `rustdesk://${rustdesk}`;
+        } catch (err: any) {
+            alert(`Erro ao conectar no RustDesk: ${err.message}`);
+        }
+    };
+
     const filteredDevices = devices.filter(d => {
         const term = searchQuery.toLowerCase();
         return (d.tag || '').toLowerCase().includes(term) ||
@@ -209,10 +237,17 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                                     <div className="p-5 flex gap-3">
                                         <button 
                                             onClick={() => handleRemoteControl(device)}
-                                            className="flex-1 bg-pink-50 dark:bg-pink-500/10 hover:bg-pink-100 dark:hover:bg-pink-500/20 text-pink-700 dark:text-pink-400 border border-pink-200 dark:border-pink-500/20 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-colors"
+                                            className="flex-1 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-colors"
                                         >
                                             <MonitorPlay size={18} />
-                                            Acesso Remoto (VNC)
+                                            VNC
+                                        </button>
+                                        <button 
+                                            onClick={() => handleRustDeskControl(device)}
+                                            className="flex-1 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20 py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm transition-colors"
+                                        >
+                                            <MonitorPlay size={18} />
+                                            RustDesk
                                         </button>
                                     </div>
                                 </div>
