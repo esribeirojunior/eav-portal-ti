@@ -345,9 +345,21 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                 
                 {/* Decorative background shapes mimicking EAVents background */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[150%] bg-[#5b8a36] rounded-r-full opacity-[0.05] transform -rotate-12 blur-3xl"></div>
-                    <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[120%] bg-[#a63429] rounded-l-full opacity-[0.05] transform rotate-12 blur-3xl"></div>
-                    <div className="absolute top-[10%] right-[10%] w-[30%] h-[60%] bg-[#e3b23c] rounded-full opacity-[0.05] blur-3xl"></div>
+                    <svg className="absolute w-full h-full" preserveAspectRatio="none" viewBox="0 0 1920 1080">
+                        {/* Fundo creme */}
+                        <rect width="1920" height="1080" fill="#f6f5f0" />
+                        
+                        {/* Ondas Esquerda */}
+                        <path d="M0,240 C400,280 500,700 750,1080 L0,1080 Z" fill="#48823b" />
+                        <path d="M0,400 C300,450 450,750 600,1080 L0,1080 Z" fill="#75a347" />
+                        <path d="M0,550 C200,600 300,850 450,1080 L0,1080 Z" fill="#e2b43d" />
+                        
+                        {/* Ondas Direita */}
+                        <path d="M1920,280 C1500,300 1300,750 1050,1080 L1920,1080 Z" fill="#a73127" />
+                        <path d="M1920,400 C1600,450 1450,800 1250,1080 L1920,1080 Z" fill="#5d2c29" />
+                        <path d="M1920,520 C1700,550 1600,850 1400,1080 L1920,1080 Z" fill="#69497d" />
+                        <path d="M1920,650 C1800,700 1750,900 1600,1080 L1920,1080 Z" fill="#23497e" />
+                    </svg>
                 </div>
                 
                 {/* Header da Apresentação */}
