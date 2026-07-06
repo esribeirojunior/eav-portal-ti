@@ -367,6 +367,31 @@ else {
         }
         if ($rustdeskId) { break }
     }
+    
+    # Fallback: tentar rodar o rustdesk.exe diretamente para pegar o ID
+    if (-not $rustdeskId) {
+        $rdInstallDirs = @(
+            "C:\Program Files\RustDesk",
+            "C:\Program Files (x86)\RustDesk"
+        )
+        foreach ($dir in $rdInstallDirs) {
+            if (Test-Path $dir) {
+                $exes = Get-ChildItem -Path $dir -Filter "rustdesk*.exe" -File -ErrorAction SilentlyContinue
+                foreach ($exe in $exes) {
+                    try {
+                        $outputId = & $exe.FullName --get-id 2>&1
+                        if ($outputId -match "^[0-9]+$") {
+                            $rustdeskId = $outputId.Trim()
+                            Write-Host "`nRustDesk ID detectado via executável ($($exe.Name)): $rustdeskId" -ForegroundColor Green
+                            break
+                        }
+                    } catch {}
+                }
+                if ($rustdeskId) { break }
+            }
+        }
+    }
+
     if (-not $rustdeskId) {
         Write-Host "`nNenhum RustDesk ID foi detectado localmente." -ForegroundColor Yellow
     }
