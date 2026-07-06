@@ -337,24 +337,35 @@ else {
     # IDENTIFICAÇÃO DE RUSTDESK (SUPORTE EXTERNO)
     # ============================================
     $rustdeskId = ""
-    $rdPaths = @(
-        "$env:APPDATA\RustDesk\config\RustDesk.toml",
-        "$env:APPDATA\RustDesk\config\RustDesk2.toml",
-        "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config\RustDesk.toml",
-        "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config\RustDesk2.toml",
-        "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk.toml",
-        "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk2.toml"
+    $rdDirs = @(
+        "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config",
+        "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config",
+        "C:\ProgramData\RustDesk\config"
     )
-    foreach ($rdFile in $rdPaths) {
-        if (Test-Path $rdFile) {
-            $rdContent = Get-Content $rdFile -ErrorAction SilentlyContinue
-            $idMatch = $rdContent | Select-String -Pattern "(?im)^id\s*=\s*['""]?([^'""\s]+)['""]?"
-            if ($idMatch) {
-                $rustdeskId = $idMatch.Matches[0].Groups[1].Value
-                Write-Host "`nRustDesk ID detectado: $rustdeskId (Arquivo: $rdFile)" -ForegroundColor Green
-                break
+    
+    $usersPath = "C:\Users"
+    if (Test-Path $usersPath) {
+        $userFolders = Get-ChildItem -Path $usersPath -Directory -ErrorAction SilentlyContinue
+        foreach ($folder in $userFolders) {
+            $rdDirs += Join-Path $folder.FullName "AppData\Roaming\RustDesk\config"
+        }
+    }
+
+    foreach ($dir in $rdDirs) {
+        $files = @("RustDesk.toml", "RustDesk2.toml")
+        foreach ($file in $files) {
+            $rdFile = Join-Path $dir $file
+            if (Test-Path $rdFile) {
+                $rdContent = Get-Content $rdFile -ErrorAction SilentlyContinue
+                $idMatch = $rdContent | Select-String -Pattern "(?im)^id\s*=\s*['""]?([^'""\s]+)['""]?"
+                if ($idMatch) {
+                    $rustdeskId = $idMatch.Matches[0].Groups[1].Value
+                    Write-Host "`nRustDesk ID detectado: $rustdeskId (Arquivo: $rdFile)" -ForegroundColor Green
+                    break
+                }
             }
         }
+        if ($rustdeskId) { break }
     }
     if (-not $rustdeskId) {
         Write-Host "`nNenhum RustDesk ID foi detectado localmente." -ForegroundColor Yellow
