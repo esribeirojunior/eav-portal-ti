@@ -158,7 +158,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <p className="text-[10px] text-rose-300/80 uppercase font-black tracking-widest mb-1">ManageEngine Cloud Prof.</p>
                                     <p className="text-3xl font-black text-rose-400 mb-3">US$ 6.545,00<span className="text-lg text-slate-500 font-bold"> / ano</span></p>
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full w-max">Para ~300 computadores (Exige pacote de 500)</span>
+                                        <span className="text-[10px] xl:text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1.5 rounded-lg w-fit leading-tight">Para ~300 computadores (Exige pacote de 500)</span>
                                         <a href="https://www.manageengine.com/products/desktop-central/pricing.html" target="_blank" rel="noreferrer" className="text-[10px] text-rose-300/50 hover:text-rose-300 underline transition-colors">Fonte: ManageEngine Pricing</a>
                                     </div>
                                 </div>
@@ -175,7 +175,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <p className="text-[10px] text-orange-300/80 uppercase font-black tracking-widest mb-1">Plano Corporate</p>
                                     <p className="text-3xl font-black text-orange-400 mb-3">R$ 6.802,80<span className="text-lg text-slate-500 font-bold"> / ano</span></p>
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full w-max">Até 3 conexões simultâneas</span>
+                                        <span className="text-[10px] xl:text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1.5 rounded-lg w-fit leading-tight">Até 3 conexões simultâneas</span>
                                         <a href="https://www.teamviewer.com/pt-br/pricing/" target="_blank" rel="noreferrer" className="text-[10px] text-orange-300/50 hover:text-orange-300 underline transition-colors">Fonte: TeamViewer Pricing</a>
                                     </div>
                                 </div>
@@ -192,7 +192,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                     <p className="text-[10px] text-blue-300/80 uppercase font-black tracking-widest mb-1">Plano Advanced</p>
                                     <p className="text-3xl font-black text-blue-400 mb-3">R$ 4.405,00<span className="text-lg text-slate-500 font-bold"> / ano</span></p>
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1 rounded-full w-max">Licença para 2 conexões</span>
+                                        <span className="text-[10px] xl:text-xs text-slate-500 font-medium bg-slate-800 px-3 py-1.5 rounded-lg w-fit leading-tight">Licença para 2 conexões</span>
                                         <a href="https://anydesk.com/pt/encomendar" target="_blank" rel="noreferrer" className="text-[10px] text-blue-300/50 hover:text-blue-300 underline transition-colors">Fonte: AnyDesk Pricing</a>
                                     </div>
                                 </div>
