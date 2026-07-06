@@ -389,7 +389,10 @@ else {
     Write-Host "Enviando dados para o servidor: $serverUrl ..." -ForegroundColor Yellow
 
     try {
-        $headers = @{ "Bypass-Tunnel-Reminder" = "true" }
+        $headers = @{ 
+            "Bypass-Tunnel-Reminder" = "true"
+            "Authorization" = "Bearer EAV-SECURE-SYNC-2026-X1900"
+        }
         $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json" -Headers $headers
         if ($response.success) {
             Write-Host "Sincronização concluída com sucesso no perfil Cliente!" -ForegroundColor Green
@@ -432,6 +435,6 @@ else {
 }
 
 if (-not $Automated) {
-    Write-Host "`nPressione qualquer tecla para fechar..."
-    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+    Write-Host "`nA janela será fechada em 5 segundos..."
+    Start-Sleep -Seconds 5
 }
