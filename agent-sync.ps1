@@ -1,5 +1,5 @@
 param (
-    [string]$ServerIP = "127.0.0.1",
+    [string]$ServerIP = "tech.escolaamericana.com.br",
     [switch]$Automated,
     [string]$SavedCampus = ""
 )
