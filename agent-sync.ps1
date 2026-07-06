@@ -408,28 +408,32 @@ else {
 
     if (-not $Automated) {
         Write-Host "`nConfigurando a execucao em segundo plano (Servico Silencioso)..." -ForegroundColor Yellow
-        $installDir = "C:\EAV_Agente"
-        if (-not (Test-Path $installDir)) {
-            New-Item -ItemType Directory -Force -Path $installDir | Out-Null
-        }
-        $targetScript = Join-Path $installDir "agent-sync.ps1"
-        Copy-Item -Path $PSCommandPath -Destination $targetScript -Force
+        if ([string]::IsNullOrEmpty($PSCommandPath)) {
+            Write-Host "Aviso: O script foi executado colando o codigo no console. Para configurar o servico em segundo plano, voce deve executar o arquivo salvo (.ps1) clicando com o botao direito e indo em 'Executar com o PowerShell' ou rodando pelo caminho do arquivo." -ForegroundColor Red
+        } else {
+            $installDir = "C:\EAV_Agente"
+            if (-not (Test-Path $installDir)) {
+                New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+            }
+            $targetScript = Join-Path $installDir "agent-sync.ps1"
+            Copy-Item -Path $PSCommandPath -Destination $targetScript -Force
 
-        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
-        
-        $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
-        $triggerInterval = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Hours 4)
-        
-        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable
-        
-        try {
-            Register-ScheduledTask -TaskName "EAV-Sincronizacao" -Action $action -Trigger @($triggerLogon, $triggerInterval) -Settings $settings -User "SYSTEM" -RunLevel Highest -Force -ErrorAction Stop | Out-Null
-            Write-Host "Servico em segundo plano criado com sucesso via PowerShell!" -ForegroundColor Green
-        } catch {
-            Write-Host "Aviso: Nao foi possivel usar o PowerShell para agendar. Usando SchTasks como plano B..." -ForegroundColor Yellow
-            $cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
-            schtasks /create /tn "EAV-Sincronizacao" /ru "SYSTEM" /sc HOURLY /mo 4 /tr "$cmd" /f | Out-Null
-            Write-Host "Servico em segundo plano criado com sucesso via SchTasks! O sistema sera atualizado automaticamente a cada 4 horas." -ForegroundColor Green
+            $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
+            
+            $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
+            $triggerInterval = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Hours 4)
+            
+            $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable
+            
+            try {
+                Register-ScheduledTask -TaskName "EAV-Sincronizacao" -Action $action -Trigger @($triggerLogon, $triggerInterval) -Settings $settings -User "SYSTEM" -RunLevel Highest -Force -ErrorAction Stop | Out-Null
+                Write-Host "Servico em segundo plano criado com sucesso via PowerShell!" -ForegroundColor Green
+            } catch {
+                Write-Host "Aviso: Nao foi possivel usar o PowerShell para agendar. Usando SchTasks como plano B..." -ForegroundColor Yellow
+                $cmd = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$targetScript`" -ServerIP `"$ServerIP`" -Automated -SavedCampus `"$detectedCampus`""
+                schtasks /create /tn "EAV-Sincronizacao" /ru "SYSTEM" /sc HOURLY /mo 4 /tr "$cmd" /f | Out-Null
+                Write-Host "Servico em segundo plano criado com sucesso via SchTasks! O sistema sera atualizado automaticamente a cada 4 horas." -ForegroundColor Green
+            }
         }
     }
 }
