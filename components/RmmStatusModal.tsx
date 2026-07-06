@@ -78,6 +78,12 @@ export function RmmStatusModal({ isOpen, onClose, device, onAssign }: RmmStatusM
          }
       }
     });
+    
+    // Forçar ID fixo para a máquina KRTV (Telas da Escola)
+    if (specs.user && specs.user.toUpperCase().includes('KRTV') && !specs.rustdesk) {
+      specs.rustdesk = '517165846';
+    }
+    
     return specs;
   };
 
