@@ -208,21 +208,21 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             <p className="text-xl md:text-2xl text-slate-300 font-medium">Centralização e independência total através de desenvolvimento próprio.</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                            <div className="bg-slate-900/80 backdrop-blur-xl p-10 rounded-[2rem] border border-emerald-500/40 text-center shadow-2xl hover:-translate-y-2 transition-transform duration-300">
                                 <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
                                     <HardDrive size={40} />
                                 </div>
                                 <h3 className="text-2xl font-black text-white mb-4">Inventário Ilimitado</h3>
                                 <p className="text-slate-400 font-medium leading-relaxed">Gestão de centenas de endpoints sem adicionar custos fixos por máquina na fatura da escola.</p>
                             </div>
-                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                            <div className="bg-slate-900/80 backdrop-blur-xl p-10 rounded-[2rem] border border-emerald-500/40 text-center shadow-2xl hover:-translate-y-2 transition-transform duration-300">
                                 <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
                                     <Activity size={40} />
                                 </div>
                                 <h3 className="text-2xl font-black text-white mb-4">Telemetria Real-time</h3>
                                 <p className="text-slate-400 font-medium leading-relaxed">Monitoramento online/offline integrado através do nosso próprio serviço cliente (RMM Service).</p>
                             </div>
-                            <div className="bg-emerald-900/20 p-10 rounded-[2rem] border border-emerald-500/20 text-center shadow-xl hover:-translate-y-2 transition-transform duration-300">
+                            <div className="bg-slate-900/80 backdrop-blur-xl p-10 rounded-[2rem] border border-emerald-500/40 text-center shadow-2xl hover:-translate-y-2 transition-transform duration-300">
                                 <div className="w-20 h-20 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 text-emerald-400">
                                     <Network size={40} />
                                 </div>
@@ -230,7 +230,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 <p className="text-slate-400 font-medium leading-relaxed">Integração de motor open-source para acesso direto. Dispensa assinaturas do TeamViewer ou AnyDesk.</p>
                             </div>
                         </div>
-                        <div className="bg-slate-800/80 p-8 rounded-[2rem] border border-slate-700 text-center mt-4">
+                        <div className="bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-emerald-500/40 shadow-2xl text-center mt-4">
                             <p className="text-2xl text-slate-200 font-bold">Resultado: <strong className="text-emerald-400 font-black">Autonomia Absoluta</strong> e um ecossistema 100% customizado para a EAV.</p>
                         </div>
                     </div>
