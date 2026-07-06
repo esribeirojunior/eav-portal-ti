@@ -9,6 +9,10 @@ const StaticLegend = () => (
             <span className="font-bold text-sm" style={{ color: '#f43f5e' }}>ManageEngine</span>
         </div>
         <div className="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50 shadow-lg">
+            <div className="w-3 h-3 rounded-full bg-[#0ea5e9]"></div>
+            <span className="font-bold text-sm" style={{ color: '#0ea5e9' }}>FlashService</span>
+        </div>
+        <div className="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50 shadow-lg">
             <div className="w-3 h-3 rounded-full bg-[#f97316]"></div>
             <span className="font-bold text-sm" style={{ color: '#f97316' }}>TeamViewer</span>
         </div>
@@ -59,7 +63,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
 
     // Market Costs Reference
     const getManageEngineCost = (numEndpoints: number) => {
-        const dollarRate = 5.50; // Cotação aproximada do Dólar + Impostos (IOF)
+        const dollarRate = 5.14; // Cotação aproximada do Dólar + Impostos (IOF)
         let usdCost = 0;
         
         if (numEndpoints <= 50) usdCost = 1045;
@@ -76,10 +80,11 @@ export function ROIModule({ onBack }: ROIModuleProps) {
 
     const teamViewerCost = 6802.80; // R$ 6802,80 / ano (TeamViewer Corporate)
     const anyDeskCost = 4405.00; // R$ 4405 / ano (AnyDesk Advanced)
+    const flashServiceCost = 125 * 5.14 * 12; // R$ 7.710 / ano (US$ 125/mês * 12 meses)
     
     // Calculated Costs
     const marketRMM = getManageEngineCost(endpoints);
-    const marketTotal = marketRMM + teamViewerCost;
+    const marketTotal = marketRMM + teamViewerCost + flashServiceCost;
     const eavCost = 0; // The platform costs zero in extra licensing
 
     const savings1Year = marketTotal;
@@ -92,6 +97,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             name: 'Ano 1',
             Mercado: marketTotal,
             ManageEngine: marketRMM,
+            FlashService: flashServiceCost,
             TeamViewer: teamViewerCost,
             AnyDesk: anyDeskCost,
             EAV: eavCost,
@@ -100,6 +106,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             name: 'Ano 3',
             Mercado: marketTotal * 3,
             ManageEngine: marketRMM * 3,
+            FlashService: flashServiceCost * 3,
             TeamViewer: teamViewerCost * 3,
             AnyDesk: anyDeskCost * 3,
             EAV: eavCost,
@@ -108,6 +115,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
             name: 'Ano 5',
             Mercado: marketTotal * 5,
             ManageEngine: marketRMM * 5,
+            FlashService: flashServiceCost * 5,
             TeamViewer: teamViewerCost * 5,
             AnyDesk: anyDeskCost * 5,
             EAV: eavCost,
@@ -146,37 +154,48 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             <h2 className="text-4xl md:text-5xl font-poppins font-black text-[#a63429] mb-4">1. O Desafio de Mercado</h2>
                             <p className="text-xl md:text-2xl text-slate-600 font-medium font-montserrat">O alto custo das ferramentas tradicionais de prateleira (SaaS).</p>
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="bg-white p-8 rounded-[2rem] border border-[#a63429]/20 shadow-xl relative overflow-hidden flex flex-col">
-                                <HardDrive size={40} className="text-[#a63429] mb-6" />
-                                <h3 className="text-2xl font-black text-[#214478] mb-3 font-montserrat">Gestão de Ativos (RMM)</h3>
-                                <p className="text-base text-slate-600 mb-6 font-medium leading-relaxed flex-1 font-montserrat">Soluções profissionais (ManageEngine / NinjaOne) cobram licenças individuais por dispositivo.</p>
-                                <div className="p-5 bg-[#a63429]/10 rounded-2xl border border-[#a63429]/20">
-                                    <p className="font-montserrat text-[10px] text-[#a63429] uppercase font-black tracking-widest mb-1">ManageEngine Cloud Prof.</p>
-                                    <p className="font-poppins text-3xl font-black text-[#a63429] mb-3">US$ 6.545,00<span className="text-lg text-[#a63429]/70 font-bold"> / ano</span></p>
-                                    <span className="font-montserrat text-[10px] xl:text-xs text-[#a63429] font-medium bg-white/50 px-3 py-1.5 rounded-lg w-fit">Para ~300 computadores</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-white p-6 rounded-[2rem] border border-[#a63429]/20 shadow-xl relative overflow-hidden flex flex-col">
+                                <HardDrive size={32} className="text-[#a63429] mb-4" />
+                                <h3 className="text-xl font-black text-[#214478] mb-2 font-montserrat">Gestão de Ativos</h3>
+                                <p className="text-sm text-slate-600 mb-4 font-medium leading-relaxed flex-1 font-montserrat">Soluções profissionais cobram licenças individuais por dispositivo.</p>
+                                <div className="p-4 bg-[#a63429]/10 rounded-2xl border border-[#a63429]/20">
+                                    <p className="font-montserrat text-[9px] text-[#a63429] uppercase font-black tracking-widest mb-1">ManageEngine</p>
+                                    <p className="font-poppins text-2xl font-black text-[#a63429] mb-2">R$ 33.641,30<span className="text-sm text-[#a63429]/70 font-bold"> / ano</span></p>
+                                    <span className="font-montserrat text-[9px] text-[#a63429] font-medium bg-white/50 px-2 py-1 rounded-md w-fit">Para ~300 computadores</span>
                                 </div>
                             </div>
                             
-                            <div className="bg-white p-8 rounded-[2rem] border border-[#e3b23c]/40 shadow-xl relative overflow-hidden flex flex-col">
-                                <Network size={40} className="text-[#e3b23c] mb-6" />
-                                <h3 className="text-2xl font-black text-[#214478] mb-3 font-montserrat">Acesso Remoto (TeamViewer)</h3>
-                                <p className="text-base text-slate-600 mb-6 font-medium leading-relaxed flex-1 font-montserrat">Acesso desacompanhado com cobrança por conexões simultâneas.</p>
-                                <div className="p-5 bg-[#e3b23c]/10 rounded-2xl border border-[#e3b23c]/20">
-                                    <p className="font-montserrat text-[10px] text-[#e3b23c] uppercase font-black tracking-widest mb-1">Plano Corporate</p>
-                                    <p className="font-poppins text-3xl font-black text-[#e3b23c] mb-3">R$ 6.802,80<span className="text-lg text-[#e3b23c]/70 font-bold"> / ano</span></p>
-                                    <span className="font-montserrat text-[10px] xl:text-xs text-[#e3b23c] font-medium bg-white/50 px-3 py-1.5 rounded-lg w-fit">Até 3 conexões simultâneas</span>
+                            <div className="bg-white p-6 rounded-[2rem] border border-[#0ea5e9]/20 shadow-xl relative overflow-hidden flex flex-col">
+                                <Activity size={32} className="text-[#0ea5e9] mb-4" />
+                                <h3 className="text-xl font-black text-[#214478] mb-2 font-montserrat">Gestão de Serviços</h3>
+                                <p className="text-sm text-slate-600 mb-4 font-medium leading-relaxed flex-1 font-montserrat">Plataformas de atendimento de TI com cobrança baseada em volume.</p>
+                                <div className="p-4 bg-[#0ea5e9]/10 rounded-2xl border border-[#0ea5e9]/20">
+                                    <p className="font-montserrat text-[9px] text-[#0ea5e9] uppercase font-black tracking-widest mb-1">FlashService</p>
+                                    <p className="font-poppins text-2xl font-black text-[#0ea5e9] mb-2">R$ 7.710,00<span className="text-sm text-[#0ea5e9]/70 font-bold"> / ano</span></p>
+                                    <span className="font-montserrat text-[9px] text-[#0ea5e9] font-medium bg-white/50 px-2 py-1 rounded-md w-fit">Para 500 equipamentos</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white p-6 rounded-[2rem] border border-[#e3b23c]/40 shadow-xl relative overflow-hidden flex flex-col">
+                                <Network size={32} className="text-[#e3b23c] mb-4" />
+                                <h3 className="text-xl font-black text-[#214478] mb-2 font-montserrat">Acesso Remoto</h3>
+                                <p className="text-sm text-slate-600 mb-4 font-medium leading-relaxed flex-1 font-montserrat">Acesso desacompanhado com cobrança por conexões simultâneas.</p>
+                                <div className="p-4 bg-[#e3b23c]/10 rounded-2xl border border-[#e3b23c]/20">
+                                    <p className="font-montserrat text-[9px] text-[#e3b23c] uppercase font-black tracking-widest mb-1">TeamViewer</p>
+                                    <p className="font-poppins text-2xl font-black text-[#e3b23c] mb-2">R$ 6.802,80<span className="text-sm text-[#e3b23c]/70 font-bold"> / ano</span></p>
+                                    <span className="font-montserrat text-[9px] text-[#e3b23c] font-medium bg-white/50 px-2 py-1 rounded-md w-fit">3 conexões simultâneas</span>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-8 rounded-[2rem] border border-[#70508a]/20 shadow-xl relative overflow-hidden flex flex-col">
-                                <Network size={40} className="text-[#70508a] mb-6" />
-                                <h3 className="text-2xl font-black text-[#214478] mb-3 font-montserrat">Acesso Remoto (AnyDesk)</h3>
-                                <p className="text-base text-slate-600 mb-6 font-medium leading-relaxed flex-1 font-montserrat">Alternativa comercial com limite de dispositivos gerenciados.</p>
-                                <div className="p-5 bg-[#70508a]/10 rounded-2xl border border-[#70508a]/20">
-                                    <p className="font-montserrat text-[10px] text-[#70508a] uppercase font-black tracking-widest mb-1">Plano Advanced</p>
-                                    <p className="font-poppins text-3xl font-black text-[#70508a] mb-3">R$ 4.405,00<span className="text-lg text-[#70508a]/70 font-bold"> / ano</span></p>
-                                    <span className="font-montserrat text-[10px] xl:text-xs text-[#70508a] font-medium bg-white/50 px-3 py-1.5 rounded-lg w-fit">Licença para 2 conexões</span>
+                            <div className="bg-white p-6 rounded-[2rem] border border-[#70508a]/20 shadow-xl relative overflow-hidden flex flex-col">
+                                <Network size={32} className="text-[#70508a] mb-4" />
+                                <h3 className="text-xl font-black text-[#214478] mb-2 font-montserrat">Acesso Remoto</h3>
+                                <p className="text-sm text-slate-600 mb-4 font-medium leading-relaxed flex-1 font-montserrat">Alternativa comercial com limite de dispositivos gerenciados.</p>
+                                <div className="p-4 bg-[#70508a]/10 rounded-2xl border border-[#70508a]/20">
+                                    <p className="font-montserrat text-[9px] text-[#70508a] uppercase font-black tracking-widest mb-1">AnyDesk</p>
+                                    <p className="font-poppins text-2xl font-black text-[#70508a] mb-2">R$ 4.405,00<span className="text-sm text-[#70508a]/70 font-bold"> / ano</span></p>
+                                    <span className="font-montserrat text-[9px] text-[#70508a] font-medium bg-white/50 px-2 py-1 rounded-md w-fit">2 conexões</span>
                                 </div>
                             </div>
                         </div>
@@ -259,6 +278,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `R$ ${val/1000}k`} tick={{ fill: '#64748b', fontSize: 13, fontWeight: 700 }} />
                                             <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '1rem', color: '#1e293b', fontSize: '16px' }} formatter={(value: number) => formatCurrency(value)} />
                                             <Bar dataKey="ManageEngine" name="ManageEngine" fill="#a63429" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
+                                            <Bar dataKey="FlashService" name="FlashService" fill="#0ea5e9" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="TeamViewer" name="TeamViewer" fill="#e3b23c" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="AnyDesk" name="AnyDesk" fill="#70508a" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
                                             <Bar dataKey="EAV" name="Portal de Gestão de Ativos de TI" fill="#5b8a36" radius={[8, 8, 0, 0]} barSize={20} isAnimationActive={false} />
@@ -267,6 +287,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                 </div>
                                 <div className="flex flex-wrap justify-center gap-4 mt-8 w-full">
                                     <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#a63429]"></div><span className="font-bold text-sm text-slate-600">ManageEngine</span></div>
+                                    <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#0ea5e9]"></div><span className="font-bold text-sm text-slate-600">FlashService</span></div>
                                     <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#e3b23c]"></div><span className="font-bold text-sm text-slate-600">TeamViewer</span></div>
                                     <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#70508a]"></div><span className="font-bold text-sm text-slate-600">AnyDesk</span></div>
                                     <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#5b8a36]"></div><span className="font-bold text-sm text-slate-600">Portal EAV</span></div>
@@ -553,6 +574,7 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                                         formatter={(value: number) => formatCurrency(value)}
                                     />
                                     <Bar dataKey="ManageEngine" name="ManageEngine" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
+                                    <Bar dataKey="FlashService" name="FlashService" fill="#0ea5e9" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="TeamViewer" name="TeamViewer" fill="#f97316" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="AnyDesk" name="AnyDesk" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
                                     <Bar dataKey="EAV" name="Portal de Gestão de Ativos de TI" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} isAnimationActive={false} />
@@ -583,6 +605,23 @@ export function ROIModule({ onBack }: ROIModuleProps) {
                             </div>
 
                             <div className="h-px w-full bg-slate-200 dark:bg-white/5"></div>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Activity size={16} className="text-slate-400" />
+                                        <span className="text-sm font-bold text-slate-700 dark:text-white/80">Gestão de Serviços (ITSM)</span>
+                                    </div>
+                                    <span className="text-sm font-poppins font-black text-slate-800 dark:text-white">{formatCurrency(flashServiceCost)}</span>
+                                </div>
+                                <div className="text-[10px] text-slate-500 dark:text-white/40 font-medium mt-2 space-y-1 mb-6">
+                                    <p>
+                                        • FlashService (500 unid): <strong className="text-slate-700 dark:text-white/80">US$ 125,00/mês</strong> convertido para <strong className="text-slate-700 dark:text-white/80">{formatCurrency(flashServiceCost)} / ano</strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="h-px w-full bg-slate-200 dark:bg-white/5 mb-6"></div>
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">
