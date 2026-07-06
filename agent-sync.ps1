@@ -245,26 +245,6 @@ else {
         Write-Host "[AVISO] tvnserver.exe nao encontrado. Certifique-se de instalar o TightVNC Server manualmente para aplicar as configuracoes!" -ForegroundColor Yellow
     }
     
-    # Configurar Senha do RustDesk
-    Write-Host "`nVerificando instalacao do RustDesk para configurar a senha (Eav@Admin2026)..." -ForegroundColor Yellow
-    $rdInstallDirs = @("C:\Program Files\RustDesk", "C:\Program Files (x86)\RustDesk")
-    $rustdeskConfigured = $false
-    foreach ($dir in $rdInstallDirs) {
-        if (Test-Path $dir) {
-            $exes = Get-ChildItem -Path $dir -Filter "rustdesk*.exe" -File -ErrorAction SilentlyContinue
-            foreach ($exe in $exes) {
-                try {
-                    # RustDesk aceita --password <senha> para definir a senha permanente
-                    & $exe.FullName --password "Eav@Admin2026" 2>&1 | Out-Null
-                    $rustdeskConfigured = $true
-                    Write-Host "Senha do RustDesk configurada com sucesso via executavel ($($exe.Name))." -ForegroundColor Green
-                    break
-                } catch {}
-            }
-            if ($rustdeskConfigured) { break }
-        }
-    }
-    
     } # Fim do bloco if (-not $Automated)
 
     # Iniciar Coleta de Dados
