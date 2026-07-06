@@ -340,16 +340,18 @@ else {
     $rdPaths = @(
         "$env:APPDATA\RustDesk\config\RustDesk.toml",
         "$env:APPDATA\RustDesk\config\RustDesk2.toml",
+        "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config\RustDesk.toml",
+        "C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config\RustDesk2.toml",
         "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk.toml",
         "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk2.toml"
     )
     foreach ($rdFile in $rdPaths) {
         if (Test-Path $rdFile) {
             $rdContent = Get-Content $rdFile -ErrorAction SilentlyContinue
-            $idMatch = $rdContent | Select-String -Pattern "^id\s*=\s*'([^']+)'"
+            $idMatch = $rdContent | Select-String -Pattern "(?im)^id\s*=\s*['""]?([^'""\s]+)['""]?"
             if ($idMatch) {
-                $rustdeskId = $idMatch.Matches.Groups[1].Value
-                Write-Host "`nRustDesk ID detectado: $rustdeskId" -ForegroundColor Green
+                $rustdeskId = $idMatch.Matches[0].Groups[1].Value
+                Write-Host "`nRustDesk ID detectado: $rustdeskId (Arquivo: $rdFile)" -ForegroundColor Green
                 break
             }
         }
