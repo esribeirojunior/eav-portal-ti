@@ -334,6 +334,31 @@ else {
     }
 
     # ============================================
+    # IDENTIFICAÇÃO DE RUSTDESK (SUPORTE EXTERNO)
+    # ============================================
+    $rustdeskId = ""
+    $rdPaths = @(
+        "$env:APPDATA\RustDesk\config\RustDesk.toml",
+        "$env:APPDATA\RustDesk\config\RustDesk2.toml",
+        "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk.toml",
+        "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config\RustDesk2.toml"
+    )
+    foreach ($rdFile in $rdPaths) {
+        if (Test-Path $rdFile) {
+            $rdContent = Get-Content $rdFile -ErrorAction SilentlyContinue
+            $idMatch = $rdContent | Select-String -Pattern "^id\s*=\s*'([^']+)'"
+            if ($idMatch) {
+                $rustdeskId = $idMatch.Matches.Groups[1].Value
+                Write-Host "`nRustDesk ID detectado: $rustdeskId" -ForegroundColor Green
+                break
+            }
+        }
+    }
+    if (-not $rustdeskId) {
+        Write-Host "`nNenhum RustDesk ID foi detectado localmente." -ForegroundColor Yellow
+    }
+
+    # ============================================
     # IDENTIFICAÇÃO DE CAMPUS BASEADA NA REDE (IP/SSID)
     # ============================================
     $detectedCampus = "Álvares"
@@ -382,6 +407,7 @@ else {
         battery_health = $batteryInfoStr
         monitors = $monitorsStr
         campus = $detectedCampus
+        rustdesk_id = $rustdeskId
     }
 
     $serverUrl = "${baseUrl}/api/agent/sync"
