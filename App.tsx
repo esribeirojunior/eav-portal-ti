@@ -771,7 +771,7 @@ const App: React.FC = () => {
   // Filtra fora acessórios virtuais (criados pela Entrega Rápida) da listagem e contagem geral do inventário
   const activeDevices = devices.filter(d => !(d.serialNumber || '').startsWith('ACESSÓRIO'));
 
-  const triageDevicesForStats = activeDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department);
+  const triageDevicesForStats = activeDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
   const availableDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
   const inUseDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));
   const maintenanceDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.MAINTENANCE && !triageDevicesForStats.find(t => t.id === d.id));
