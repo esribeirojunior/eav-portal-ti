@@ -1058,11 +1058,14 @@ ${JSON.stringify(devices.map(d => {
   if (d.condition && d.condition.includes('Usuário Logado: ')) {
     loggedUser = d.condition.split('Usuário Logado: ')[1].split(' |')[0];
   }
-  return { ID: d.id, SN: d.serial_number || d.serialNumber, Hostname: hostname, IP: ip, Tipo: d.type, UsuarioAtivo: loggedUser, Campus: d.campus, Status: d.status, Model: d.model, Dept: d.departmentId };
+  const activeAssign = assignments.find(a => String(a.device_id) === String(d.id) && !a.returned_at);
+  const deviceCampus = activeAssign ? (activeAssign.campus || 'Desconhecido') : 'Desconhecido';
+  const deviceDept = activeAssign ? activeAssign.department_id : null;
+  return { ID: d.id, SN: d.serial_number || d.serialNumber, Hostname: hostname, IP: ip, Tipo: d.type, UsuarioAtivo: loggedUser, Campus: deviceCampus, Status: d.status, Model: d.model, Dept: deviceDept };
 }), null, 2)}
 
 Resumo dos Empréstimos Ativos:
-${JSON.stringify(assignments.filter(a => !a.returned_at).map(a => ({ DeviceID: a.device_id, User: a.user_name, Date: a.assigned_at })), null, 2)}
+${JSON.stringify(assignments.filter(a => !a.returned_at).map(a => ({ DeviceID: a.device_id, User: a.user_name, Campus: a.campus, Date: a.assigned_at })), null, 2)}
 
 Últimos 30 Registros de Atividades (Auditoria / Histórico de quem fez o quê por último):
 ${JSON.stringify(audit_logs.slice(-30).map(a => ({ Acao: a.action, Device: a.device_id, Detalhes: a.details, Usuario: a.user_email, Data: a.timestamp })), null, 2)}
