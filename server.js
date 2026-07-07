@@ -682,66 +682,6 @@ app.post('/api/agent/sync', async (req, res) => {
     
     sendRealtimeUpdate('devices');
 
-    // ============================================
-    // MOTOR DE AUTO-ATRIBUIÇÃO (AUTO-ASSIGNMENT)
-    // ============================================
-    const cleanUsername = username ? (username.includes('\\') ? username.split('\\').pop() : username) : 'Desconhecido';
-    
-    if (cleanUsername !== 'Desconhecido') {
-      const assignments = await readDBTable('assignments');
-      const activeAssignmentIndex = assignments.findIndex(a => a.device_id === targetDevice.id && !a.returned_at);
-      
-      let needsNewAssignment = false;
-      let lastCampus = campus || '';
-      let lastDepartment = '';
-
-      if (activeAssignmentIndex >= 0) {
-        const currentAssign = assignments[activeAssignmentIndex];
-        if (!lastCampus) lastCampus = currentAssign.campus || '';
-        lastDepartment = currentAssign.department_id || '';
-        
-        // Se a máquina estiver com outro usuário, encerra o empréstimo antigo
-        if (currentAssign.user_name.toLowerCase() !== cleanUsername.toLowerCase()) {
-          const sql = convertPlaceholders('UPDATE assignments SET returned_at=? WHERE id=?');
-          await pool.query(sql, [new Date().toISOString(), currentAssign.id]);
-          needsNewAssignment = true;
-        } else if (campus && currentAssign.campus !== campus) {
-          // Se o campus mudou e o usuário é o mesmo, atualiza o campus do empréstimo ativo
-          const sql = convertPlaceholders('UPDATE assignments SET campus=? WHERE id=?');
-          await pool.query(sql, [campus, currentAssign.id]);
-        }
-      } else {
-        // Encontrar os dados da última atribuição (histórico) para herdar o departamento
-        const pastAssignments = assignments.filter(a => a.device_id === targetDevice.id).sort((a,b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime());
-        if (pastAssignments.length > 0) {
-          if (!lastCampus) lastCampus = pastAssignments[pastAssignments.length - 1].campus || '';
-          lastDepartment = pastAssignments[pastAssignments.length - 1].department_id || '';
-        }
-        needsNewAssignment = true;
-      }
-
-      if (needsNewAssignment) {
-        const newAssignment = {
-          id: Math.random().toString(36).substring(2, 9),
-          device_id: targetDevice.id,
-          user_name: cleanUsername,
-          department_id: lastDepartment || 'ti-dept-id-triagem',
-          assigned_at: new Date().toISOString(),
-          returned_at: '',
-          return_photo_url: '',
-          user_role: 'Colaborador',
-          grade: '',
-          campus: lastCampus || 'Aeroporto',
-          created_at: new Date().toISOString()
-        };
-        const aKeys = Object.keys(newAssignment);
-        const aPlaceholders = aKeys.map(() => '?').join(', ');
-        const sql = convertPlaceholders(`INSERT INTO assignments (${aKeys.join(', ')}) VALUES (${aPlaceholders})`);
-        await pool.query(sql, aKeys.map(k => newAssignment[k]));
-        sendRealtimeUpdate('assignments');
-      }
-    }
-
     return res.json({ success: true, action: actionStr, device: targetDevice });
   } catch (err) {
     console.error('[Agent Sync] Erro:', err);
