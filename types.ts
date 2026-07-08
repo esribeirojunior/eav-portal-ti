@@ -97,6 +97,7 @@ export interface ITTask {
   due_date?: string;
   created_by: string;
   created_at: string;
+  assigned_to?: string;
 }
 
 export interface ITTaskComment {

@@ -16,7 +16,8 @@ import {
     ArrowLeft,
     Loader2,
     Trash2,
-    AlertOctagon
+    AlertOctagon,
+    User
 } from 'lucide-react';
 
 interface TasksModuleProps {
@@ -38,10 +39,20 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     const [newTaskDesc, setNewTaskDesc] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
     const [newTaskDueDate, setNewTaskDueDate] = useState('');
+    const [newTaskAssignedTo, setNewTaskAssignedTo] = useState('');
+    const [systemUsers, setSystemUsers] = useState<any[]>([]);
 
     useEffect(() => {
         fetchTasks();
+        fetchSystemUsers();
     }, []);
+
+    const fetchSystemUsers = async () => {
+        try {
+            const { data, error } = await apiClient.from('authorized_users').select('email');
+            if (data) setSystemUsers(data);
+        } catch (err) {}
+    };
 
     useEffect(() => {
         if (selectedTask) {
@@ -92,6 +103,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                     priority: newTaskPriority,
                     due_date: newTaskDueDate || null,
                     created_by: userEmail,
+                    assigned_to: newTaskAssignedTo || null,
                     status: 'pending'
                 }]);
 
@@ -102,10 +114,24 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
             setNewTaskDesc('');
             setNewTaskPriority('medium');
             setNewTaskDueDate('');
+            setNewTaskAssignedTo('');
             fetchTasks();
         } catch (err) {
             console.error('Error creating task:', err);
             alert('Erro ao criar tarefa');
+        }
+    };
+
+    const handleAssignTask = async (taskId: string, assignedTo: string) => {
+        try {
+            const { error } = await apiClient.from('it_tasks').update({ assigned_to: assignedTo || null }).eq('id', taskId);
+            if (error) throw error;
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, assigned_to: assignedTo || undefined } : t));
+            if (selectedTask && selectedTask.id === taskId) {
+                setSelectedTask(prev => prev ? { ...prev, assigned_to: assignedTo || undefined } : null);
+            }
+        } catch (err) {
+            console.error('Error assigning task:', err);
         }
     };
 
@@ -190,9 +216,10 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
     const filteredTasks = React.useMemo(() => {
         return tasks.filter(t => {
             if (filterStatus === 'all') return true;
+            if (filterStatus === 'mine') return t.assigned_to === userEmail || t.created_by === userEmail;
             return t.status === filterStatus;
         });
-    }, [tasks, filterStatus]);
+    }, [tasks, filterStatus, userEmail]);
 
     return (
         <div className="flex h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden">
@@ -207,7 +234,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                         >
                             <ArrowLeft size={20} />
                         </button>
-                        <h1 className="text-2xl font-[900] uppercase tracking-tighter">Tarefas TI</h1>
+                        <h1 className="text-2xl font-[900] uppercase tracking-tighter text-slate-800 dark:text-white leading-none">Gestão de Chamados</h1>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -224,6 +251,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                         {[
                             { id: 'all', label: 'Todas' },
+                            { id: 'mine', label: 'Meus Chamados' },
                             { id: 'pending', label: 'Pendentes' },
                             { id: 'in_progress', label: 'Em Progresso' },
                             { id: 'blocked', label: 'Bloqueado' },
@@ -279,12 +307,20 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                                             {task.status === 'in_progress' ? 'Em Progresso' : task.status === 'pending' ? 'Pendente' : task.status === 'completed' ? 'Concluído' : 'Bloqueado'}
                                         </span>
                                     </div>
+                                    <div className="flex gap-2 items-center">
+                                    {task.assigned_to && (
+                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-white/5 rounded-md text-[10px]" title={`Responsável: ${task.assigned_to}`}>
+                                            <User size={12} className="text-indigo-500" />
+                                            <span className="truncate max-w-[80px]">{task.assigned_to.split('@')[0]}</span>
+                                        </div>
+                                    )}
                                     {task.due_date && (
                                         <div className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-white/5 rounded-md text-[10px]">
                                             <Calendar size={12} />
                                             <span>{new Date(task.due_date).toLocaleDateString('pt-BR')}</span>
                                         </div>
                                     )}
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -357,6 +393,19 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                                     <div className="space-y-1">
                                         <p className="text-[10px] uppercase tracking-widest text-slate-700 dark:text-white/30 font-bold">Criado por</p>
                                         <p className="text-xs text-slate-700 dark:text-white/70">{selectedTask.created_by}</p>
+                                    </div>
+                                    <div className="space-y-1 flex-1">
+                                        <p className="text-[10px] uppercase tracking-widest text-slate-700 dark:text-white/30 font-bold">Responsável</p>
+                                        <select 
+                                            value={selectedTask.assigned_to || ''} 
+                                            onChange={(e) => handleAssignTask(selectedTask.id, e.target.value)}
+                                            className="w-full bg-transparent border-b border-slate-400 dark:border-white/20 text-xs text-indigo-600 dark:text-indigo-400 font-bold pb-1 outline-none"
+                                        >
+                                            <option value="">Não Atribuído</option>
+                                            {systemUsers.map(u => (
+                                                <option key={u.email} value={u.email} className="bg-white dark:bg-slate-900">{u.email}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     {selectedTask.due_date && (
                                         <div className="space-y-1">
@@ -467,7 +516,7 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] uppercase tracking-widest font-bold text-slate-700 dark:text-white/50">Prioridade</label>
                                     <select
@@ -482,6 +531,19 @@ const TasksModuleComponent: React.FC<TasksModuleProps> = ({ userEmail, onBack })
                                     </select>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase tracking-widest font-bold text-slate-700 dark:text-white/50">Atribuir para (Opcional)</label>
+                                    <select
+                                        className="w-full bg-white dark:bg-white/5 border border-slate-400 dark:border-white/10 rounded-xl py-4 px-5 text-sm text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all appearance-none"
+                                        value={newTaskAssignedTo}
+                                        onChange={e => setNewTaskAssignedTo(e.target.value)}
+                                    >
+                                        <option value="" className="bg-white dark:bg-[#1a1b3b]">Não atribuir agora</option>
+                                        {systemUsers.map(u => (
+                                            <option key={u.email} value={u.email} className="bg-white dark:bg-[#1a1b3b]">{u.email}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] uppercase tracking-widest font-bold text-slate-700 dark:text-white/50">Prazo (Opcional)</label>
                                     <input

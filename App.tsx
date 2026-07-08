@@ -771,28 +771,29 @@ const App: React.FC = () => {
   // Filtra fora acessórios virtuais (criados pela Entrega Rápida) da listagem e contagem geral do inventário
   const activeDevices = devices.filter(d => !(d.serialNumber || '').startsWith('ACESSÓRIO'));
 
-  const triageDevicesForStats = activeDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
-  const availableDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
-  const inUseDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));
-  const maintenanceDevicesForStats = activeDevices.filter(d => d.status === DeviceStatus.MAINTENANCE && !triageDevicesForStats.find(t => t.id === d.id));
+  const searchedDevices = activeDevices.filter(d => {
+    const term = searchQuery.toLowerCase();
+    return (d.tag || '').toLowerCase().includes(term) ||
+           (d.model || '').toLowerCase().includes(term) ||
+           (d.serialNumber || '').toLowerCase().includes(term) ||
+           (d.responsible || '').toLowerCase().includes(term) ||
+           (d.currentAssignment?.userName || '').toLowerCase().includes(term);
+  });
+
+  const triageDevicesForStats = searchedDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
+  const availableDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
+  const inUseDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));
+  const maintenanceDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.MAINTENANCE && !triageDevicesForStats.find(t => t.id === d.id));
 
   const stats = {
-    total: activeDevices.length,
+    total: searchedDevices.length,
     available: availableDevicesForStats.length,
     inUse: inUseDevicesForStats.length,
     maintenance: maintenanceDevicesForStats.length,
     triage: triageDevicesForStats.length,
   };
 
-  const filteredDevices = activeDevices.filter(d => {
-    const term = searchQuery.toLowerCase();
-    const matchesSearch =
-      (d.tag || '').toLowerCase().includes(term) ||
-      (d.model || '').toLowerCase().includes(term) ||
-      (d.serialNumber || '').toLowerCase().includes(term) ||
-      (d.responsible || '').toLowerCase().includes(term) ||
-      (d.currentAssignment?.userName || '').toLowerCase().includes(term);
-
+  const filteredDevices = searchedDevices.filter(d => {
     const matchesCategory =
       selectedCategory === 'Todos' ? true :
         selectedCategory === 'Manutenção' ? d.status === DeviceStatus.MAINTENANCE :
@@ -819,9 +820,8 @@ const App: React.FC = () => {
         ) : false
       ) : false;
 
-    return matchesSearch && matchesCategory && matchesCampus;
+    return matchesCategory && matchesCampus;
   });
-
   if (!isAuthenticated && sharedTutorialId) {
     return (
       <div className="min-h-screen bg-[#0c0d21]">
