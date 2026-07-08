@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, LogOut } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 import { ITTask, ITTaskComment } from '../types';
 
 interface TasksModuleProps {
     onClose?: () => void;
+    onLogout?: () => void;
     userEmail: string;
 }
 
-const TasksModuleComponent = ({ onClose, userEmail }: TasksModuleProps) => {
+const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps) => {
     const [tasks, setTasks] = useState<ITTask[]>([]);
     const [selectedTask, setSelectedTask] = useState<ITTask | null>(null);
     const [comments, setComments] = useState<ITTaskComment[]>([]);
@@ -199,6 +200,11 @@ const TasksModuleComponent = ({ onClose, userEmail }: TasksModuleProps) => {
                     <button onClick={() => setIsNewTaskModalOpen(true)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-md shadow-indigo-500/20">
                         <Plus size={16} /> Criar Chamado
                     </button>
+                    {!onClose && onLogout && (
+                        <button onClick={onLogout} className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm ml-2">
+                            <LogOut size={16} /> Sair
+                        </button>
+                    )}
                 </div>
             </header>
 

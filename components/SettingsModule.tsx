@@ -254,6 +254,7 @@ export const SettingsModule = ({ userEmail }: SettingsModuleProps) => {
                                                         >
                                                             <option value="superadmin">Super Admin</option>
                                                             <option value="admin">Administrador</option>
+                                                            <option value="chamados">Apenas Chamados</option>
                                                             <option value="viewer">Somente Leitura</option>
                                                         </select>
                                                     </td>

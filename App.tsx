@@ -1184,6 +1184,7 @@ const App: React.FC = () => {
         <TasksModule
           userEmail={userEmail}
           onClose={(userRole === 'admin' || userRole === 'superadmin') ? () => setCurrentModule('selector') : undefined}
+          onLogout={handleLogout}
         />
       )}
 
@@ -1283,7 +1284,9 @@ const App: React.FC = () => {
       </button>
 
       {/* EAV COPILOT (Chatbot IA) */}
-      <Copilot userRole={userRole} userEmail={userEmail} />
+      {(userRole === 'admin' || userRole === 'superadmin') && (
+        <Copilot userRole={userRole} userEmail={userEmail} />
+      )}
     </div >
   );
 };

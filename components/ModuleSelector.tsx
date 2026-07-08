@@ -155,18 +155,18 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('tasks') && (
                                 <button 
                                     onClick={() => onSelectModule('tasks')}
-                                    className="group flex flex-col justify-between p-7 bg-indigo-600 dark:bg-indigo-900 border border-indigo-500 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-900/40 min-h-[280px]"
+                                    className="group flex flex-col justify-between p-7 bg-white dark:bg-slate-900 border border-indigo-600 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-900/20 min-h-[280px]"
                                 >
                                     <div>
-                                        <div className="w-12 h-12 rounded-xl bg-white/20 shadow-sm flex items-center justify-center mb-6 backdrop-blur-md">
-                                            <Headset size={24} className="text-white" />
+                                        <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6">
+                                            <Headset size={24} className="text-indigo-700" />
                                         </div>
-                                        <h4 className="text-lg font-bold text-white mb-3">Central de Chamados</h4>
-                                        <p className="text-sm text-indigo-100 leading-relaxed font-medium">
+                                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Central de Chamados</h4>
+                                        <p className="text-sm text-slate-800 dark:text-slate-300 leading-relaxed font-medium">
                                             Abra tickets, acompanhe suporte e organize tarefas da TI.
                                         </p>
                                     </div>
-                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-white group-hover:gap-2 transition-all">
+                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-indigo-700 dark:text-indigo-500 group-hover:gap-2 transition-all">
                                         <span className="mr-2">→</span> Acessar
                                     </div>
                                 </button>
