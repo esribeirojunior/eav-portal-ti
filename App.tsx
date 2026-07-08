@@ -478,7 +478,10 @@ const App: React.FC = () => {
   }, [theme]);
 
   // --- STATE: Controle de Módulos ---
-  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage' | 'mosyle'>('selector');
+  const [currentModule, setCurrentModule] = useState<'selector' | 'assets' | 'links' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage' | 'mosyle' | 'roi'>(() => {
+    const savedRole = localStorage.getItem('user_role') || 'admin';
+    return (savedRole !== 'admin' && savedRole !== 'superadmin') ? 'tasks' : 'selector';
+  });
 
   const params = new URLSearchParams(window.location.search);
   const sharedTutorialId = params.get('tutorialId');
@@ -762,6 +765,12 @@ const App: React.FC = () => {
         } catch (e) {
           console.error("Failed to parse modules on login", e);
         }
+      }
+      
+      if (role !== 'admin' && role !== 'superadmin') {
+        setCurrentModule('tasks');
+      } else {
+        setCurrentModule('selector');
       }
       
       fetchDevices();
@@ -1174,7 +1183,7 @@ const App: React.FC = () => {
       {currentModule === 'tasks' && (
         <TasksModule
           userEmail={userEmail}
-          onBack={() => setCurrentModule('lab')}
+          onClose={(userRole === 'admin' || userRole === 'superadmin') ? () => setCurrentModule('selector') : undefined}
         />
       )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users, MonitorPlay, TrendingUp } from 'lucide-react';
+import { Box, ExternalLink, Beaker, Activity, LogOut, LayoutGrid, Settings, Plus, Users, MonitorPlay, TrendingUp, Headset } from 'lucide-react';
 
 interface ModuleSelectorProps {
     onSelectModule: (module: 'assets' | 'links' | 'employees' | 'audit' | 'tasks' | 'vault' | 'tutorials' | 'lab' | 'settings' | 'signage' | 'roi') => void;
@@ -44,6 +44,11 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                             {hasModule('assets') && (
                                 <button onClick={() => onSelectModule('assets')} className="flex items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
                                     <Box size={16} /> Gestão de Ativos
+                                </button>
+                            )}
+                            {hasModule('tasks') && (
+                                <button onClick={() => onSelectModule('tasks')} className="flex items-center gap-3 text-sm font-medium text-slate-800 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-colors text-left">
+                                    <Headset size={16} /> Central de Chamados
                                 </button>
                             )}
                             {hasModule('links') && (
@@ -141,6 +146,27 @@ export const ModuleSelector = ({ onSelectModule, onLogout, userEmail, userRole, 
                                         </p>
                                     </div>
                                     <div className="mt-6 flex items-center text-[13px] font-semibold text-blue-700 dark:text-blue-500 group-hover:gap-2 transition-all">
+                                        <span className="mr-2">→</span> Acessar
+                                    </div>
+                                </button>
+                            )}
+
+                            {/* Central de Chamados (Featured) */}
+                            {hasModule('tasks') && (
+                                <button 
+                                    onClick={() => onSelectModule('tasks')}
+                                    className="group flex flex-col justify-between p-7 bg-indigo-600 dark:bg-indigo-900 border border-indigo-500 rounded-[1.5rem] text-left transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-900/40 min-h-[280px]"
+                                >
+                                    <div>
+                                        <div className="w-12 h-12 rounded-xl bg-white/20 shadow-sm flex items-center justify-center mb-6 backdrop-blur-md">
+                                            <Headset size={24} className="text-white" />
+                                        </div>
+                                        <h4 className="text-lg font-bold text-white mb-3">Central de Chamados</h4>
+                                        <p className="text-sm text-indigo-100 leading-relaxed font-medium">
+                                            Abra tickets, acompanhe suporte e organize tarefas da TI.
+                                        </p>
+                                    </div>
+                                    <div className="mt-6 flex items-center text-[13px] font-semibold text-white group-hover:gap-2 transition-all">
                                         <span className="mr-2">→</span> Acessar
                                     </div>
                                 </button>
