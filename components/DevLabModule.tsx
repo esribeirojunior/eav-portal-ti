@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Beaker, ChevronLeft, Phone, RefreshCw, Loader2, Info, LayoutGrid, Clock, Users, ShieldCheck, Activity, PhoneCall, PhoneForwarded, PhoneOff, Search, BookOpen, ListTodo, Smartphone } from 'lucide-react';
+import { Beaker, ChevronLeft, Phone, RefreshCw, Loader2, Info, LayoutGrid, Clock, Users, ShieldCheck, Activity, PhoneCall, PhoneForwarded, PhoneOff, Search, BookOpen, ListTodo, Smartphone, Headset } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 
 interface DevLabModuleProps {
@@ -146,6 +146,29 @@ const DevLabModule = ({ onBack, userEmail, onSelectModule }: DevLabModuleProps) 
 
                 {!activeProject ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Central de Chamados */}
+                        <button 
+                            onClick={() => onSelectModule && onSelectModule('tasks')}
+                            className="group bg-white dark:bg-slate-900/60 p-10 rounded-[3rem] border border-slate-400 dark:border-white/5 shadow-sm hover:shadow-md dark:shadow-none hover:border-emerald-500/30 transition-all hover:translate-y-[-8px] text-left relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-emerald-600/10 transition-all" />
+                            <div className="relative z-10 space-y-8">
+                                <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform duration-500">
+                                    <Headset size={32} />
+                                </div>
+                                <div className="space-y-3">
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">Central de Chamados</h3>
+                                    <p className="text-slate-800 dark:text-white/40 text-sm font-medium leading-relaxed italic">
+                                        Gestão de incidentes e atendimento ao usuário.
+                                    </p>
+                                </div>
+                                <div className="pt-4 flex items-center gap-3 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest group-hover:gap-5 transition-all">
+                                    <span>Acessar</span>
+                                    <Activity size={14} />
+                                </div>
+                            </div>
+                        </button>
+
                         {/* Monitor de Campus */}
                         <button 
                             onClick={() => setActiveProject('monitcall')}
