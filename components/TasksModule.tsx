@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, LogOut, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, LogOut, Trash2, Paperclip, ImageIcon } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 import { ITTask, ITTaskComment } from '../types';
 
@@ -15,6 +15,8 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
     const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
     const [comments, setComments] = useState<ITTaskComment[]>([]);
     const [newComment, setNewComment] = useState('');
+    const [newCommentFile, setNewCommentFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const [systemUsers, setSystemUsers] = useState<any[]>([]);
     
     // Filters
@@ -29,6 +31,37 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
     const [newTaskPriority, setNewTaskPriority] = useState('medium');
     const [newTaskDueDate, setNewTaskDueDate] = useState('');
     const [newTaskAssignedTo, setNewTaskAssignedTo] = useState('');
+    const [newTaskFile, setNewTaskFile] = useState<File | null>(null);
+
+    const uploadFile = async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        return data.url;
+    };
+
+    const getSLAStatus = (task: ITTask) => {
+        if (task.status === 'completed') return null;
+        
+        const created = new Date(task.created_at).getTime();
+        const now = Date.now();
+        const diffHours = (now - created) / (1000 * 60 * 60);
+        
+        let limitHours = 48; // low
+        if (task.priority === 'medium') limitHours = 24;
+        if (task.priority === 'high') limitHours = 4;
+        if (task.priority === 'critical') limitHours = 2;
+        
+        const remaining = limitHours - diffHours;
+        
+        if (remaining < 0) {
+            return <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded animate-pulse"><AlertCircle size={10} /> Vencido a {Math.abs(Math.round(remaining))}h</span>;
+        } else if (remaining < limitHours * 0.25) {
+            return <span className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded"><Clock size={10} /> Restam {Math.round(remaining)}h</span>;
+        }
+        return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded"><Clock size={10} /> no prazo</span>;
+    };
 
     useEffect(() => {
         fetchTasks();
@@ -75,6 +108,12 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            setIsUploading(true);
+            let attachment_url = null;
+            if (newTaskFile) {
+                attachment_url = await uploadFile(newTaskFile);
+            }
+
             const { error } = await apiClient.from('it_tasks')
                 .insert([{
                     title: newTaskTitle,
@@ -83,7 +122,8 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                     due_date: newTaskDueDate || null,
                     created_by: userEmail,
                     assigned_to: newTaskAssignedTo || null,
-                    status: 'pending'
+                    status: 'pending',
+                    attachment_url
                 }]);
             
             if (error) throw error;
@@ -94,10 +134,13 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
             setNewTaskPriority('medium');
             setNewTaskDueDate('');
             setNewTaskAssignedTo('');
+            setNewTaskFile(null);
             fetchTasks();
         } catch (err) {
             console.error('Error creating task:', err);
             alert('Erro ao criar tarefa');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -129,21 +172,32 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
 
     const handlePostComment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedTask || !newComment.trim()) return;
+        if (!selectedTask || (!newComment.trim() && !newCommentFile)) return;
 
         try {
+            setIsUploading(true);
+            let attachment_url = null;
+            if (newCommentFile) {
+                attachment_url = await uploadFile(newCommentFile);
+            }
+
             const { error } = await apiClient.from('it_task_comments')
                 .insert([{
                     task_id: selectedTask.id,
                     user_email: userEmail,
-                    content: newComment.trim()
+                    content: newComment.trim(),
+                    attachment_url
                 }]);
 
             if (error) throw error;
             setNewComment('');
+            setNewCommentFile(null);
             fetchComments(selectedTask.id);
         } catch (err) {
             console.error('Error posting comment:', err);
+            alert('Erro ao enviar mensagem');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -227,6 +281,40 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
             {/* Main Area Container */}
             <div className="flex-1 overflow-hidden p-4 md:p-6 flex gap-6">
                 
+                <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+                    {/* MINI-DASHBOARD (Only if !onClose) */}
+                    {!onClose && (
+                        <div className="grid grid-cols-3 gap-4 flex-shrink-0 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">Meus Chamados Abertos</p>
+                                    <h3 className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{tasks.filter(t => t.created_by === userEmail && t.status !== 'completed').length}</h3>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                    <AlertCircle size={20} />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">Chamados Resolvidos</p>
+                                    <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{tasks.filter(t => t.created_by === userEmail && t.status === 'completed').length}</h3>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                    <CheckCircle2 size={20} />
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">Mensagens Totais</p>
+                                    <h3 className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{tasks.filter(t => t.created_by === userEmail).length}</h3>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <MessageSquare size={20} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 {/* Data Table */}
                 <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-xl flex flex-col shadow-sm overflow-hidden relative">
                     <div className="p-4 border-b border-slate-300 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
@@ -333,6 +421,9 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                                     {task.priority === 'critical' ? 'Crítica' : task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
                                                 </span>
                                             </div>
+                                            <div className="mt-1 flex">
+                                                {getSLAStatus(task)}
+                                            </div>
                                         </td>
                                         <td className="p-4">
                                             {task.assigned_to ? (
@@ -348,6 +439,7 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                 ))}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
 
@@ -472,6 +564,14 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                     <h3 className="text-xs uppercase font-bold text-slate-500 mb-3 flex items-center gap-2"><AlertCircle size={14} className="text-indigo-500" /> Descrição Original</h3>
                                     <div className="p-5 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-200 dark:border-white/5 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
                                         {selectedTask.description || <span className="italic opacity-50">Nenhuma descrição fornecida pelo solicitante.</span>}
+                                        {selectedTask.attachment_url && (
+                                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                                <p className="text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5"><ImageIcon size={14} /> Anexo do Chamado</p>
+                                                <a href={selectedTask.attachment_url} target="_blank" rel="noreferrer">
+                                                    <img src={selectedTask.attachment_url} alt="Anexo" className="max-w-full h-auto max-h-64 rounded-lg border border-slate-200 dark:border-white/10 hover:opacity-90 transition-opacity object-contain bg-slate-100 dark:bg-slate-800" />
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -490,6 +590,13 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                                         <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{new Date(comment.created_at).toLocaleString()}</span>
                                                     </div>
                                                     <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+                                                    {comment.attachment_url && (
+                                                        <div className="mt-3">
+                                                            <a href={comment.attachment_url} target="_blank" rel="noreferrer">
+                                                                <img src={comment.attachment_url} alt="Anexo" className="max-w-full h-auto max-h-48 rounded border border-slate-200 dark:border-white/10 hover:opacity-90 transition-opacity object-contain bg-slate-100 dark:bg-slate-800" />
+                                                            </a>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -508,24 +615,48 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
 
                         {/* Comment Input Sticky Footer */}
                         <div className="p-4 lg:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] flex-shrink-0">
-                            <form onSubmit={handlePostComment} className="relative">
-                                <div className="absolute left-4 top-4 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                                    {userEmail.substring(0,2).toUpperCase()}
+                            <form onSubmit={handlePostComment} className="relative flex flex-col gap-2">
+                                <div className="relative">
+                                    <div className="absolute left-4 top-4 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                                        {userEmail.substring(0,2).toUpperCase()}
+                                    </div>
+                                    <textarea
+                                        placeholder="Adicionar uma nota ou resposta..."
+                                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded-2xl py-4 pl-14 pr-24 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none transition-all dark:text-white"
+                                        rows={2}
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                    />
+                                    
+                                    <label className="absolute right-12 bottom-3 p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-xl cursor-pointer transition-colors" title="Anexar Imagem">
+                                        <Paperclip size={18} />
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) setNewCommentFile(e.target.files[0]);
+                                            }}
+                                        />
+                                    </label>
+                                    
+                                    <button
+                                        type="submit"
+                                        disabled={(!newComment.trim() && !newCommentFile) || isUploading}
+                                        className="absolute right-3 bottom-3 p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                                    >
+                                        <Send size={18} />
+                                    </button>
                                 </div>
-                                <textarea
-                                    placeholder="Adicionar uma nota ou resposta..."
-                                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-300 dark:border-white/10 rounded-2xl py-4 pl-14 pr-16 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 resize-none transition-all dark:text-white"
-                                    rows={2}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newComment.trim()}
-                                    className="absolute right-3 bottom-3 p-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
-                                >
-                                    <Send size={16} />
-                                </button>
+                                {newCommentFile && (
+                                    <div className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 p-2 rounded-lg self-start">
+                                        <Paperclip size={12} />
+                                        <span className="truncate max-w-[200px]">{newCommentFile.name}</span>
+                                        <button type="button" onClick={() => setNewCommentFile(null)} className="text-red-500 ml-2 hover:text-red-700"><X size={12} /></button>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
                             </form>
                         </div>
                     </div>
@@ -599,11 +730,37 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                 </div>
                             </div>
 
+                            <div className="space-y-2">
+                                <label className="text-[11px] uppercase tracking-widest font-bold text-slate-600 dark:text-slate-400">Anexo (Opcional)</label>
+                                <div className="flex items-center gap-4">
+                                    <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-xl cursor-pointer bg-slate-50 dark:bg-black/10 transition-colors w-full">
+                                        <ImageIcon size={18} className="text-slate-400" />
+                                        <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Selecionar imagem...</span>
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            className="hidden" 
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) setNewTaskFile(e.target.files[0]);
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                                {newTaskFile && (
+                                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-2 bg-indigo-50 dark:bg-indigo-500/10 p-2 rounded-lg inline-flex">
+                                        <Paperclip size={14} />
+                                        {newTaskFile.name}
+                                        <button type="button" onClick={() => setNewTaskFile(null)} className="text-red-500 hover:text-red-700 ml-2"><X size={14}/></button>
+                                    </div>
+                                )}
+                            </div>
+
                             <button
                                 type="submit"
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl uppercase text-[11px] tracking-widest transition-all shadow-lg active:scale-95 mt-4"
+                                disabled={isUploading}
+                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-4 rounded-xl uppercase text-[11px] tracking-widest transition-all shadow-lg active:scale-95 mt-4"
                             >
-                                Criar Chamado
+                                {isUploading ? 'Enviando...' : 'Criar Chamado'}
                             </button>
                         </form>
                     </div>

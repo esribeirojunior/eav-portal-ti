@@ -98,6 +98,7 @@ export interface ITTask {
   created_by: string;
   created_at: string;
   assigned_to?: string;
+  attachment_url?: string;
 }
 
 export interface ITTaskComment {
@@ -106,6 +107,7 @@ export interface ITTaskComment {
   user_email: string;
   content: string;
   created_at: string;
+  attachment_url?: string;
 }
 
 export interface BitwardenSecret {

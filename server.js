@@ -8,6 +8,7 @@ import { exec, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { OAuth2Client } from 'google-auth-library';
+import multer from 'multer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -73,6 +74,30 @@ app.set('trust proxy', true); // Segurança: Necessário para VPS/Docker como Co
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Servir arquivos de upload estaticamente
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Configuração do Multer para upload de imagens
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'anexo-' + uniqueSuffix + ext);
+  }
+});
+const upload = multer({ storage: storage });
+
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+  }
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({ url: fileUrl });
+});
 
 // Função utilitária para interceptar e salvar imagens em Base64 localmente
 function processBase64Fields(obj) {
