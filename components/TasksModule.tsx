@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, Mic, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
-import { processTaskAudio } from '../lib/gemini';
 import { ITTask, ITTaskComment } from '../types';
 
 interface TasksModuleProps {
@@ -28,11 +27,6 @@ const TasksModuleComponent = ({ onClose, userEmail }: TasksModuleProps) => {
     const [newTaskPriority, setNewTaskPriority] = useState('medium');
     const [newTaskDueDate, setNewTaskDueDate] = useState('');
     const [newTaskAssignedTo, setNewTaskAssignedTo] = useState('');
-    
-    // Audio Recording State
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessingAudio, setIsProcessingAudio] = useState(false);
-    const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
 
     useEffect(() => {
         fetchTasks();
@@ -148,54 +142,6 @@ const TasksModuleComponent = ({ onClose, userEmail }: TasksModuleProps) => {
             fetchComments(selectedTask.id);
         } catch (err) {
             console.error('Error posting comment:', err);
-        }
-    };
-
-    const handleStartRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
-            const audioChunks: Blob[] = [];
-
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) audioChunks.push(e.data);
-            };
-
-            recorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = async () => {
-                    const base64Audio = reader.result as string;
-                    setIsProcessingAudio(true);
-                    try {
-                        const result = await processTaskAudio(base64Audio, 'audio/webm');
-                        if (result.title) setNewTaskTitle(result.title);
-                        if (result.description) setNewTaskDesc(result.description);
-                    } catch (error: any) {
-                        console.error('Erro ao processar áudio', error);
-                        alert('Erro ao processar áudio: ' + error.message);
-                    } finally {
-                        setIsProcessingAudio(false);
-                    }
-                };
-                
-                stream.getTracks().forEach(track => track.stop());
-            };
-
-            recorder.start();
-            setMediaRecorder(recorder);
-            setIsRecording(true);
-        } catch (error) {
-            console.error('Erro ao acessar microfone:', error);
-            alert('Não foi possível acessar o microfone.');
-        }
-    };
-
-    const handleStopRecording = () => {
-        if (mediaRecorder && isRecording) {
-            mediaRecorder.stop();
-            setIsRecording(false);
         }
     };
 
@@ -538,29 +484,7 @@ const TasksModuleComponent = ({ onClose, userEmail }: TasksModuleProps) => {
                             <X size={20} />
                         </button>
 
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-2xl font-[900] uppercase tracking-tighter text-slate-900 dark:text-white">Novo Chamado</h2>
-                            <button
-                                type="button"
-                                onClick={isRecording ? handleStopRecording : handleStartRecording}
-                                disabled={isProcessingAudio}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
-                                    isRecording 
-                                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
-                                        : isProcessingAudio 
-                                            ? 'bg-slate-200 dark:bg-white/10 text-slate-500 cursor-not-allowed'
-                                            : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:hover:bg-indigo-500/30 dark:text-indigo-400'
-                                }`}
-                            >
-                                {isProcessingAudio ? (
-                                    <><Loader2 size={16} className="animate-spin" /> Processando IA...</>
-                                ) : isRecording ? (
-                                    <><div className="w-2 h-2 bg-white rounded-full animate-ping" /> Gravando...</>
-                                ) : (
-                                    <><Mic size={16} /> Relatar por Voz</>
-                                )}
-                            </button>
-                        </div>
+                        <h2 className="text-2xl font-[900] uppercase tracking-tighter text-slate-900 dark:text-white mb-8">Novo Chamado</h2>
 
                         <form onSubmit={handleCreateTask} className="space-y-6">
                             <div className="space-y-2">
