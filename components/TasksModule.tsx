@@ -657,8 +657,6 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                 )}
                             </form>
                         </div>
-                            </form>
-                        </div>
                     </div>
                 </div>
             )}
