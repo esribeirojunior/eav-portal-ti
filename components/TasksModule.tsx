@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, LogOut } from 'lucide-react';
+import { Plus, Search, Filter, MessageSquare, ArrowLeft, MoreHorizontal, User, Send, CheckCircle2, AlertOctagon, X, Clock, AlertCircle, LogOut, Trash2 } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 import { ITTask, ITTaskComment } from '../types';
 
@@ -12,6 +12,7 @@ interface TasksModuleProps {
 const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps) => {
     const [tasks, setTasks] = useState<ITTask[]>([]);
     const [selectedTask, setSelectedTask] = useState<ITTask | null>(null);
+    const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
     const [comments, setComments] = useState<ITTaskComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [systemUsers, setSystemUsers] = useState<any[]>([]);
@@ -146,6 +147,21 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
         }
     };
 
+    const handleDeleteSelected = async () => {
+        if (!selectedTaskIds.length) return;
+        if (!window.confirm(`Tem certeza que deseja apagar ${selectedTaskIds.length} chamado(s)?`)) return;
+        
+        try {
+            const { error } = await apiClient.from('it_tasks').delete().in('id', selectedTaskIds);
+            if (error) throw error;
+            setSelectedTaskIds([]);
+            fetchTasks();
+        } catch (err) {
+            console.error('Error deleting tasks:', err);
+            alert('Erro ao apagar chamados. Verifique se você tem permissão.');
+        }
+    };
+
     const filteredTasks = React.useMemo(() => {
         return tasks.filter(t => {
             // Status filter
@@ -214,7 +230,17 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                 {/* Data Table */}
                 <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-white/5 rounded-xl flex flex-col shadow-sm overflow-hidden relative">
                     <div className="p-4 border-b border-slate-300 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
-                        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Lista de Chamados</h2>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Lista de Chamados</h2>
+                            {selectedTaskIds.length > 0 && (
+                                <button 
+                                    onClick={handleDeleteSelected}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-500/20 dark:hover:bg-red-500/30 dark:text-red-400 rounded-md transition-colors"
+                                >
+                                    <Trash2 size={14} /> Apagar Selecionados ({selectedTaskIds.length})
+                                </button>
+                            )}
+                        </div>
                         <span className="text-xs font-semibold bg-white dark:bg-black/20 border border-slate-200 dark:border-white/5 px-2.5 py-1 rounded text-slate-600 dark:text-slate-300 shadow-sm">
                             {filteredTasks.length} Registros
                         </span>
@@ -224,7 +250,20 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                         <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/90 backdrop-blur-sm z-10">
                                 <tr className="border-b border-slate-200 dark:border-white/5 text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">
-                                    <th className="p-4 w-10 text-center"><input type="checkbox" className="rounded border-slate-300" disabled /></th>
+                                    <th className="p-4 w-10 text-center">
+                                        <input 
+                                            type="checkbox" 
+                                            className="rounded border-slate-300" 
+                                            checked={selectedTaskIds.length === filteredTasks.length && filteredTasks.length > 0}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedTaskIds(filteredTasks.map(t => t.id));
+                                                } else {
+                                                    setSelectedTaskIds([]);
+                                                }
+                                            }}
+                                        />
+                                    </th>
                                     <th className="p-4">Assunto</th>
                                     <th className="p-4">Solicitante</th>
                                     <th className="p-4">Status</th>
@@ -244,7 +283,19 @@ const TasksModuleComponent = ({ onClose, onLogout, userEmail }: TasksModuleProps
                                         className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer transition-colors group"
                                     >
                                         <td className="p-4 text-center">
-                                            <input type="checkbox" className="rounded border-slate-300" onClick={e => e.stopPropagation()} />
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-slate-300" 
+                                                checked={selectedTaskIds.includes(task.id)}
+                                                onClick={e => e.stopPropagation()} 
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedTaskIds(prev => [...prev, task.id]);
+                                                    } else {
+                                                        setSelectedTaskIds(prev => prev.filter(id => id !== task.id));
+                                                    }
+                                                }}
+                                            />
                                         </td>
                                         <td className="p-4 max-w-[300px]">
                                             <div className="flex flex-col">
