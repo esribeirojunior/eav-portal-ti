@@ -414,7 +414,7 @@ export function DeviceList({
         <div className="space-y-6">
 
           {/* 📋 LISTA DE SETORES EM ACCORDION */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-5">
             {sortedSectors.map((sector: any) => {
               const name = sector.department.toUpperCase();
               const config = SECTOR_CONFIGS[name] || SECTOR_CONFIGS['OUTROS'];
@@ -428,26 +428,32 @@ export function DeviceList({
               const activeItems = Object.values(usersInSector).flat().filter((d: any) => d.status === 'Em Uso').length;
 
               return (
-                <div key={sector.department} className="group border-b border-slate-200 dark:border-white/10 last:border-0 overflow-hidden transition-all duration-300">
+                <div key={sector.department} className={`group bg-white dark:bg-slate-900/40 rounded-3xl overflow-hidden transition-all duration-300 border border-slate-200/60 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/50 ${isExpanded ? 'shadow-md border-slate-300 dark:border-white/10' : 'shadow-sm'}`}>
                   {/* ACCORDION HEADER */}
                   <div 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between py-5 px-4 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl cursor-pointer transition-colors gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between py-5 px-6 cursor-pointer gap-4 relative overflow-hidden"
                     onClick={() => toggleSector(sector.department)}
                   >
-                    <div className="flex items-center gap-4">
+                    {/* Faixa lateral colorida sutil (opcional se quiser) */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 opacity-80" style={{ backgroundColor: config.color }} />
+
+                    <div className="flex items-center gap-5 z-10">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-inner" style={{ backgroundColor: `${config.color}15`, color: config.color }}>
+                         <Building size={26} strokeWidth={2.5} />
+                      </div>
                       <div>
-                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{sector.department}</h3>
-                        <p className="text-[11px] font-medium text-slate-500 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
+                        <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{sector.department}</h3>
+                        <p className="text-[11px] font-bold uppercase mt-1 tracking-widest opacity-80" style={{ color: config.color }}>{config.subtitle}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-6 z-10">
                       <div className="text-right hidden sm:block">
-                        <p className="text-base font-bold text-slate-800 dark:text-white">{activeItems} <span className="text-slate-400 text-sm font-medium">/ {totalItems}</span></p>
-                        <p className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Ativos no setor</p>
+                        <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">{activeItems} <span className="text-slate-400 text-sm font-bold">/ {totalItems}</span></p>
+                        <p className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest mt-1">Ativos no setor</p>
                       </div>
-                      <div className={`p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 transition-all duration-300 group-hover:bg-indigo-100 group-hover:text-indigo-600 dark:group-hover:bg-indigo-500/20 dark:group-hover:text-indigo-400 ${isExpanded ? 'rotate-90 bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' : ''}`}>
-                        <ChevronRight size={18} />
+                      <div className={`p-3 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 transition-all duration-300 group-hover:bg-indigo-100 group-hover:text-indigo-600 dark:group-hover:bg-indigo-500/20 dark:group-hover:text-indigo-400 ${isExpanded ? 'rotate-90 bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' : ''}`}>
+                        <ChevronRight size={20} strokeWidth={2.5} />
                       </div>
                     </div>
                   </div>
