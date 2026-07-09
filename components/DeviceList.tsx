@@ -428,25 +428,25 @@ export function DeviceList({
               const activeItems = Object.values(usersInSector).flat().filter((d: any) => d.status === 'Em Uso').length;
 
               return (
-                <div key={sector.department} className="bg-white dark:bg-white/5 rounded-2xl border border-slate-400 dark:border-white/5 overflow-hidden transition-all duration-300 shadow-sm">
+                <div key={sector.department} className="group border-b border-slate-200 dark:border-white/10 last:border-0 overflow-hidden transition-all duration-300">
                   {/* ACCORDION HEADER */}
                   <div 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors gap-4"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between py-5 px-4 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl cursor-pointer transition-colors gap-4"
                     onClick={() => toggleSector(sector.department)}
                   >
                     <div className="flex items-center gap-4">
                       <div>
-                        <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight">{sector.department}</h3>
-                        <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
+                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{sector.department}</h3>
+                        <p className="text-[11px] font-medium text-slate-500 dark:text-white/50 uppercase mt-0.5 tracking-wide">{config.subtitle}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6">
                       <div className="text-right hidden sm:block">
-                        <p className="text-base font-semibold text-slate-800 dark:text-white">{activeItems} / {totalItems}</p>
-                        <p className="text-[9px] font-medium text-slate-800 dark:text-white/40 uppercase tracking-widest">Ativos no setor</p>
+                        <p className="text-base font-bold text-slate-800 dark:text-white">{activeItems} <span className="text-slate-400 text-sm font-medium">/ {totalItems}</span></p>
+                        <p className="text-[9px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-widest">Ativos no setor</p>
                       </div>
-                      <div className={`p-2 rounded-lg bg-white/5 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
+                      <div className={`p-2 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 transition-all duration-300 group-hover:bg-indigo-100 group-hover:text-indigo-600 dark:group-hover:bg-indigo-500/20 dark:group-hover:text-indigo-400 ${isExpanded ? 'rotate-90 bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' : ''}`}>
                         <ChevronRight size={18} />
                       </div>
                     </div>
