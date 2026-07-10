@@ -226,7 +226,10 @@ async function initPostgresDB() {
       
       // Add role column if it doesn't exist (ignore error if it does)
       try { await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'"); } catch (e) {}
-      try { await pool.query("UPDATE authorized_users SET role = 'superadmin' WHERE email ILIKE 'erisson.junior@escolaamericana.com.br'"); } catch (e) {}
+      try { 
+        const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@escolaamericana.com.br';
+        await pool.query("UPDATE authorized_users SET role = 'superadmin' WHERE email ILIKE $1", [adminEmail]); 
+      } catch (e) {}
       
       // Add modules column if it doesn't exist
       try { await pool.query(`ALTER TABLE authorized_users ADD COLUMN modules TEXT DEFAULT '["assets","links","audit","tasks","vault","tutorials","lab","signage"]'`); } catch (e) {}
@@ -250,18 +253,15 @@ async function initPostgresDB() {
     // Auto-popula usuários autorizados padrão se estiver vazio
     const checkUsers = await pool.query("SELECT COUNT(*) FROM authorized_users");
     if (parseInt(checkUsers.rows[0].count) === 0) {
-      console.log('[PostgreSQL] Criando usuários padrão para acesso...');
-      const defaultUsers = [
-        'erisson.junior@escolaamericana.com.br',
-        'gustavo.giesbrecht@escolaamericana.com.br'
-      ];
-      for (const email of defaultUsers) {
-        const id = Math.random().toString(36).substring(2, 9);
-        await pool.query(
-          "INSERT INTO authorized_users (id, email, password, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
-          [id, email, 'eav@123', new Date().toISOString()]
-        );
-      }
+      console.log('[PostgreSQL] Criando usuário superadmin padrão...');
+      const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@escolaamericana.com.br';
+      const adminPass = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@123';
+      
+      const id = Math.random().toString(36).substring(2, 9);
+      await pool.query(
+        "INSERT INTO authorized_users (id, email, password, role, created_at) VALUES ($1, $2, $3, 'superadmin', $4) ON CONFLICT DO NOTHING",
+        [id, adminEmail, adminPass, new Date().toISOString()]
+      );
     }
 
     // Auto-popula atalhos padrão se estiver vazio
@@ -750,7 +750,7 @@ app.post('/api/remote-control', authenticateToken, (req, res) => {
 
   console.log(`[VNC] Disparando conexão remota VNC para: ${ip}...`);
 
-  const vncPass = process.env.process.env.VNC_PASSWORD;
+  const vncPass = process.env.VNC_PASSWORD;
 
   // Usa spawn desanexado para forçar a janela a abrir como um aplicativo independente (em primeiro plano)
   const vncProcess = spawn('C:\\Program Files\\TightVNC\\tvnviewer.exe', [ip, `-password=${vncPass}`], {
