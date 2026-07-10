@@ -2,15 +2,17 @@
 
 Bem-vindo(a) ao projeto EAV Portal TI! Ao iniciar um novo chat, leia este documento para se contextualizar rapidamente sobre o estado atual do sistema, arquitetura e refatorações recentes.
 
-## 🏗️ Arquitetura do Sistema
+## 🏗️ Arquitetura do Sistema e Infraestrutura
 - **Frontend:** React (Vite) com TailwindCSS. Padrão arquitetural em transição para o *Feature-Sliced Design* (FSD).
 - **Gerenciamento de Estado:** Utiliza SWR (`useSWR`) para cache automático e requisições ao banco, especialmente nos módulos refatorados.
-- **Backend/Banco de Dados:** Node.js (Express) com banco de dados PostgreSQL. Hospedado via Coolify.
+- **Backend/Banco de Dados:** Node.js (Express) servindo a API e os estáticos, conectado a um banco PostgreSQL. 
+- **Hospedagem / DevOps:** Todo o sistema e banco de dados estão hospedados e orquestrados via **Coolify**, que gerencia os containers, deploy contínuo e variáveis de ambiente em produção.
+- **Acesso Remoto (Dispositivos):** O portal se integra a serviços de acesso remoto como **TightVNC** e scripts de instalação que configuram **RustDesk** nas máquinas clientes para facilitar o suporte pelo time de TI.
 
 ## 🔒 Regras de Negócio e Segurança (MUITO IMPORTANTE)
 - **Autenticação/Autorização:** **NUNCA** utilize verificações *hardcoded* de e-mail (ex: `email === 'erisson.junior@...'`) para conceder permissões no frontend ou backend.
 - O controle de acesso **deve sempre** ser feito verificando o cargo vindo do banco de dados: `userRole === 'admin' || userRole === 'superadmin'`.
-- As senhas e contas administrativas padrão na inicialização do banco (`server.js`) utilizam variáveis de ambiente (`process.env.DEFAULT_ADMIN_EMAIL`, `process.env.DEFAULT_ADMIN_PASSWORD`). **Não versionar dados sensíveis.**
+- As senhas e contas administrativas padrão na inicialização do banco (`server.js`) utilizam variáveis de ambiente gerenciadas no painel do Coolify (`DEFAULT_ADMIN_EMAIL`, `DEFAULT_ADMIN_PASSWORD`). **Não versionar dados sensíveis.**
 
 ## 🛠️ Refatorações Recentes e Concluídas
 1. **Módulo de Chamados (TasksModule):**
