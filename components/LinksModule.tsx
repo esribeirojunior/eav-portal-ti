@@ -6,10 +6,11 @@ import { Shortcut } from '../types';
 interface LinksModuleProps {
     onBack: () => void;
     userEmail?: string;
+    userRole?: string;
 }
 
-function LinksModuleComponent({ onBack, userEmail }: LinksModuleProps) {
-    const isAdmin = userEmail?.toLowerCase().trim() === 'erisson.junior@escolaamericana.com.br';
+function LinksModuleComponent({ onBack, userEmail, userRole }: LinksModuleProps) {
+    const isAdmin = userRole === 'admin' || userRole === 'superadmin';
     const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

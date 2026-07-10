@@ -423,16 +423,11 @@ const App: React.FC = () => {
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
-  // Garantia absoluta de Super Admin para Erisson e sincronização de cargos para os demais
+  // Sincronização de cargos para todos os usuários
   useEffect(() => {
     if (isAuthenticated && userEmail) {
-      if (userEmail.toLowerCase().includes('erisson.junior') && userRole !== 'superadmin') {
-        setUserRole('superadmin');
-        localStorage.setItem('user_role', 'superadmin');
-        apiClient.from('authorized_users').update({ role: 'superadmin' }).ilike('email', userEmail).then(() => {});
-      } else {
-        // Busca o cargo atualizado do banco de dados em segundo plano para qualquer outro usuário
-        apiClient.from('authorized_users').select('role, modules').ilike('email', userEmail).maybeSingle().then(({ data }) => {
+      // Busca o cargo atualizado do banco de dados em segundo plano
+      apiClient.from('authorized_users').select('role, modules').ilike('email', userEmail).maybeSingle().then(({ data }) => {
           if (data) {
             if (data.role && data.role !== userRole) {
               setUserRole(data.role);
@@ -449,7 +444,6 @@ const App: React.FC = () => {
             }
           }
         });
-      }
     }
   }, [isAuthenticated, userEmail, userRole, userModules]);
   const [isAccessoryModalOpen, setIsAccessoryModalOpen] = useState(false);
@@ -747,13 +741,8 @@ const App: React.FC = () => {
       const { data } = await apiClient.from('authorized_users').select('role, modules').ilike('email', email).maybeSingle();
       let role = data?.role || 'admin';
       
-      // Fallback de segurança garantido para o Super Admin
-      if (email.toLowerCase().includes('erisson.junior')) {
-          role = 'superadmin';
-          // Força a atualização no banco silenciosamente caso tenha falhado
-          apiClient.from('authorized_users').update({ role: 'superadmin' }).ilike('email', email).then(() => {});
-      }
       
+
       setUserRole(role);
       localStorage.setItem('user_role', role);
 
@@ -1177,6 +1166,7 @@ const App: React.FC = () => {
         <LinksModule
           onBack={() => setCurrentModule('selector')}
           userEmail={userEmail}
+          userRole={userRole}
         />
       )}
 
@@ -1201,6 +1191,7 @@ const App: React.FC = () => {
         <TutorialsModule
           onBack={() => setCurrentModule('lab')}
           userEmail={userEmail}
+          userRole={userRole}
         />
       )}
 

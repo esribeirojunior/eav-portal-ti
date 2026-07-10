@@ -32,7 +32,7 @@ const VaultModuleComponent: React.FC<VaultModuleProps> = ({ userEmail, onBack, u
   const [newSecretProjectId, setNewSecretProjectId] = useState('');
   const [newProjectName, setNewProjectName] = useState('');
 
-  const isAdmin = userEmail?.toLowerCase().trim() === 'erisson.junior@escolaamericana.com.br' || userEmail?.toLowerCase().trim() === 'local@teste.com' || userEmail?.toLowerCase().trim() === 'admin@teste.local';
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   useEffect(() => {
     fetchData();

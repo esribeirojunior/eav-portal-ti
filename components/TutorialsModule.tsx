@@ -6,12 +6,13 @@ import { apiClient } from '../lib/apiClient';
 interface TutorialsModuleProps {
     onBack: () => void;
     userEmail?: string;
+    userRole?: string;
     publicMode?: boolean;
     sharedTutorialId?: string | null;
 }
 
-const TutorialsModuleComponent = ({ onBack, userEmail, publicMode, sharedTutorialId }: TutorialsModuleProps) => {
-    const isAdmin = userEmail?.toLowerCase().trim() === 'erisson.junior@escolaamericana.com.br' || userEmail?.toLowerCase().trim() === 'local@teste.com' || userEmail?.toLowerCase().trim() === 'admin@teste.local';
+const TutorialsModuleComponent = ({ onBack, userEmail, userRole, publicMode, sharedTutorialId }: TutorialsModuleProps) => {
+    const isAdmin = userRole === 'admin' || userRole === 'superadmin';
     const [tutorials, setTutorials] = useState<Tutorial[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
