@@ -10,7 +10,8 @@ import {
   Save,
   X,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Trash2
 } from 'lucide-react';
 
 interface EmployeeProfile {
@@ -148,6 +149,30 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
     }
   };
 
+  const handleDeleteEmployee = async (userName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o colaborador "${userName}" de todo o sistema? Essa ação desvinculará todos os equipamentos associados a ele.`)) return;
+
+    try {
+      const { error } = await apiClient
+        .from('assignments')
+        .update({
+          user_name: null,
+          user_email: null,
+          department_id: null
+        })
+        .eq('user_name', userName);
+
+      if (error) throw error;
+
+      // Update local state
+      setEmployees(prev => prev.filter(emp => emp.user_name !== userName));
+
+    } catch (err) {
+      console.error("Erro ao excluir colaborador:", err);
+      alert("Erro ao excluir colaborador.");
+    }
+  };
+
   const filteredEmployees = employees.filter(emp => 
     emp.user_name.toLowerCase().includes(search.toLowerCase()) || 
     emp.user_email.toLowerCase().includes(search.toLowerCase())
@@ -240,18 +265,27 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
                       )}
                     </td>
                     <td className="py-4 px-6 text-right">
-                      <button
-                        onClick={() => {
-                          setEditingEmployee(emp);
-                          setEditName(emp.user_name);
-                          setEditEmail(emp.user_email);
-                          setEditDepartment(emp.department_id);
-                        }}
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors"
-                        title="Editar Perfil"
-                      >
-                        <Edit2 size={14} />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingEmployee(emp);
+                            setEditName(emp.user_name);
+                            setEditEmail(emp.user_email);
+                            setEditDepartment(emp.department_id);
+                          }}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/30 transition-colors"
+                          title="Editar Perfil"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEmployee(emp.user_name)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/30 transition-colors"
+                          title="Excluir Colaborador"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
