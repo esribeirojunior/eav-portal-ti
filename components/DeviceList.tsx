@@ -83,6 +83,7 @@ export function DeviceList({
   userRole
 }: DeviceListProps) {
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
+  const [inUseCategory, setInUseCategory] = useState<'colaboradores' | 'professores' | 'alunos'>('colaboradores');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false); // Default to card view
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({});
   const [sectorsViewMode, setSectorsViewMode] = useState<'grid' | 'list'>('grid');
@@ -415,9 +416,37 @@ export function DeviceList({
       {activeTab === 'in_use' && (
         <div className="space-y-6">
 
+          {/* 📋 TABS SUPERIORES DE CATEGORIA (Colaboradores / Professores / Alunos) */}
+          <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-2xl w-fit mb-2 border border-slate-300 dark:border-white/10 shadow-sm mx-auto">
+            <button
+              onClick={() => setInUseCategory('colaboradores')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${inUseCategory === 'colaboradores' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-white/40 hover:text-indigo-500'}`}
+            >
+              Colaboradores
+            </button>
+            <button
+              onClick={() => setInUseCategory('professores')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${inUseCategory === 'professores' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-white/40 hover:text-indigo-500'}`}
+            >
+              Professores
+            </button>
+            <button
+              onClick={() => setInUseCategory('alunos')}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${inUseCategory === 'alunos' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-white/40 hover:text-indigo-500'}`}
+            >
+              Alunos
+            </button>
+          </div>
+
           {/* 📋 LISTA DE SETORES EM ACCORDION */}
           <div className="flex flex-col gap-5">
-            {sortedSectors.map((sector: any) => {
+            {sortedSectors
+              .filter((sector: any) => {
+                if (inUseCategory === 'alunos') return sector.department === 'Alunos';
+                if (inUseCategory === 'professores') return sector.department === 'Professores';
+                return sector.department !== 'Alunos' && sector.department !== 'Professores';
+              })
+              .map((sector: any) => {
               const name = sector.department.toUpperCase();
               const config = SECTOR_CONFIGS[name] || SECTOR_CONFIGS['OUTROS'];
               const isExpanded = expandedSectors[sector.department] || (searchQuery && searchQuery.trim().length > 0);
