@@ -16,6 +16,7 @@ import {
 
 interface EmployeeProfile {
   user_name: string;
+  original_name: string;
   user_email: string;
   department_id: string;
   campus: string;
@@ -82,6 +83,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
         } else {
           userMap.set(name, {
             user_name: name,
+            original_name: assignment.user_name, // Store the exact string from the DB
             user_email: email,
             department_id: dept,
             campus: assignment.campus || '',
@@ -108,7 +110,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
     if (!editingEmployee) return;
     setSaving(true);
     try {
-      // Update ALL assignments that match this user_name
+      // Update ALL assignments that match this exact user_name from the DB
       const { error } = await apiClient
         .from('assignments')
         .update({
@@ -116,7 +118,7 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
           user_email: editEmail,
           department_id: editDepartment
         })
-        .eq('user_name', editingEmployee.user_name);
+        .eq('user_name', editingEmployee.original_name);
 
       if (error) throw error;
 
@@ -141,9 +143,9 @@ export const EmployeesModule: React.FC<{ isEmbedded?: boolean }> = ({ isEmbedded
         setEditingEmployee(null);
       }, 2000);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao salvar perfil:", err);
-      alert("Erro ao salvar perfil.");
+      alert(`Erro ao salvar perfil: ${err?.message || JSON.stringify(err)}`);
     } finally {
       setSaving(false);
     }
