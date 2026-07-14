@@ -50,6 +50,8 @@ const SECTOR_CONFIGS: Record<string, { color: string; subtitle: string }> = {
   'ENFERMARIA': { color: '#f43f5e', subtitle: 'Serviços de Saúde e Ambulatório' },
   'JURIDICO': { color: '#475569', subtitle: 'Assessoria Jurídica' },
   'TRIAGEM': { color: '#f97316', subtitle: 'Equipamentos Novos (Aguardando Alocação)' },
+  'ALUNOS': { color: '#38bdf8', subtitle: 'Dispositivos de Estudantes' },
+  'PROFESSORES': { color: '#facc15', subtitle: 'Corpo Docente' },
   'OUTROS': { color: '#a0aec0', subtitle: 'Outros Setores' }
 };
 

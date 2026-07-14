@@ -47,7 +47,7 @@ export const SignageModule = ({ onBack, userEmail }: SignageModuleProps) => {
                     id: a.id,
                     userName: a.user_name,
                     userEmail: a.user_email,
-                    userDepartment: a.department ? a.department.name : 'Outros Setores',
+                    userDepartment: a.user_role === 'Aluno' ? 'Alunos' : (a.user_role === 'Professor' ? 'Professores' : (a.department ? a.department.name : 'Outros Setores')),
                     userRole: a.user_role,
                     startDate: a.assigned_at,
                     endDate: a.returned_at,

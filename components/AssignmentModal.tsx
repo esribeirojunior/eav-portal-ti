@@ -200,10 +200,10 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
   useEffect(() => {
     if (departments.length > 0) {
       if (userRole === 'Aluno') {
-        const studentDept = departments.find(d => d.name === 'Discentes');
+        const studentDept = departments.find(d => d.name.toLowerCase().includes('discente') || d.name.toLowerCase().includes('aluno'));
         if (studentDept) setDepartmentId(studentDept.id);
       } else if (userRole === 'Professor') {
-        const teacherDept = departments.find(d => d.name === 'Docentes');
+        const teacherDept = departments.find(d => d.name.toLowerCase().includes('docente') || d.name.toLowerCase().includes('professor'));
         if (teacherDept) setDepartmentId(teacherDept.id);
       } else if (userRole === 'Colaborador') {
         // Se mudou para colaborador, limpa para forçar escolha (opcional, mas bom pra UX)
@@ -379,26 +379,24 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
             </div>
           </div>
 
-          {/* Departamento apenas para Colaborador */}
-          {userRole === 'Colaborador' && (
-            <div className="space-y-2 animate-in fade-in duration-300">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Departamento / Setor</label>
-              <div className="relative group">
-                <select
-                  value={departmentId}
-                  onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none transition-all"
-                  required={userRole === 'Colaborador'}
-                >
-                  <option value="">Selecione...</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))}
-                </select>
-                <Building size={16} className="absolute left-3.5 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
-              </div>
+          {/* Departamento visível para todos os cargos */}
+          <div className="space-y-2 animate-in fade-in duration-300">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Departamento / Setor</label>
+            <div className="relative group">
+              <select
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none transition-all"
+                required
+              >
+                <option value="">Selecione...</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id} className="bg-slate-800 text-white">{dept.name}</option>
+                ))}
+              </select>
+              <Building size={16} className="absolute left-3.5 top-3.5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
             </div>
-          )}
+          </div>
 
           {/* Seleção de Campus (Para todos os cargos) */}
           <div className="space-y-2 animate-in fade-in duration-300">
