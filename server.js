@@ -1477,7 +1477,6 @@ async function runMosyleSync(manualResponse = null) {
                     }
 
                     // 2. Lógica de Atribuição (Assignments)
-                    const mUser = dev.username || dev.useremail;
                     
                     if (mUser) {
                         let mRole = dev.usertype || 'Colaborador'; 
