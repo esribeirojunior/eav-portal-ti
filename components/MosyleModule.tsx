@@ -17,7 +17,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     const [isConfigured, setIsConfigured] = useState(false);
     const [mosyleDevices, setMosyleDevices] = useState<any[]>([]);
     const [isLoadingMosyle, setIsLoadingMosyle] = useState(false);
-    const [mosyleFilter, setMosyleFilter] = useState<'all' | 'Student' | 'Teacher' | 'Staff' | 'Administrator'>('all');
+    const [mosyleFilter, setMosyleFilter] = useState<'all' | 'Student' | 'Teacher' | 'Staff' | 'Administrator' | 'Others'>('all');
 
     const fetchMosyleDevices = async () => {
         setIsLoadingMosyle(true);
@@ -245,7 +245,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                             <h3 className="font-bold text-lg">Inventário Sincronizado</h3>
                                             
                                             <div className="flex items-center gap-2 bg-black/20 p-1 rounded-xl border border-white/10 overflow-x-auto">
-                                                {(['all', 'Student', 'Teacher', 'Staff', 'Administrator'] as const).map(f => (
+                                                {(['all', 'Student', 'Teacher', 'Staff', 'Administrator', 'Others'] as const).map(f => (
                                                     <button
                                                         key={f}
                                                         onClick={() => setMosyleFilter(f)}
@@ -255,7 +255,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                                                 : 'text-white/40 hover:text-white hover:bg-white/5'
                                                         }`}
                                                     >
-                                                        {f === 'all' ? 'Todos' : f === 'Student' ? 'Alunos' : f === 'Teacher' ? 'Professores' : f === 'Staff' ? 'Staff' : 'Admins'}
+                                                        {f === 'all' ? 'Todos' : f === 'Student' ? 'Alunos' : f === 'Teacher' ? 'Professores' : f === 'Staff' ? 'Staff' : f === 'Administrator' ? 'Admins' : 'Outros'}
                                                     </button>
                                                 ))}
                                             </div>
@@ -271,9 +271,13 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                               const filtered = mosyleDevices.filter(device => {
                                                 if (mosyleFilter === 'all') return true;
                                                 try {
-                                                  // O JSON bruto pode ter as tags em diferentes formatos (string, array, etc)
-                                                  // A forma mais segura de achar é buscando a palavra exata no raw_data completo
                                                   const rawStr = device.raw_data || '';
+                                                  if (mosyleFilter === 'Others') {
+                                                      return !rawStr.includes(`"Student"`) && 
+                                                             !rawStr.includes(`"Teacher"`) && 
+                                                             !rawStr.includes(`"Staff"`) && 
+                                                             !rawStr.includes(`"Administrator"`);
+                                                  }
                                                   return rawStr.includes(`"${mosyleFilter}"`) || rawStr.includes(mosyleFilter);
                                                 } catch (e) {
                                                   return false;
