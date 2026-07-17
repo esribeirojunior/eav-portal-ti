@@ -17,6 +17,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     const [isConfigured, setIsConfigured] = useState(false);
     const [mosyleDevices, setMosyleDevices] = useState<any[]>([]);
     const [isLoadingMosyle, setIsLoadingMosyle] = useState(false);
+    const [mosyleFilter, setMosyleFilter] = useState<'all' | 'Student' | 'Teacher' | 'Staff'>('all');
 
     const fetchMosyleDevices = async () => {
         setIsLoadingMosyle(true);
@@ -240,9 +241,24 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                     
                                     {/* Lista de Dispositivos Mosyle */}
                                     <div className="pt-8 border-t border-white/10 mt-8">
-                                        <div className="flex items-center justify-between mb-6">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                             <h3 className="font-bold text-lg">Inventário Sincronizado</h3>
-                                            <span className="px-3 py-1 rounded-full bg-white/10 text-white/60 text-xs font-bold">{mosyleDevices.length} equipamentos</span>
+                                            
+                                            <div className="flex items-center gap-2 bg-black/20 p-1 rounded-xl border border-white/10">
+                                                {(['all', 'Student', 'Teacher', 'Staff'] as const).map(f => (
+                                                    <button
+                                                        key={f}
+                                                        onClick={() => setMosyleFilter(f)}
+                                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                            mosyleFilter === f
+                                                                ? 'bg-indigo-500 text-white shadow-md'
+                                                                : 'text-white/40 hover:text-white hover:bg-white/5'
+                                                        }`}
+                                                    >
+                                                        {f === 'all' ? 'Todos' : f === 'Student' ? 'Alunos' : f === 'Teacher' ? 'Professores' : 'Staff'}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                         
                                         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
@@ -251,8 +267,24 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                               <RefreshCw size={24} className="animate-spin text-indigo-500" />
                                               <p className="text-white/40 text-sm font-bold">Carregando dispositivos...</p>
                                             </div>
-                                          ) : mosyleDevices.length > 0 ? (
-                                            mosyleDevices.map((device) => (
+                                          ) : (() => {
+                                              const filtered = mosyleDevices.filter(device => {
+                                                if (mosyleFilter === 'all') return true;
+                                                try {
+                                                  const raw = JSON.parse(device.raw_data || '{}');
+                                                  const tags = raw.tags || [];
+                                                  return Array.isArray(tags) ? tags.includes(mosyleFilter) : tags === mosyleFilter;
+                                                } catch (e) {
+                                                  return false;
+                                                }
+                                              });
+
+                                              return filtered.length > 0 ? (
+                                                <>
+                                                  <div className="flex justify-end mb-2">
+                                                    <span className="px-3 py-1 rounded-full bg-white/10 text-white/60 text-xs font-bold">{filtered.length} equipamentos</span>
+                                                  </div>
+                                                  {filtered.map((device) => (
                                               <div key={device.id} className="group relative bg-black/20 border border-white/5 hover:border-indigo-500/30 p-4 rounded-xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-black/40 shadow-sm">
                                                 <div className="flex items-center gap-4 flex-1 min-w-0">
                                                   <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/50 shrink-0">
@@ -283,18 +315,22 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                                   </div>
                                                 </div>
                                               </div>
-                                            ))
-                                          ) : (
-                                            <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 bg-black/20 rounded-2xl border border-dashed border-white/10">
-                                              <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 border border-white/10">
-                                                <Smartphone size={32} />
-                                              </div>
-                                              <div className="space-y-1">
-                                                <p className="text-white/40 font-[1000] uppercase tracking-[0.2em] text-xs">Vazio</p>
-                                                <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Nenhum equipamento sincronizado ainda.</p>
-                                              </div>
-                                            </div>
-                                          )}
+                                                  ))}
+                                                </>
+                                              ) : (
+                                                <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 bg-black/20 rounded-2xl border border-dashed border-white/10">
+                                                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 border border-white/10">
+                                                    <Smartphone size={32} />
+                                                  </div>
+                                                  <div className="space-y-1">
+                                                    <p className="text-white/40 font-[1000] uppercase tracking-[0.2em] text-xs">Vazio</p>
+                                                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">
+                                                      {mosyleFilter === 'all' ? 'Nenhum equipamento sincronizado ainda.' : `Nenhum equipamento com a tag ${mosyleFilter}.`}
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              );
+                                          })()}
                                         </div>
                                     </div>
                                 </div>
