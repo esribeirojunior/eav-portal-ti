@@ -1478,7 +1478,11 @@ async function runMosyleSync(manualResponse = null) {
                     const mUser = dev.username || dev.useremail;
                     
                     if (mUser) {
-                        const mRole = dev.usertype || 'Staff'; 
+                        let mRole = dev.usertype || 'Colaborador'; 
+                        if (mRole === 'Student') mRole = 'Aluno';
+                        else if (mRole === 'Teacher') mRole = 'Professor';
+                        else if (mRole === 'Staff' || mRole === 'Administrator') mRole = 'Colaborador';
+
                         const assignRes = await client.query('SELECT id, user_name FROM assignments WHERE device_id = $1 AND returned_at IS NULL', [centralDeviceId]);
                         
                         let needsNewAssignment = false;
@@ -1487,6 +1491,9 @@ async function runMosyleSync(manualResponse = null) {
                             if (currentAssign.user_name !== (dev.username || dev.useremail)) {
                                 await client.query('UPDATE assignments SET returned_at = $1 WHERE id = $2', [now, currentAssign.id]);
                                 needsNewAssignment = true;
+                            } else {
+                                // O usuário é o mesmo, mas vamos forçar a atualização do cargo caso esteja com o termo inglês
+                                await client.query('UPDATE assignments SET user_role = $1 WHERE id = $2', [mRole, currentAssign.id]);
                             }
                         } else {
                             needsNewAssignment = true;
