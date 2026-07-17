@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Monitor,
   Smartphone,
@@ -83,6 +83,7 @@ export function DeviceList({
   userRole
 }: DeviceListProps) {
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
+  const [selectedAvailableType, setSelectedAvailableType] = useState<string | null>(null);
   const [inUseCategory, setInUseCategory] = useState<'colaboradores' | 'professores' | 'alunos'>('colaboradores');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false); // Default to card view
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({});
@@ -97,6 +98,21 @@ export function DeviceList({
   const availableDevices = devices.filter(d => d.status === 'Disponível' && !triageDevices.find(t => t.id === d.id));
   const inUseDevices = devices.filter(d => d.status === 'Em Uso' && !triageDevices.find(t => t.id === d.id));
   const maintenanceDevices = devices.filter(d => d.status === 'Manutenção' && !triageDevices.find(t => t.id === d.id));
+
+  const availableGroups = useMemo(() => {
+    return availableDevices.reduce((acc: Record<string, any[]>, device) => {
+      const type = device.type || 'OUTROS';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(device);
+      return acc;
+    }, {});
+  }, [availableDevices]);
+
+  useEffect(() => {
+    if (activeTab !== 'available') {
+      setSelectedAvailableType(null);
+    }
+  }, [activeTab]);
 
   // Função de segurança para depuração
   const handleAssignClick = (device: any) => {
@@ -332,43 +348,73 @@ export function DeviceList({
       </div>
 
       {/* Tab Content */}
-      <div className={`${viewMode === 'shelf' && activeTab === 'available'
-        ? 'grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4'
-        : 'flex flex-col gap-4'
-        }`}>
+      <div className="flex flex-col gap-4">
         {activeTab === 'available' ? (
           availableDevices.length > 0 ? (
-            viewMode === 'shelf' ? (
-              // --- MODO PRATELEIRA (SHELF VIEW) ---
-              availableDevices.map((device) => (
-                <div
-                  key={device.id}
-                  className="group relative bg-white/10 border border-white/10 hover:border-indigo-500/50 hover:bg-white/20 p-4 rounded-2xl flex flex-col items-center gap-3 transition-all cursor-pointer"
-                  onClick={() => handleAssignClick(device)}
-                  title={`${device.model} - ${device.tag}`}
+            !selectedAvailableType ? (
+              // Visão de categorias (Pastas)
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {Object.entries(availableGroups).map(([type, items]) => (
+                  <div
+                    key={type}
+                    onClick={() => setSelectedAvailableType(type)}
+                    className="group relative bg-white dark:bg-white/5 border border-slate-400 dark:border-white/5 hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-white/10 p-6 rounded-3xl flex flex-col items-center justify-center gap-4 transition-all cursor-pointer shadow-sm"
+                  >
+                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                      {getIcon(type)}
+                    </div>
+                    <div className="text-center w-full">
+                      <h3 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest truncate">{type}</h3>
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-white/50 mt-1">{items.length} {items.length === 1 ? 'item' : 'itens'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Visão de itens da categoria com botão de voltar
+              <div className="space-y-4 w-full">
+                <button
+                  onClick={() => setSelectedAvailableType(null)}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white/70 rounded-xl transition-colors text-xs font-bold uppercase tracking-wider w-fit"
                 >
-                  <div className="text-white/70 group-hover:text-white group-hover:scale-110 transition-all">
-                    {getIcon(device.type)}
-                  </div>
-                  <div className="text-center w-full px-2">
-                    <p className="text-[9px] font-black text-white/60 uppercase tracking-widest group-hover:text-indigo-400 transition-colors truncate w-full max-w-[100px] mx-auto">
-                      {device.tag}
-                    </p>
-                    <p className="text-[8px] font-bold text-white/50 uppercase truncate w-full max-w-[100px] mx-auto group-hover:text-white/80 transition-colors mt-0.5">
-                      {device.model}
-                    </p>
-                  </div>
-                  {/* Status Indicator */}
-                  {device.condition && device.condition.includes('Sistema:') && !device.custom_department && !device.currentAssignment ? (
-                     <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse" title="Atribuição Pendente" />
+                  <ChevronRight size={16} className="rotate-180" />
+                  Voltar para Categorias ({selectedAvailableType})
+                </button>
+                <div className={`${viewMode === 'shelf' ? 'grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4' : 'flex flex-col gap-4'}`}>
+                  {viewMode === 'shelf' ? (
+                    // --- MODO PRATELEIRA (SHELF VIEW) ---
+                    availableGroups[selectedAvailableType]?.map((device) => (
+                      <div
+                        key={device.id}
+                        className="group relative bg-white/10 border border-white/10 hover:border-indigo-500/50 hover:bg-white/20 p-4 rounded-2xl flex flex-col items-center gap-3 transition-all cursor-pointer"
+                        onClick={() => handleAssignClick(device)}
+                        title={`${device.model} - ${device.tag}`}
+                      >
+                        <div className="text-white/70 group-hover:text-white group-hover:scale-110 transition-all">
+                          {getIcon(device.type)}
+                        </div>
+                        <div className="text-center w-full px-2">
+                          <p className="text-[9px] font-black text-white/60 uppercase tracking-widest group-hover:text-indigo-400 transition-colors truncate w-full max-w-[100px] mx-auto">
+                            {device.tag}
+                          </p>
+                          <p className="text-[8px] font-bold text-white/50 uppercase truncate w-full max-w-[100px] mx-auto group-hover:text-white/80 transition-colors mt-0.5">
+                            {device.model}
+                          </p>
+                        </div>
+                        {/* Status Indicator */}
+                        {device.condition && device.condition.includes('Sistema:') && !device.custom_department && !device.currentAssignment ? (
+                           <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse" title="Atribuição Pendente" />
+                        ) : (
+                           <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                        )}
+                      </div>
+                    ))
                   ) : (
-                     <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                    // --- MODO CARDS (PADRÃO) ---
+                    availableGroups[selectedAvailableType]?.map(renderDeviceCard)
                   )}
                 </div>
-              ))
-            ) : (
-              // --- MODO CARDS (PADRÃO) ---
-              availableDevices.map(renderDeviceCard)
+              </div>
             )
           ) : (
             <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-400 dark:border-white/10">
