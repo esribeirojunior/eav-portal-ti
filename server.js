@@ -1375,7 +1375,7 @@ async function runMosyleSync(manualResponse = null) {
                 "options": {
                     "os": "mac",
                     "page_size": 1000,
-                    "specific_columns": ["tags", "usertype", "userid", "username", "CustomDeviceAttributes"]
+                    "specific_columns": ["deviceudid", "serial_number", "device_name", "device_model", "os", "osversion", "total_disk", "battery", "tags", "usertype", "userid", "username", "useremail", "CustomDeviceAttributes"]
                 }
             })
         });
@@ -1393,7 +1393,7 @@ async function runMosyleSync(manualResponse = null) {
                 "options": {
                     "os": "ios",
                     "page_size": 1000,
-                    "specific_columns": ["tags", "usertype", "userid", "username", "CustomDeviceAttributes"]
+                    "specific_columns": ["deviceudid", "serial_number", "device_name", "device_model", "os", "osversion", "total_disk", "battery", "tags", "usertype", "userid", "username", "useremail", "CustomDeviceAttributes"]
                 }
             })
         });
