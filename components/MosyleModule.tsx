@@ -271,9 +271,10 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                               const filtered = mosyleDevices.filter(device => {
                                                 if (mosyleFilter === 'all') return true;
                                                 try {
-                                                  const raw = JSON.parse(device.raw_data || '{}');
-                                                  const tags = raw.tags || [];
-                                                  return Array.isArray(tags) ? tags.includes(mosyleFilter) : tags === mosyleFilter;
+                                                  // O JSON bruto pode ter as tags em diferentes formatos (string, array, etc)
+                                                  // A forma mais segura de achar é buscando a palavra exata no raw_data completo
+                                                  const rawStr = device.raw_data || '';
+                                                  return rawStr.includes(`"${mosyleFilter}"`) || rawStr.includes(mosyleFilter);
                                                 } catch (e) {
                                                   return false;
                                                 }
