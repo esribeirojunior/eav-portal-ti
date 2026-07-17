@@ -1427,6 +1427,64 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                         new Date().toISOString()
                     ]
                 );
+
+                // ==========================================
+                // AUTO-SYNC COM O INVENTÁRIO CENTRAL
+                // ==========================================
+                if (dev.serial_number) {
+                    const sn = dev.serial_number;
+                    const typeStr = dev.os === 'mac' ? 'Macbook' : 'iPad';
+                    const osVersion = dev.osversion || '';
+                    const now = new Date().toISOString();
+                    
+                    // 1. Atualizar ou Inserir em 'devices'
+                    const deviceRes = await client.query('SELECT id FROM devices WHERE serial_number = $1', [sn]);
+                    let centralDeviceId;
+                    
+                    if (deviceRes.rows.length > 0) {
+                        centralDeviceId = deviceRes.rows[0].id;
+                        await client.query(
+                            'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4 WHERE id = $5',
+                            [modelStr, typeStr, osVersion, now, centralDeviceId]
+                        );
+                    } else {
+                        centralDeviceId = Math.random().toString(36).substring(2, 9);
+                        await client.query(
+                            'INSERT INTO devices (id, serial_number, model, type, status, condition, created_at, last_seen, os_version) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                            [centralDeviceId, sn, modelStr, typeStr, 'Ativo', 'Novo', now, now, osVersion]
+                        );
+                    }
+
+                    // 2. Lógica de Atribuição (Assignments)
+                    const mUser = dev.username || dev.useremail;
+                    
+                    if (mUser) {
+                        const mRole = dev.usertype || 'Staff'; 
+                        const assignRes = await client.query('SELECT id, user_name FROM assignments WHERE device_id = $1 AND returned_at IS NULL', [centralDeviceId]);
+                        
+                        let needsNewAssignment = false;
+                        if (assignRes.rows.length > 0) {
+                            const currentAssign = assignRes.rows[0];
+                            if (currentAssign.user_name !== (dev.username || dev.useremail)) {
+                                await client.query('UPDATE assignments SET returned_at = $1 WHERE id = $2', [now, currentAssign.id]);
+                                needsNewAssignment = true;
+                            }
+                        } else {
+                            needsNewAssignment = true;
+                        }
+
+                        if (needsNewAssignment) {
+                            const assignId = Math.random().toString(36).substring(2, 9);
+                            await client.query(
+                                'INSERT INTO assignments (id, device_id, user_name, user_email, user_role, assigned_at, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                                [assignId, centralDeviceId, dev.username || dev.useremail || 'Desconhecido', dev.useremail || '', mRole, now, now]
+                            );
+                        }
+                    } else {
+                        // Sem usuário no MDM -> encerra qualquer atribuição ativa
+                        await client.query('UPDATE assignments SET returned_at = $1 WHERE device_id = $2 AND returned_at IS NULL', [now, centralDeviceId]);
+                    }
+                }
             }
             await client.query('COMMIT');
         } catch (dbErr) {
