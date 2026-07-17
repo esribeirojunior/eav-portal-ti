@@ -1359,7 +1359,8 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                 "operation": "list",
                 "options": {
                     "os": "mac",
-                    "page_size": 1000
+                    "page_size": 1000,
+                    "specific_columns": ["tags", "users"]
                 }
             })
         });
@@ -1376,7 +1377,8 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
                 "operation": "list",
                 "options": {
                     "os": "ios",
-                    "page_size": 1000
+                    "page_size": 1000,
+                    "specific_columns": ["tags", "users"]
                 }
             })
         });
