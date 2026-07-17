@@ -1300,8 +1300,7 @@ app.post('/api/mosyle/deactivate', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
-    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
+async function runMosyleSync(manualResponse = null) {
     try {
         let token = process.env.MOSYLE_ACCESS_TOKEN;
         let config = { email: '', password: '' };
@@ -1309,10 +1308,18 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
         // Se não tiver variável de ambiente, tenta pegar do banco
         if (!token) {
             const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
-            if (result.rows.length === 0) return res.status(400).json({ error: 'Token não configurado. Adicione no Environment Variables do Coolify ou pela interface.' });
+            if (result.rows.length === 0) {
+                if (manualResponse) return manualResponse.status(400).json({ error: 'Token não configurado. Adicione no Environment Variables do Coolify ou pela interface.' });
+                console.log('[Auto-Sync] Token do Mosyle não configurado no Cofre.');
+                return;
+            }
             
             const decrypted = decryptSecret(result.rows[0].encrypted_value);
-            if (!decrypted) return res.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
+            if (!decrypted) {
+                if (manualResponse) return manualResponse.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
+                console.error('[Auto-Sync] Erro ao descriptografar credenciais do banco.');
+                return;
+            }
             
             config = JSON.parse(decrypted);
             token = config.token ? config.token.trim() : null;
@@ -1320,7 +1327,11 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             token = token.trim();
         }
         
-        if (!token) return res.status(400).json({ error: 'Token inválido ou vazio.' });
+        if (!token) {
+            if (manualResponse) return manualResponse.status(400).json({ error: 'Token inválido ou vazio.' });
+            console.error('[Auto-Sync] Token inválido ou vazio.');
+            return;
+        }
         
         const fetch = (await import('node-fetch')).default;
         
@@ -1337,12 +1348,16 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
 
         if (!loginResponse.ok) {
             const errText = await loginResponse.text();
-            return res.status(401).json({ error: 'Falha no login do Mosyle. Verifique o Email/Senha e o Token.', details: errText });
+            if (manualResponse) return manualResponse.status(401).json({ error: 'Falha no login do Mosyle. Verifique o Email/Senha e o Token.', details: errText });
+            console.error('[Auto-Sync] Falha no login do Mosyle:', errText);
+            return;
         }
 
         const bearerHeader = loginResponse.headers.get('authorization');
         if (!bearerHeader) {
-            return res.status(500).json({ error: 'Mosyle não retornou o JWT Bearer Token no cabeçalho.' });
+            if (manualResponse) return manualResponse.status(500).json({ error: 'Mosyle não retornou o JWT Bearer Token no cabeçalho.' });
+            console.error('[Auto-Sync] Mosyle não retornou o JWT Bearer Token.');
+            return;
         }
         
         // Listar MACs
@@ -1388,11 +1403,15 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             dataMac = await responseMac.json();
             dataIos = await responseIos.json();
         } catch(e) {
-            throw new Error(`Erro ao ler resposta da API do Mosyle.`);
+            if (manualResponse) return manualResponse.status(500).json({ error: `Erro ao ler resposta da API do Mosyle.` });
+            console.error('[Auto-Sync] Erro ao ler resposta da API.');
+            return;
         }
         
         if (!responseMac.ok || !responseIos.ok) {
-            throw new Error(`Erro na API do Mosyle. Certifique-se de que o token é válido.`);
+            if (manualResponse) return manualResponse.status(500).json({ error: `Erro na API do Mosyle. Certifique-se de que o token é válido.` });
+            console.error('[Auto-Sync] Erro na API do Mosyle.');
+            return;
         }
 
         const allDevices = [
@@ -1489,17 +1508,34 @@ app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
             await client.query('COMMIT');
         } catch (dbErr) {
             await client.query('ROLLBACK');
-            throw new Error('Erro ao salvar dispositivos do Mosyle no banco de dados local: ' + dbErr.message);
+            if (manualResponse) return manualResponse.status(500).json({ error: 'Erro ao salvar dispositivos do Mosyle no banco local: ' + dbErr.message });
+            console.error('[Auto-Sync] Erro no DB:', dbErr.message);
+            return;
         } finally {
             client.release();
         }
         
-        res.json({ success: true, message: `Sincronização concluída com sucesso! ${allDevices.length} dispositivos (Macs/iPads) foram mapeados e salvos em ambiente isolado.` });
+        if (manualResponse) {
+            manualResponse.json({ success: true, message: `Sincronização concluída com sucesso! ${allDevices.length} dispositivos (Macs/iPads) foram mapeados e salvos em ambiente isolado.` });
+        } else {
+            console.log(`[Auto-Sync] Concluído: ${allDevices.length} dispositivos (Macs/iPads) foram mapeados e salvos.`);
+        }
     } catch (err) {
-        console.error('[Mosyle]', err);
-        res.status(500).json({ error: err.message });
+        console.error('[Mosyle Auto-Sync]', err);
+        if (manualResponse) manualResponse.status(500).json({ error: err.message });
     }
+}
+
+app.post('/api/mosyle/sync', authenticateToken, async (req, res) => {
+    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Acesso negado.' });
+    await runMosyleSync(res);
 });
+
+// Executa o Auto-Sync a cada 1 hora (3600000 milissegundos)
+setInterval(() => {
+    console.log('[Auto-Sync] Iniciando sincronização agendada do Mosyle...');
+    runMosyleSync();
+}, 3600000);
 
 // Rota catch-all para o React SPA (todas as rotas vão para o index.html)
 app.use(express.static(path.join(__dirname, 'dist')));
