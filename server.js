@@ -1457,22 +1457,27 @@ async function runMosyleSync(manualResponse = null) {
                     const now = new Date().toISOString();
                     
                     // 1. Atualizar ou Inserir em 'devices'
-                    const deviceRes = await client.query('SELECT id FROM devices WHERE serial_number = $1', [sn]);
+                    const deviceRes = await client.query('SELECT id, tag, supplier FROM devices WHERE serial_number = $1', [sn]);
                     let centralDeviceId;
                     const mUser = dev.username || dev.useremail;
                     const newStatus = mUser ? 'Em Uso' : 'Disponível';
                     
                     if (deviceRes.rows.length > 0) {
                         centralDeviceId = deviceRes.rows[0].id;
+                        const currentTag = deviceRes.rows[0].tag;
+                        const currentSupplier = deviceRes.rows[0].supplier;
+                        const tagToUpdate = (currentTag && currentTag.trim() !== '') ? currentTag : 'Mosyle MDM';
+                        const supplierToUpdate = (currentSupplier && currentSupplier.trim() !== '') ? currentSupplier : 'Mosyle';
+
                         await client.query(
-                            'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4, status = $5 WHERE id = $6',
-                            [modelStr, typeStr, osVersion, now, newStatus, centralDeviceId]
+                            'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4, status = $5, tag = $6, supplier = $7 WHERE id = $8',
+                            [modelStr, typeStr, osVersion, now, newStatus, tagToUpdate, supplierToUpdate, centralDeviceId]
                         );
                     } else {
                         centralDeviceId = Math.random().toString(36).substring(2, 9);
                         await client.query(
-                            'INSERT INTO devices (id, serial_number, model, type, status, condition, created_at, last_seen, os_version) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-                            [centralDeviceId, sn, modelStr, typeStr, newStatus, 'Novo', now, now, osVersion]
+                            'INSERT INTO devices (id, serial_number, model, type, status, condition, created_at, last_seen, os_version, tag, supplier) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+                            [centralDeviceId, sn, modelStr, typeStr, newStatus, 'Novo', now, now, osVersion, 'Mosyle MDM', 'Mosyle']
                         );
                     }
 

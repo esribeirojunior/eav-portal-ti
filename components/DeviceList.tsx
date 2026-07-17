@@ -193,7 +193,14 @@ export function DeviceList({
           {getIcon(device.type)}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white tracking-tight truncate">{device.model}</h3>
+          <h3 className="text-[14px] font-semibold text-slate-800 dark:text-white tracking-tight truncate flex items-center gap-2" title={`${device.model} - ${device.tag}`}>
+            {device.model}
+            {device.supplier === 'Mosyle' && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 flex-shrink-0" title="Gerenciado pelo MDM Mosyle">
+                MOSYLE
+              </span>
+            )}
+          </h3>
           <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 truncate">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
           </p>
@@ -272,7 +279,14 @@ export function DeviceList({
           {getIcon(device.type)}
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight truncate">{device.model}</h3>
+          <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight truncate flex items-center gap-2">
+            {device.model}
+            {device.supplier === 'Mosyle' && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20" title="Gerenciado pelo MDM Mosyle">
+                MOSYLE
+              </span>
+            )}
+          </h3>
           <p className="text-[11px] font-medium text-rose-500/80 dark:text-rose-400/70 tracking-wide mt-0.5 truncate">
             <span className="text-rose-600 dark:text-rose-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber}</span>
           </p>
@@ -557,14 +571,19 @@ export function DeviceList({
                                     <div className="custody-device-icon">{getIcon(device.type)}</div>
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
-                                        <p className="text-[10px] font-bold text-white uppercase break-all line-clamp-2">{device.model}</p>
+                                        <p className="text-[10px] font-bold text-slate-800 dark:text-white uppercase break-all line-clamp-2">{device.model}</p>
                                         <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none shrink-0 truncate max-w-[80px]">
                                           {device.type}
                                         </span>
+                                        {device.supplier === 'Mosyle' && (
+                                          <span className="px-1.5 py-0.5 rounded text-[7.5px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 leading-none shrink-0" title="Gerenciado pelo MDM Mosyle">
+                                            MOSYLE
+                                          </span>
+                                        )}
                                       </div>
-                                      <p className="text-[8px] text-white/30 uppercase tracking-widest mt-1 break-all line-clamp-2">
-                                        <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>
-                                        {device.serialNumber && ` • S/N: ${device.serialNumber}`}
+                                      <p className="text-[8px] text-slate-500 dark:text-white/30 uppercase tracking-widest mt-1 break-all line-clamp-2">
+                                        {device.tag && <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>}
+                                        {device.serialNumber && <span className="ml-1 opacity-80">• S/N: {device.serialNumber}</span>}
                                       </p>
                                     </div>
                                   </div>
