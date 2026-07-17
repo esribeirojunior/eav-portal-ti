@@ -1459,18 +1459,20 @@ async function runMosyleSync(manualResponse = null) {
                     // 1. Atualizar ou Inserir em 'devices'
                     const deviceRes = await client.query('SELECT id FROM devices WHERE serial_number = $1', [sn]);
                     let centralDeviceId;
+                    const mUser = dev.username || dev.useremail;
+                    const newStatus = mUser ? 'Em Uso' : 'Disponível';
                     
                     if (deviceRes.rows.length > 0) {
                         centralDeviceId = deviceRes.rows[0].id;
                         await client.query(
-                            'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4 WHERE id = $5',
-                            [modelStr, typeStr, osVersion, now, centralDeviceId]
+                            'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4, status = $5 WHERE id = $6',
+                            [modelStr, typeStr, osVersion, now, newStatus, centralDeviceId]
                         );
                     } else {
                         centralDeviceId = Math.random().toString(36).substring(2, 9);
                         await client.query(
                             'INSERT INTO devices (id, serial_number, model, type, status, condition, created_at, last_seen, os_version) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-                            [centralDeviceId, sn, modelStr, typeStr, 'Ativo', 'Novo', now, now, osVersion]
+                            [centralDeviceId, sn, modelStr, typeStr, newStatus, 'Novo', now, now, osVersion]
                         );
                     }
 
