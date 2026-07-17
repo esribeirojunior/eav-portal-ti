@@ -17,7 +17,7 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
     const [isConfigured, setIsConfigured] = useState(false);
     const [mosyleDevices, setMosyleDevices] = useState<any[]>([]);
     const [isLoadingMosyle, setIsLoadingMosyle] = useState(false);
-    const [mosyleFilter, setMosyleFilter] = useState<'all' | 'Student' | 'Teacher' | 'Staff'>('all');
+    const [mosyleFilter, setMosyleFilter] = useState<'all' | 'Student' | 'Teacher' | 'Staff' | 'Administrator'>('all');
 
     const fetchMosyleDevices = async () => {
         setIsLoadingMosyle(true);
@@ -244,18 +244,18 @@ export const MosyleModule: React.FC<MosyleModuleProps> = ({ userEmail, onBack })
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                             <h3 className="font-bold text-lg">Inventário Sincronizado</h3>
                                             
-                                            <div className="flex items-center gap-2 bg-black/20 p-1 rounded-xl border border-white/10">
-                                                {(['all', 'Student', 'Teacher', 'Staff'] as const).map(f => (
+                                            <div className="flex items-center gap-2 bg-black/20 p-1 rounded-xl border border-white/10 overflow-x-auto">
+                                                {(['all', 'Student', 'Teacher', 'Staff', 'Administrator'] as const).map(f => (
                                                     <button
                                                         key={f}
                                                         onClick={() => setMosyleFilter(f)}
-                                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                                                             mosyleFilter === f
                                                                 ? 'bg-indigo-500 text-white shadow-md'
                                                                 : 'text-white/40 hover:text-white hover:bg-white/5'
                                                         }`}
                                                     >
-                                                        {f === 'all' ? 'Todos' : f === 'Student' ? 'Alunos' : f === 'Teacher' ? 'Professores' : 'Staff'}
+                                                        {f === 'all' ? 'Todos' : f === 'Student' ? 'Alunos' : f === 'Teacher' ? 'Professores' : f === 'Staff' ? 'Staff' : 'Admins'}
                                                     </button>
                                                 ))}
                                             </div>
