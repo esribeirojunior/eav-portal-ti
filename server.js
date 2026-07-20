@@ -264,6 +264,10 @@ async function initPostgresDB() {
         ALTER TABLE devices ADD COLUMN IF NOT EXISTS custom_user TEXT;
       `);
       
+      // Normaliza case do type de MacBook (sync antigo criava 'Macbook' lowercase c).
+      // Migration one-shot idempotente.
+      try { await pool.query("UPDATE devices SET type = 'MacBook' WHERE type = 'Macbook'"); } catch (e) { console.warn('[migration] normalize MacBook case:', e.message); }
+
       // Add role column if it doesn't exist (ignore error if it does)
       try { await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'"); } catch (e) {}
       try { 
@@ -1098,6 +1102,213 @@ app.post('/api/devices/bulk-stock', authenticateToken, async (req, res) => {
   }
 });
 
+// Lista macs do Mosyle que ainda estao vinculados a devices SEM tag EAV-XXXX.
+// Sao candidatos para "vincular" a um EAV-XXXX lacrado. Cada item traz o
+// serial, nome amigavel do mac no Mosyle, usuario atual (se houver) e o
+// id do device antigo no banco (para consolidar depois).
+app.get('/api/mosyle/unlinked-macs', authenticateToken, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        md.id            AS mosyle_id,
+        md.serial_number AS serial_number,
+        md.device_name   AS device_name,
+        md.model         AS model,
+        md.os            AS os,
+        md.raw_data      AS raw_data,
+        d.id             AS existing_device_id,
+        d.tag            AS existing_tag,
+        d.status         AS existing_status
+      FROM mosyle_devices md
+      LEFT JOIN devices d
+        ON LOWER(d.serial_number) = LOWER(md.serial_number)
+      WHERE md.serial_number IS NOT NULL
+        AND md.serial_number <> ''
+        AND (d.tag IS NULL OR d.tag NOT LIKE 'EAV-%')
+      ORDER BY md.device_name ASC
+    `);
+
+    const items = rows.map(r => {
+      let userInfo = null;
+      try {
+        const raw = r.raw_data ? JSON.parse(r.raw_data) : null;
+        if (raw) {
+          const name = raw.username || null;
+          const email = raw.useremail || null;
+          if (name || email) userInfo = { name, email };
+        }
+      } catch {}
+      return {
+        mosyle_id: r.mosyle_id,
+        serial_number: r.serial_number,
+        device_name: r.device_name,
+        model: r.model,
+        os: r.os,
+        existing_device_id: r.existing_device_id,
+        existing_tag: r.existing_tag,
+        existing_status: r.existing_status,
+        user: userInfo,
+      };
+    });
+    res.json({ items });
+  } catch (err) {
+    console.error('[unlinked-macs] Erro:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Vincula um dispositivo EAV-XXXX (em Estoque - Lacrado) a um mac do Mosyle.
+// Body: { mosyle_id, notes? }
+//
+// O que faz em uma transacao:
+//   1. Confirma que o EAV esta em Estoque - Lacrado.
+//   2. Busca o mac no mosyle_devices; extrai serial + usuario atual do Mosyle.
+//   3. Se existir um device antigo com o mesmo serial e tag != EAV-, move
+//      assignments daquele device pro EAV e apaga o duplicado.
+//   4. UPDATE devices SET serial, model, type, supplier='Mosyle',
+//      status = 'Em Uso' se ha usuario, senao 'Disponivel'.
+//   5. Se ha usuario do Mosyle, cria/renova assignment.
+//   6. Grava audit_log LINK_MOSYLE.
+//
+// TODO (fase B): chamar API do Mosyle (Update Device Attributes) para gravar
+// asset_tag = EAV-XXXX no device do Mosyle, deixando o vinculo visivel nos
+// dois lados. Endpoint exato precisa ser confirmado com a documentacao.
+app.post('/api/devices/:id/link-mosyle', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { mosyle_id, notes } = req.body || {};
+  if (!mosyle_id) return res.status(400).json({ error: 'mosyle_id é obrigatório.' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const eavRes = await client.query('SELECT * FROM devices WHERE id = $1', [id]);
+    if (eavRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Dispositivo EAV não encontrado.' });
+    }
+    const eavDevice = eavRes.rows[0];
+    if (eavDevice.status !== 'Estoque - Lacrado') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: `Só é possível vincular dispositivos em Estoque - Lacrado. Estado atual: ${eavDevice.status}.` });
+    }
+
+    const mosyleRes = await client.query('SELECT * FROM mosyle_devices WHERE id = $1', [mosyle_id]);
+    if (mosyleRes.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Mac do Mosyle não encontrado.' });
+    }
+    const mosyleDev = mosyleRes.rows[0];
+    if (!mosyleDev.serial_number) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Mac do Mosyle sem serial number; não é possível vincular.' });
+    }
+
+    // Extrai user do raw_data
+    let username = null, useremail = null, usertype = null;
+    try {
+      const raw = mosyleDev.raw_data ? JSON.parse(mosyleDev.raw_data) : null;
+      if (raw) {
+        username = raw.username || null;
+        useremail = raw.useremail || null;
+        usertype = raw.usertype || null;
+      }
+    } catch {}
+
+    // Consolida device antigo (criado automaticamente pelo sync anterior) se
+    // ele existir com o mesmo serial e tag != EAV-.
+    const oldDupRes = await client.query(
+      `SELECT id, tag FROM devices
+       WHERE LOWER(serial_number) = LOWER($1)
+         AND id <> $2
+         AND (tag IS NULL OR tag NOT LIKE 'EAV-%')`,
+      [mosyleDev.serial_number, id]
+    );
+    let mergedFrom = null;
+    if (oldDupRes.rows.length > 0) {
+      const oldDevice = oldDupRes.rows[0];
+      mergedFrom = { id: oldDevice.id, tag: oldDevice.tag };
+      // Move assignments do antigo para o EAV
+      await client.query('UPDATE assignments SET device_id = $1 WHERE device_id = $2', [id, oldDevice.id]);
+      // Move maintenance_logs
+      await client.query('UPDATE maintenance_logs SET device_id = $1 WHERE device_id = $2', [id, oldDevice.id]);
+      // Apaga o antigo
+      await client.query('DELETE FROM devices WHERE id = $1', [oldDevice.id]);
+    }
+
+    // Determina novo status
+    const mUser = username || useremail;
+    const newStatus = mUser ? 'Em Uso' : 'Disponível';
+    const now = new Date().toISOString();
+    const modelToUse = mosyleDev.model || eavDevice.model;
+    const typeToUse = mosyleDev.os === 'mac' ? 'MacBook' : (mosyleDev.os === 'ios' ? 'iPad' : (eavDevice.type || 'MacBook'));
+
+    // Atualiza o EAV com dados do Mosyle
+    await client.query(
+      `UPDATE devices SET
+         serial_number = $1,
+         model = $2,
+         type = $3,
+         status = $4,
+         supplier = $5,
+         last_seen = $6,
+         condition = COALESCE($7, condition)
+       WHERE id = $8`,
+      [mosyleDev.serial_number, modelToUse, typeToUse, newStatus, 'Mosyle', now,
+       notes ? (eavDevice.condition ? eavDevice.condition + ' | ' + notes : notes) : null,
+       id]
+    );
+
+    // Cria assignment se ha usuario do Mosyle
+    if (mUser) {
+      let mRole = usertype || 'Colaborador';
+      if (mRole === 'Student') mRole = 'Aluno';
+      else if (mRole === 'Teacher') mRole = 'Professor';
+      else if (mRole === 'Staff' || mRole === 'Administrator') mRole = 'Colaborador';
+
+      // Verifica se ja tem um assignment ativo (herdado do merge acima)
+      const activeRes = await client.query('SELECT id FROM assignments WHERE device_id = $1 AND returned_at IS NULL', [id]);
+      if (activeRes.rows.length === 0) {
+        await client.query(
+          'INSERT INTO assignments (id, device_id, user_name, user_email, user_role, assigned_at, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [crypto.randomBytes(4).toString('hex'), id, username || useremail || 'Desconhecido', useremail || '', mRole, now, now]
+        );
+      }
+    }
+
+    // Audit
+    await client.query(
+      `INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        crypto.randomBytes(4).toString('hex'),
+        req.user.email,
+        'LINK_MOSYLE',
+        `${eavDevice.tag} vinculado ao Mosyle serial=${mosyleDev.serial_number} usuario=${username || useremail || '(nenhum)'}${mergedFrom ? ` (consolidado com device antigo tag=${mergedFrom.tag})` : ''}`,
+        'DEVICE',
+        id,
+        now,
+      ]
+    );
+
+    await client.query('COMMIT');
+    sendRealtimeUpdate('devices');
+    res.json({
+      success: true,
+      tag: eavDevice.tag,
+      serial_number: mosyleDev.serial_number,
+      new_status: newStatus,
+      merged_from: mergedFrom,
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[link-mosyle] Erro:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 // Transita um dispositivo lacrado para preparado (Disponível). Aceita
 // preencher serial, modelo detalhado, cor, etc. Body opcional -- se vier
 // vazio, apenas muda o status.
@@ -1871,29 +2082,44 @@ async function runMosyleSync(manualResponse = null) {
                 // ==========================================
                 if (dev.serial_number) {
                     const sn = dev.serial_number;
-                    const typeStr = dev.os === 'mac' ? 'Macbook' : 'iPad';
+                    // Padronizamos 'MacBook' (CamelCase) para bater com o enum DeviceType do frontend.
+                    const typeStr = dev.os === 'mac' ? 'MacBook' : 'iPad';
                     const osVersion = dev.osversion || '';
                     const now = new Date().toISOString();
-                    
+
                     // 1. Atualizar ou Inserir em 'devices'
-                    const deviceRes = await client.query('SELECT id, tag, supplier FROM devices WHERE serial_number = $1', [sn]);
+                    const deviceRes = await client.query('SELECT id, tag, supplier, status FROM devices WHERE serial_number = $1', [sn]);
                     let centralDeviceId;
                     const mUser = dev.username || dev.useremail;
-                    const newStatus = mUser ? 'Em Uso' : 'Disponível';
-                    
+
                     if (deviceRes.rows.length > 0) {
                         centralDeviceId = deviceRes.rows[0].id;
                         const currentTag = deviceRes.rows[0].tag;
                         const currentSupplier = deviceRes.rows[0].supplier;
+                        const currentStatus = deviceRes.rows[0].status;
+
+                        // Preserva a tag existente se for EAV-XXXX (nao sobrescreve por 'Mosyle MDM').
                         const tagToUpdate = (currentTag && currentTag.trim() !== '') ? currentTag : 'Mosyle MDM';
                         const supplierToUpdate = (currentSupplier && currentSupplier.trim() !== '') ? currentSupplier : 'Mosyle';
+
+                        // Se o device foi cadastrado como estoque lacrado, o sync NAO promove
+                        // pra Em Uso automaticamente -- aguarda o admin vincular via
+                        // POST /api/devices/:id/link-mosyle. Isso evita que o Mosyle
+                        // "roube" um EAV-XXXX recem-cadastrado que ainda nao foi conferido.
+                        const newStatus = currentStatus === 'Estoque - Lacrado'
+                            ? 'Estoque - Lacrado'
+                            : (mUser ? 'Em Uso' : 'Disponível');
 
                         await client.query(
                             'UPDATE devices SET model = $1, type = $2, os_version = $3, last_seen = $4, status = $5, tag = $6, supplier = $7 WHERE id = $8',
                             [modelStr, typeStr, osVersion, now, newStatus, tagToUpdate, supplierToUpdate, centralDeviceId]
                         );
+
+                        // Se o status era Lacrado, NAO cria/atualiza assignment -- aguarda vinculacao manual.
+                        if (currentStatus === 'Estoque - Lacrado') continue;
                     } else {
-                        centralDeviceId = Math.random().toString(36).substring(2, 9);
+                        centralDeviceId = crypto.randomBytes(4).toString('hex');
+                        const newStatus = mUser ? 'Em Uso' : 'Disponível';
                         await client.query(
                             'INSERT INTO devices (id, serial_number, model, type, status, condition, created_at, last_seen, os_version, tag, supplier) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
                             [centralDeviceId, sn, modelStr, typeStr, newStatus, 'Novo', now, now, osVersion, 'Mosyle MDM', 'Mosyle']
