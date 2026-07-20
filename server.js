@@ -321,8 +321,8 @@ function requireSuperadmin(req, res, next) {
   return next();
 }
 
-// Endpoint de Debug/Fix
-app.get('/api/admin/fix-roles', async (req, res) => {
+// Endpoint de Debug/Fix — restrito a superadmin autenticado.
+app.get('/api/admin/fix-roles', authenticateToken, requireSuperadmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, email, role FROM authorized_users');
     res.json(result.rows);
@@ -331,8 +331,8 @@ app.get('/api/admin/fix-roles', async (req, res) => {
   }
 });
 
-// Endpoint Forçar Recriação da Coluna
-app.get('/api/admin/force-role', async (req, res) => {
+// Endpoint Forçar Recriação da Coluna — restrito a superadmin autenticado.
+app.get('/api/admin/force-role', authenticateToken, requireSuperadmin, async (req, res) => {
   try {
     await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'");
     res.json({ success: true, message: "Coluna criada com sucesso!" });
@@ -1127,8 +1127,8 @@ Nova Mensagem do Usuário: ${message}
 });
 
 
-// Rota temporária de debug (Será removida depois)
-app.get('/api/debug-emails', async (req, res) => {
+// Rota temporária de debug — restrita a superadmin autenticado. Considerar remover em breve.
+app.get('/api/debug-emails', authenticateToken, requireSuperadmin, async (req, res) => {
     try {
         const result = await pool.query("SELECT id, user_name, user_email FROM assignments WHERE user_name ILIKE '%falk%'");
         res.json(result.rows);
