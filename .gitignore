@@ -39,3 +39,20 @@ sandbox-teste/
 *.db
 *.db-shm
 *.db-wal
+
+# Segredos (chaves do vault, tokens gerados em runtime)
+data/*.key
+data/vault.key
+*.pem
+*.p12
+*.pfx
+
+# Backups acidentais gerados por refactors
+*.backup.*
+recovered_app.txt
+target.txt
+replace.txt
+termo.txt
+app_edits.json
+sidebar_edit.json
+termo_extracted/

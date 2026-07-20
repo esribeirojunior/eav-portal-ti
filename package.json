@@ -64,12 +64,12 @@
     "files": [
       "dist/**/*",
       "data/**/*",
+      "!data/*.key",
       "lib/**/*",
       "types.ts",
       "server.js",
       "electron-main.js",
-      "package.json",
-      ".env"
+      "package.json"
     ],
     "win": {
       "icon": "build/icon.ico",
