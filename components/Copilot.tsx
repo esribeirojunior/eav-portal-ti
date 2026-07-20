@@ -44,10 +44,18 @@ export function Copilot({ userRole = 'admin', userEmail = '' }: { userRole?: str
     }
   };
 
-  // Basic Markdown renderer helper for bold text and lists
+  // Basic Markdown renderer helper for bold text and lists.
+  // Escapa HTML ANTES de aplicar markdown; previne XSS a partir da resposta
+  // da IA ou de campos de banco (ex: devices.condition) injetados no prompt.
+  const escapeHtml = (raw: string) =>
+    raw.replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
+    ));
+
   const formatMarkdown = (text: string) => {
-    // Bold: **text**
-    let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    let html = escapeHtml(text);
+    // Bold: **text**  (escape antes garante que $1 nao contem tags)
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     // Newlines
     html = html.replace(/\n/g, '<br />');
     return html;
