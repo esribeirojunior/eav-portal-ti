@@ -153,25 +153,25 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-3xl border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/5">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
               <PackageOpen size={22} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white uppercase tracking-widest">
+              <h2 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-widest">
                 Preparar {device.tag}
               </h2>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest mt-0.5">
+              <p className="text-[10px] text-slate-500 dark:text-white/40 uppercase tracking-widest mt-0.5">
                 Caixa aberta • dispositivo pronto pra entregar
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all border border-white/5"
+            className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-white/40 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all border border-slate-200 dark:border-white/5"
           >
             <X size={18} />
           </button>
@@ -179,14 +179,14 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
 
         {/* Tabs — só aparece pra MacBook */}
         {isMacBook && (
-          <div className="flex border-b border-white/5 bg-white/[0.02]">
+          <div className="flex border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
             <button
               type="button"
               onClick={() => setMode('mosyle')}
               className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                 mode === 'mosyle'
-                  ? 'text-white bg-white/5 border-b-2 border-emerald-500'
-                  : 'text-white/40 hover:text-white/70'
+                  ? 'text-slate-900 dark:text-white bg-white dark:bg-white/5 border-b-2 border-emerald-500'
+                  : 'text-slate-500 dark:text-white/40 hover:text-slate-800 dark:hover:text-white/70'
               }`}
             >
               <Apple size={14} />
@@ -197,8 +197,8 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
               onClick={() => setMode('manual')}
               className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                 mode === 'manual'
-                  ? 'text-white bg-white/5 border-b-2 border-emerald-500'
-                  : 'text-white/40 hover:text-white/70'
+                  ? 'text-slate-900 dark:text-white bg-white dark:bg-white/5 border-b-2 border-emerald-500'
+                  : 'text-slate-500 dark:text-white/40 hover:text-slate-800 dark:hover:text-white/70'
               }`}
             >
               <PackageOpen size={14} />
@@ -210,39 +210,39 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
         {/* Conteúdo */}
         {mode === 'mosyle' && isMacBook ? (
           <form onSubmit={handleSubmitMosyle} className="p-6 space-y-4 overflow-y-auto">
-            <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-[10px] text-emerald-300/80 uppercase tracking-wider">
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 text-[10px] text-emerald-800 dark:text-emerald-300/80 uppercase tracking-wider">
               Escolha o mac fisicamente aberto. O portal vai copiar o serial, modelo e usuário atual do Mosyle. Se já houver um device duplicado com o mesmo serial (sem tag EAV), ele será consolidado automaticamente.
             </div>
 
             {loadingMacs ? (
-              <div className="py-12 flex flex-col items-center gap-3 text-white/40">
+              <div className="py-12 flex flex-col items-center gap-3 text-slate-500 dark:text-white/40">
                 <Loader2 size={24} className="animate-spin" />
                 <p className="text-[10px] uppercase tracking-widest">Carregando macs do Mosyle...</p>
               </div>
             ) : macsError ? (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm">
+              <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-sm">
                 {macsError}
               </div>
             ) : (unlinkedMacs && unlinkedMacs.length === 0) ? (
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10 text-center text-white/60 text-sm">
+              <div className="p-6 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center text-slate-600 dark:text-white/60 text-sm">
                 Nenhum mac do Mosyle sem vínculo no momento. Talvez você precise rodar o sync do Mosyle primeiro (Configurações → Mosyle → Sincronizar) ou este mac ainda não foi matriculado no MDM.
               </div>
             ) : (
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   Mac do Mosyle
                 </label>
                 <select
                   value={selectedMosyleId}
                   onChange={(e) => setSelectedMosyleId(e.target.value)}
                   required
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-3 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50"
                 >
-                  <option value="" className="bg-slate-900">— Selecione —</option>
+                  <option value="" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white">— Selecione —</option>
                   {unlinkedMacs?.map((m) => {
                     const user = m.user?.name || m.user?.email || 'sem usuário';
                     return (
-                      <option key={m.mosyle_id} value={m.mosyle_id} className="bg-slate-900">
+                      <option key={m.mosyle_id} value={m.mosyle_id} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-white">
                         {m.device_name || m.serial_number} • SN: {m.serial_number} • {user}
                       </option>
                     );
@@ -252,14 +252,14 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
                   const chosen = unlinkedMacs?.find(m => m.mosyle_id === selectedMosyleId);
                   if (!chosen) return null;
                   return (
-                    <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-white/70 space-y-1">
-                      <div><span className="text-white/40 uppercase tracking-widest text-[9px] mr-2">Modelo:</span>{chosen.model}</div>
-                      <div><span className="text-white/40 uppercase tracking-widest text-[9px] mr-2">Serial:</span><span className="font-mono">{chosen.serial_number}</span></div>
+                    <div className="mt-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-700 dark:text-white/70 space-y-1">
+                      <div><span className="text-slate-500 dark:text-white/40 uppercase tracking-widest text-[9px] mr-2">Modelo:</span>{chosen.model}</div>
+                      <div><span className="text-slate-500 dark:text-white/40 uppercase tracking-widest text-[9px] mr-2">Serial:</span><span className="font-mono">{chosen.serial_number}</span></div>
                       {chosen.user && (
-                        <div><span className="text-white/40 uppercase tracking-widest text-[9px] mr-2">Usuário atual no Mosyle:</span>{chosen.user.name || chosen.user.email}</div>
+                        <div><span className="text-slate-500 dark:text-white/40 uppercase tracking-widest text-[9px] mr-2">Usuário atual no Mosyle:</span>{chosen.user.name || chosen.user.email}</div>
                       )}
                       {chosen.existing_tag && (
-                        <div className="text-amber-300"><span className="text-amber-300/60 uppercase tracking-widest text-[9px] mr-2">Aviso:</span>Já existe device com tag <b>{chosen.existing_tag}</b> — ele será consolidado com {device.tag}.</div>
+                        <div className="text-amber-700 dark:text-amber-300"><span className="text-amber-600/70 dark:text-amber-300/60 uppercase tracking-widest text-[9px] mr-2">Aviso:</span>Já existe device com tag <b>{chosen.existing_tag}</b> — ele será consolidado com {device.tag}.</div>
                       )}
                     </div>
                   );
@@ -268,14 +268,14 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
             )}
 
             <div>
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+              <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                 Observações da vinculação (opcional)
               </label>
               <textarea
                 value={conditionNotes}
                 onChange={(e) => setConditionNotes(e.target.value)}
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50 resize-none"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 resize-none placeholder:text-slate-400 dark:placeholder:text-white/30"
                 placeholder="Ex: entregue ao usuário X em 20/07..."
               />
             </div>
@@ -284,7 +284,7 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-xs font-black uppercase tracking-widest transition-all border border-white/5"
+                className="flex-1 px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white/60 text-xs font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/5"
               >
                 Cancelar
               </button>
@@ -309,50 +309,50 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
           </form>
         ) : (
           <form onSubmit={handleSubmitManual} className="p-6 space-y-4 overflow-y-auto">
-            <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-[10px] text-amber-300/80 uppercase tracking-wider">
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 text-[10px] text-amber-800 dark:text-amber-300/80 uppercase tracking-wider">
               Todos os campos abaixo são opcionais. Preencha o que já souber; o
               resto pode ser completado depois pelo agente RMM ou manualmente.
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   Serial number
                 </label>
                 <input
                   type="text"
                   value={serialNumber}
                   onChange={(e) => setSerialNumber(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm font-mono focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder="Ex: ABC123XYZ"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   Modelo detalhado
                 </label>
                 <input
                   type="text"
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder='Ex: MacBook Air M3 13"'
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   Hostname
                 </label>
                 <input
                   type="text"
                   value={hostname}
                   onChange={(e) => setHostname(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm font-mono focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder="Ex: EAV-4KYGJG4"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   RAM (GB)
                 </label>
                 <input
@@ -360,45 +360,45 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
                   min={0}
                   value={ramGb}
                   onChange={(e) => setRamGb(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder="Ex: 16"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   CPU
                 </label>
                 <input
                   type="text"
                   value={cpuModel}
                   onChange={(e) => setCpuModel(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder="Ex: Apple M3, Intel Ultra 5"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+                <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                   Sistema
                 </label>
                 <input
                   type="text"
                   value={osVersion}
                   onChange={(e) => setOsVersion(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 placeholder:text-slate-400 dark:placeholder:text-white/30"
                   placeholder="Ex: macOS 14.5, Windows 11 Pro"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1.5 block">
+              <label className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest mb-1.5 block">
                 Observações da preparação
               </label>
               <textarea
                 value={conditionNotes}
                 onChange={(e) => setConditionNotes(e.target.value)}
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500/50 resize-none"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-4 py-2.5 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500/50 resize-none placeholder:text-slate-400 dark:placeholder:text-white/30"
                 placeholder="Ex: RustDesk instalado, MDM ativo, capinha protetora aplicada..."
               />
             </div>
@@ -407,7 +407,7 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-xs font-black uppercase tracking-widest transition-all border border-white/5"
+                className="flex-1 px-4 py-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-white/60 text-xs font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/5"
               >
                 Cancelar
               </button>
