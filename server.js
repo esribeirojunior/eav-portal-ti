@@ -303,22 +303,22 @@ async function readDBTable(sheetName) {
 const ACTIVE_SESSIONS = new Map();
 
 function authenticateToken(req, res, next) {
-  const ip = req.ip || req.connection.remoteAddress || '';
-  const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
-
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
   if (token && ACTIVE_SESSIONS.has(token)) {
     req.user = ACTIVE_SESSIONS.get(token);
     return next();
-  } else if (!isLocalhost) {
-    return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
-  } else {
-    // Fallback para localhost bypass
-    req.user = { email: 'localhost@admin', role: 'superadmin' };
-    return next();
   }
+  return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
+}
+
+// Guard para rotas administrativas: exige token E role superadmin.
+function requireSuperadmin(req, res, next) {
+  if (!req.user || req.user.role !== 'superadmin') {
+    return res.status(403).json({ error: 'Acesso restrito a superadmin.' });
+  }
+  return next();
 }
 
 // Endpoint de Debug/Fix
