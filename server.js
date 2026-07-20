@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { OAuth2Client } from 'google-auth-library';
 import multer from 'multer';
+import bcrypt from 'bcryptjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -295,11 +296,12 @@ async function initPostgresDB() {
       console.log('[PostgreSQL] Criando usuário superadmin padrão...');
       const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@escolaamericana.com.br';
       const adminPass = process.env.DEFAULT_ADMIN_PASSWORD || 'admin@123';
-      
+      const adminPassHash = await hashPassword(adminPass);
+
       const id = Math.random().toString(36).substring(2, 9);
       await pool.query(
         "INSERT INTO authorized_users (id, email, password, role, created_at) VALUES ($1, $2, $3, 'superadmin', $4) ON CONFLICT DO NOTHING",
-        [id, adminEmail, adminPass, new Date().toISOString()]
+        [id, adminEmail, adminPassHash, new Date().toISOString()]
       );
     }
 
@@ -336,6 +338,29 @@ async function readDBTable(sheetName) {
     console.error(`Erro lendo ${sheetName}:`, e);
     return [];
   }
+}
+
+// --- SENHAS ---
+// Formato bcrypt inicia com "$2a$", "$2b$" ou "$2y$". Migracao lazy:
+// verifyPassword aceita legado em plaintext e retorna needsRehash=true
+// pra chamador atualizar o banco no proximo login bem-sucedido.
+const BCRYPT_COST = 12;
+const BCRYPT_PREFIX = /^\$2[aby]\$/;
+
+async function hashPassword(plain) {
+  return bcrypt.hash(String(plain), BCRYPT_COST);
+}
+
+async function verifyPassword(plain, stored) {
+  const s = String(stored || '');
+  const p = String(plain || '');
+  if (BCRYPT_PREFIX.test(s)) {
+    const ok = await bcrypt.compare(p, s);
+    return { ok, needsRehash: false };
+  }
+  // Legado: senha em texto no banco. Compara direto e sinaliza para rehash.
+  const ok = p.trim() === s.trim();
+  return { ok, needsRehash: ok };
 }
 
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
@@ -1008,15 +1033,16 @@ app.post('/api/admin/users', authenticateToken, async (req, res) => {
     if (!email) return res.status(400).json({ error: 'Email obrigatorio' });
     const id = Math.random().toString(36).substring(2, 9);
     const pwd = password || 'eav@123';
+    const pwdHash = await hashPassword(pwd);
     const userRole = role || 'admin';
     const defaultModules = '["assets","links","audit","tasks","vault","tutorials","lab"]';
-    
+
     const check = await pool.query('SELECT * FROM authorized_users WHERE email = $1', [email]);
     if (check.rows.length > 0) return res.status(400).json({ error: 'Usuario ja existe' });
 
     await pool.query(
       "INSERT INTO authorized_users (id, email, password, role, modules, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
-      [id, email, pwd, userRole, defaultModules, new Date().toISOString()]
+      [id, email, pwdHash, userRole, defaultModules, new Date().toISOString()]
     );
     res.json({ data: { id, email, role: userRole, modules: defaultModules } });
   } catch (err) {
@@ -1043,15 +1069,30 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const users = await readDBTable('authorized_users');
     const user = users.find(u => String(u.email || '').toLowerCase().trim() === String(email).toLowerCase().trim());
-    
+
+    // Mensagem unificada para nao vazar quais emails existem no sistema.
+    const INVALID = { status: 401, body: { error: 'Credenciais inválidas.' } };
     if (!user) {
-      return res.status(401).json({ error: 'Usuário não cadastrado ou não autorizado.' });
+      return res.status(INVALID.status).json(INVALID.body);
     }
-    
-    if (String(user.password || '').trim() !== String(password).trim()) {
-      return res.status(401).json({ error: 'Senha incorreta.' });
+
+    const { ok, needsRehash } = await verifyPassword(password, user.password);
+    if (!ok) {
+      return res.status(INVALID.status).json(INVALID.body);
     }
-    
+
+    // Migracao lazy: se a senha estava em plaintext no banco, agora que
+    // sabemos que confere, gravamos hash bcrypt no lugar.
+    if (needsRehash) {
+      try {
+        const newHash = await hashPassword(password);
+        await pool.query('UPDATE authorized_users SET password = $1 WHERE id = $2', [newHash, user.id]);
+        console.log(`[Auth] Senha migrada para bcrypt: ${email}`);
+      } catch (e) {
+        console.error(`[Auth] Falha ao migrar senha para bcrypt (${email}):`, e.message);
+      }
+    }
+
     console.log(`[Auth] Login bem-sucedido para: ${email}`);
     const token = createSession(user);
     return res.json({
