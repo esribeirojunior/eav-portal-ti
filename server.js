@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
-import { exec, spawn } from 'child_process';
+import { exec, execFile, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { OAuth2Client } from 'google-auth-library';
@@ -721,6 +721,9 @@ app.post('/api/agent/sync', async (req, res) => {
 });
 
 // Endpoint de Ping do RMM
+// Aceita apenas hostname/IP com caracteres seguros; usa execFile (nao passa por shell)
+// para eliminar command injection (payloads tipo "127.0.0.1 & calc.exe").
+const HOST_REGEX = /^[a-zA-Z0-9.\-:]+$/;
 app.post('/api/agent/ping', authenticateToken, (req, res) => {
   const { hostname, ip } = req.body;
   if (!hostname && !ip) return res.status(400).json({ error: 'Hostname ou IP necessário para o Ping.' });
@@ -728,13 +731,17 @@ app.post('/api/agent/ping', authenticateToken, (req, res) => {
   // Dá prioridade para o IP se disponível (evita falha de resolução DNS)
   const targetHost = ip || hostname;
 
+  if (typeof targetHost !== 'string' || targetHost.length > 253 || !HOST_REGEX.test(targetHost)) {
+    return res.status(400).json({ error: 'Hostname/IP inválido.' });
+  }
+
   console.log(`[Ping] Disparando ping na rede para: ${targetHost}...`);
 
   // Suporte multiplataforma: Windows usa -n e -w(ms), Linux usa -c e -W(s)
   const isWin = process.platform === 'win32';
-  const pingCmd = isWin ? `ping -n 1 -w 2000 ${targetHost}` : `ping -c 1 -W 2 ${targetHost}`;
+  const pingArgs = isWin ? ['-n', '1', '-w', '2000', targetHost] : ['-c', '1', '-W', '2', targetHost];
 
-  exec(pingCmd, (error, stdout, stderr) => {
+  execFile('ping', pingArgs, { timeout: 5000, windowsHide: true }, (error, stdout, stderr) => {
     if (error) {
       console.log(`[Ping] Falha: Host ${targetHost} não alcançável.`);
       return res.json({ online: false, error: 'Host inalcançável', output: stdout || stderr });
