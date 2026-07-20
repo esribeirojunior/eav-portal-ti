@@ -596,9 +596,15 @@ app.post('/api/db', authenticateToken, async (req, res) => {
 
 // Endpoint para sincronização do Agente RMM (Monitoramento Local)
 app.post('/api/agent/sync', async (req, res) => {
-  // Segurança Simples: Token Invisível
+  // Token do agente lido do env var AGENT_SYNC_TOKEN (configurar no Coolify).
+  // Fail-closed: se a env nao estiver definida, todo sync e rejeitado.
+  const expectedToken = process.env.AGENT_SYNC_TOKEN;
+  if (!expectedToken) {
+    console.error('[SECURITY] AGENT_SYNC_TOKEN nao configurado no servidor.');
+    return res.status(503).json({ error: 'Agent authentication not configured on server' });
+  }
   const authHeader = req.headers['authorization'];
-  if (authHeader !== 'Bearer EAV-SECURE-SYNC-2026-X1900') {
+  if (authHeader !== `Bearer ${expectedToken}`) {
     console.warn('[SECURITY] Tentativa de sync bloqueada por token inválido:', req.ip);
     return res.status(401).json({ error: 'Unauthorized: Invalid Agent Token' });
   }
