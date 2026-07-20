@@ -76,27 +76,66 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Servir arquivos de upload estaticamente
-app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/uploads', express.static(UPLOADS_DIR, {
+  setHeaders: (res) => {
+    // Impede que browsers interpretem o arquivo como HTML/JS mesmo se o
+    // atacante conseguir passar um polyglot.
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+  },
+}));
 
-// Configuração do Multer para upload de imagens
+// Configuração do Multer para upload de imagens.
+// Restricoes: apenas MIME de imagem, tamanho maximo 5MB, extensao gerada
+// pelo servidor (nao usa a original), so autenticados podem chamar.
+const ALLOWED_UPLOAD_MIMES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+]);
+const MIME_TO_EXT = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+};
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
+    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
+    const ext = MIME_TO_EXT[file.mimetype] || '.bin';
     cb(null, 'anexo-' + uniqueSuffix + ext);
   }
 });
-const upload = multer({ storage: storage });
-
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (!ALLOWED_UPLOAD_MIMES.has(file.mimetype)) {
+      return cb(new Error('Tipo de arquivo nao permitido'));
+    }
+    cb(null, true);
   }
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({ url: fileUrl });
+});
+
+app.post('/api/upload', authenticateToken, (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      const msg = err.message === 'Tipo de arquivo nao permitido'
+        ? 'Apenas imagens PNG, JPG, WebP ou GIF sao permitidas.'
+        : err.code === 'LIMIT_FILE_SIZE'
+          ? 'Arquivo excede 5MB.'
+          : 'Falha no upload.';
+      return res.status(400).json({ error: msg });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+  });
 });
 
 // Função utilitária para interceptar e salvar imagens em Base64 localmente
@@ -772,7 +811,11 @@ app.use(express.static(path.join(__dirname, 'dist'), {
     }
   }
 }));
-app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads')));
+// Serve o mesmo diretorio /uploads mais tarde no fluxo com nosniff (ja
+// registrado em cima); mantido aqui para evitar 404 em caminhos duplicados.
+app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads'), {
+  setHeaders: (res) => { res.setHeader('X-Content-Type-Options', 'nosniff'); },
+}));
 
 // Endpoint proxy para a Monitcall — autenticado; credenciais via env.
 app.get('/api/monitcall', authenticateToken, (req, res) => {
