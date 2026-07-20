@@ -743,25 +743,8 @@ app.post('/api/agent/ping', authenticateToken, (req, res) => {
   });
 });
 
-// Endpoint para acionar o Acesso Remoto (VNC)
-app.post('/api/remote-control', authenticateToken, (req, res) => {
-  const { ip } = req.body;
-  if (!ip) return res.status(400).json({ error: 'IP necessário para o Acesso Remoto.' });
-
-  console.log(`[VNC] Disparando conexão remota VNC para: ${ip}...`);
-
-  const vncPass = process.env.VNC_PASSWORD;
-
-  // Usa spawn desanexado para forçar a janela a abrir como um aplicativo independente (em primeiro plano)
-  const vncProcess = spawn('C:\\Program Files\\TightVNC\\tvnviewer.exe', [ip, `-password=${vncPass}`], {
-    detached: true,
-    stdio: 'ignore',
-    windowsHide: false
-  });
-  vncProcess.unref();
-
-  return res.json({ success: true, message: `Conexão VNC disparada para ${ip}` });
-});
+// Endpoint /api/remote-control (TightVNC) removido — acesso remoto migrado para RustDesk,
+// disparado pelo próprio navegador via `rustdesk://<id>` (ver RmmStatusModal.tsx).
 
 
 
