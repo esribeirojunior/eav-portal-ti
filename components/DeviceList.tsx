@@ -64,7 +64,8 @@ interface DeviceListProps {
   onDelete?: (device: any) => void;
   onEdit?: (device: any) => void;
   onRefresh?: () => void;
-  activeTab?: 'available' | 'in_use' | 'maintenance' | 'triage';
+  onPrepare?: (device: any) => void;
+  activeTab?: 'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage';
   searchQuery?: string;
   userRole?: string;
 }
@@ -78,6 +79,7 @@ export function DeviceList({
   onDelete,
   onEdit,
   onRefresh,
+  onPrepare,
   activeTab = 'available',
   searchQuery,
   userRole
@@ -95,9 +97,70 @@ export function DeviceList({
   // Isolar dispositivos de triagem
   const triageDevices = devices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
 
+  const sealedDevices = devices.filter(d => d.status === 'Estoque - Lacrado');
   const availableDevices = devices.filter(d => d.status === 'Disponível' && !triageDevices.find(t => t.id === d.id));
   const inUseDevices = devices.filter(d => d.status === 'Em Uso' && !triageDevices.find(t => t.id === d.id));
   const maintenanceDevices = devices.filter(d => d.status === 'Manutenção' && !triageDevices.find(t => t.id === d.id));
+
+  // Agrupa dispositivos lacrados por tipo pra facilitar a visualização em lote.
+  const sealedGroups = useMemo(() => {
+    return sealedDevices.reduce((acc: Record<string, any[]>, device) => {
+      const type = device.type || 'OUTROS';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(device);
+      return acc;
+    }, {});
+  }, [sealedDevices]);
+
+  const renderSealedCard = (device: any) => (
+    <div
+      key={device.id}
+      className="group relative bg-white dark:bg-white/5 border border-amber-300/40 dark:border-amber-500/20 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all"
+    >
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+          {getIcon(device.type)}
+        </div>
+        <div className="flex flex-col min-w-0 flex-1">
+          <h3 className="text-[14px] font-semibold text-slate-800 dark:text-white tracking-tight truncate flex items-center gap-2">
+            {device.tag}
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300/40 dark:border-amber-500/30 uppercase tracking-widest">
+              Lacrado
+            </span>
+          </h3>
+          <p className="text-[11px] font-medium text-slate-600 dark:text-white/50 tracking-wide mt-0.5 truncate">
+            {device.type}
+            {device.supplier ? ` • ${device.supplier}` : ''}
+            {device.invoice_number ? ` • NF ${device.invoice_number}` : ''}
+          </p>
+          {device.condition && (
+            <p className="text-[10px] text-slate-500 dark:text-white/30 mt-1 truncate">
+              {device.condition}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        {onPrepare && userRole !== 'viewer' && (
+          <button
+            onClick={() => onPrepare(device)}
+            className="flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-md"
+          >
+            Marcar como Preparado
+          </button>
+        )}
+        {onDelete && userRole !== 'viewer' && (
+          <button
+            onClick={() => onDelete(device)}
+            className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all border border-rose-500/20"
+            title="Excluir dispositivo"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   const availableGroups = useMemo(() => {
     return availableDevices.reduce((acc: Record<string, any[]>, device) => {
@@ -363,7 +426,49 @@ export function DeviceList({
 
       {/* Tab Content */}
       <div className="flex flex-col gap-4">
-        {activeTab === 'available' ? (
+        {activeTab === 'sealed' ? (
+          sealedDevices.length > 0 ? (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-2">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <HardDrive size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
+                    Estoque Lacrado
+                  </h3>
+                  <p className="text-[10px] text-slate-500 dark:text-white/40 uppercase tracking-widest">
+                    {sealedDevices.length} unidade{sealedDevices.length !== 1 ? 's' : ''} em caixas fechadas • aguardando preparação
+                  </p>
+                </div>
+              </div>
+              {Object.entries(sealedGroups).map(([type, items]) => (
+                <div key={type} className="space-y-2">
+                  <div className="flex items-center gap-2 px-2">
+                    <p className="text-[10px] font-black text-slate-500 dark:text-white/40 uppercase tracking-widest">
+                      {type}
+                    </p>
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-white/30">
+                      {items.length}
+                    </span>
+                  </div>
+                  {items.map(renderSealedCard)}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-400 dark:border-white/10">
+              <div className="w-24 h-24 bg-amber-50 dark:bg-amber-500/5 rounded-[2rem] flex items-center justify-center text-amber-500 dark:text-amber-500/30 border border-amber-100 dark:border-amber-500/10">
+                <HardDrive size={48} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-700 dark:text-white/30 font-[1000] uppercase tracking-[0.4em] text-xs">Estoque vazio</p>
+                <p className="text-slate-700/50 dark:text-white/20 text-[10px] font-black uppercase tracking-widest">Nenhum dispositivo em caixa lacrada</p>
+                <p className="text-slate-700/50 dark:text-white/20 text-[10px] uppercase tracking-widest mt-2">Use "Cadastrar Estoque" no menu lateral pra registrar chegadas.</p>
+              </div>
+            </div>
+          )
+        ) : activeTab === 'available' ? (
           availableDevices.length > 0 ? (
             !selectedAvailableType ? (
               // Visão de categorias (Pastas)

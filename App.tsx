@@ -4,6 +4,8 @@ import { Device, DeviceStatus, DeviceType, Assignment, UserRole, TechnicalInspec
 import { DeviceList } from './components/DeviceList';
 import { Dashboard } from './components/Dashboard';
 import { DeviceModal } from './components/DeviceModal';
+import { NewStockModal } from './components/NewStockModal';
+import { PrepareDeviceModal } from './components/PrepareDeviceModal';
 import { AssignmentModal } from './components/AssignmentModal';
 import { AccessoryModal } from './components/AccessoryModal';
 import { ReturnModal } from './components/ReturnModal';
@@ -49,6 +51,7 @@ import {
   FileDown,
   MapPin,
   Package,
+  PackagePlus,
   MonitorPlay,
   Wrench,
   ClipboardCheck
@@ -401,7 +404,7 @@ const App: React.FC = () => {
   });
   const [devices, setDevices] = useState<Device[]>([]);
   const [subView, setSubView] = useState<'menu' | 'inventory' | 'dashboard'>('menu');
-  const [inventoryTab, setInventoryTab] = useState<'available' | 'in_use' | 'maintenance' | 'triage'>('available');
+  const [inventoryTab, setInventoryTab] = useState<'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage'>('available');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string>(() => {
@@ -421,6 +424,8 @@ const App: React.FC = () => {
   });
 
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
+  const [isNewStockModalOpen, setIsNewStockModalOpen] = useState(false);
+  const [deviceToPrepare, setDeviceToPrepare] = useState<any | null>(null);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   // Sincronização de cargos para todos os usuários
@@ -779,12 +784,14 @@ const App: React.FC = () => {
   });
 
   const triageDevicesForStats = searchedDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
+  const sealedDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.STOCK_SEALED);
   const availableDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
   const inUseDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));
   const maintenanceDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.MAINTENANCE && !triageDevicesForStats.find(t => t.id === d.id));
 
   const stats = {
     total: searchedDevices.length,
+    sealed: sealedDevicesForStats.length,
     available: availableDevicesForStats.length,
     inUse: inUseDevicesForStats.length,
     maintenance: maintenanceDevicesForStats.length,
@@ -869,8 +876,13 @@ const App: React.FC = () => {
                   <div className="mt-4 px-2 pt-2">
                       <p className="text-[9px] font-bold text-slate-700 dark:text-white/30 uppercase tracking-widest mb-2">Inventário</p>
                       
+                      <button onClick={() => { setSubView('inventory'); setInventoryTab('sealed'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'sealed') ? 'bg-amber-500 text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-3"><PackagePlus size={16} /> Estoque Lacrado</div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'sealed') ? 'bg-amber-300 text-amber-900' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'}`}>{stats.sealed}</span>
+                      </button>
+
                       <button onClick={() => { setSubView('inventory'); setInventoryTab('available'); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-[11px] font-black tracking-widest ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-[#5b61f8] text-white shadow-md' : 'text-slate-800 hover:text-slate-900 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}>
-                          <div className="flex items-center gap-3"><Package size={16} /> Estoque</div>
+                          <div className="flex items-center gap-3"><Package size={16} /> Disponível</div>
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${(subView === 'inventory' && inventoryTab === 'available') ? 'bg-indigo-400 text-white' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white/40'}`}>{stats.available}</span>
                       </button>
                       
@@ -900,6 +912,10 @@ const App: React.FC = () => {
                     <button onClick={() => setIsDeviceModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-800 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
                       <Plus size={18} />
                       Novo Ativo
+                    </button>
+                    <button onClick={() => setIsNewStockModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-amber-700 dark:text-amber-400/70 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/5">
+                      <PackagePlus size={18} />
+                      Cadastrar Estoque
                     </button>
                     <button onClick={() => setIsAccessoryModalOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all text-[11px] font-black tracking-widest text-slate-800 hover:text-slate-800 dark:text-white/40 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5">
                       <Cable size={18} />
@@ -1019,6 +1035,7 @@ const App: React.FC = () => {
                     onMaintenance={(device) => setMaintenanceDevice(device)}
                     onDelete={handleDeleteDevice}
                     onRefresh={fetchDevices}
+                    onPrepare={setDeviceToPrepare}
                     userRole={userRole}
                   />
                 )}
@@ -1132,6 +1149,24 @@ const App: React.FC = () => {
               onClose={() => setViewingHistory(null)}
               device={viewingHistory}
               onDelete={handleDeleteHistory}
+            />
+
+            <NewStockModal
+              isOpen={isNewStockModalOpen}
+              onClose={() => setIsNewStockModalOpen(false)}
+              onSuccess={() => {
+                fetchDevices();
+                showNotification('Estoque cadastrado com sucesso!');
+              }}
+            />
+
+            <PrepareDeviceModal
+              device={deviceToPrepare}
+              onClose={() => setDeviceToPrepare(null)}
+              onSuccess={() => {
+                fetchDevices();
+                showNotification('Dispositivo marcado como preparado.');
+              }}
             />
 
 

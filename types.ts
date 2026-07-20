@@ -21,9 +21,14 @@ export enum DeviceType {
 }
 
 export enum DeviceStatus {
+  // "Estoque - Lacrado": cadastrado na chegada, ainda em caixa fechada.
+  STOCK_SEALED = 'Estoque - Lacrado',
+  // "Disponível": caixa aberta, preparado, pronto pra entregar. Mantido como
+  // literal por retrocompat -- todos os dispositivos existentes usam esse.
   AVAILABLE = 'Disponível',
   IN_USE = 'Em Uso',
-  MAINTENANCE = 'Manutenção'
+  MAINTENANCE = 'Manutenção',
+  RETIRED = 'Descartado'
 }
 
 export interface TechnicalInspection {

@@ -979,6 +979,195 @@ function sendRealtimeUpdate(table) {
   });
 }
 
+// ============================================================
+// GESTAO DE ESTOQUE DE DISPOSITIVOS
+// Fluxo:
+//   1. POST /api/devices/bulk-stock  -> cadastra N unidades em "Estoque - Lacrado"
+//                                        gera tags sequenciais EAV-0001, EAV-0002...
+//                                        serial_number vazio (preenchido ao abrir a caixa)
+//   2. PATCH /api/devices/:id/prepare -> muda status para "Disponível" + preenche
+//                                        serial, modelo, etc. (caixa foi aberta e preparada)
+// ============================================================
+
+// Retorna o proximo numero sequencial para tags EAV-NNNN. Faz SELECT MAX
+// filtrando somente tags no formato EAV- seguido de digitos, extrai o
+// numero e incrementa. Comeca em 1 se nao existir nenhuma.
+async function getNextTagNumber() {
+  const { rows } = await pool.query(`
+    SELECT MAX(CAST(SUBSTRING(tag FROM 5) AS INTEGER)) AS max_num
+    FROM devices
+    WHERE tag ~ '^EAV-[0-9]+$'
+  `);
+  const current = rows[0].max_num || 0;
+  return current + 1;
+}
+
+function formatTag(n) {
+  return 'EAV-' + String(n).padStart(4, '0');
+}
+
+// Cadastra N unidades novas em estoque lacrado. Payload:
+//   { quantity: 5, type: 'MacBook', supplier: 'Apple Reseller', invoice_number: 'NF-1234',
+//     purchase_date: '2026-07-20', warranty_expiry: '2027-07-20', unit_cost: 8500, notes: '...' }
+app.post('/api/devices/bulk-stock', authenticateToken, async (req, res) => {
+  const {
+    quantity,
+    type,
+    supplier,
+    invoice_number,
+    purchase_date,
+    warranty_expiry,
+    unit_cost,
+    is_accessory,
+    notes,
+  } = req.body;
+
+  const qty = parseInt(quantity, 10);
+  if (!qty || qty < 1 || qty > 500) {
+    return res.status(400).json({ error: 'Quantidade deve ser entre 1 e 500.' });
+  }
+  if (!type || typeof type !== 'string' || type.length > 60) {
+    return res.status(400).json({ error: 'Tipo obrigatório.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Lock advisory pra evitar race entre dois bulk-stocks concorrentes gerando tags iguais.
+    await client.query('SELECT pg_advisory_xact_lock(4711)');
+
+    const { rows: mrows } = await client.query(`
+      SELECT COALESCE(MAX(CAST(SUBSTRING(tag FROM 5) AS INTEGER)), 0) AS max_num
+      FROM devices
+      WHERE tag ~ '^EAV-[0-9]+$'
+    `);
+    let nextNum = (mrows[0].max_num || 0) + 1;
+
+    const now = new Date().toISOString();
+    const created = [];
+
+    for (let i = 0; i < qty; i++) {
+      const tag = formatTag(nextNum + i);
+      const id = crypto.randomBytes(4).toString('hex');
+      // condition guarda notas do lote (nota fiscal, fornecedor) pra referencia rapida.
+      const conditionNote = [
+        notes ? `Notas: ${notes}` : null,
+        supplier ? `Fornecedor: ${supplier}` : null,
+        invoice_number ? `NF: ${invoice_number}` : null,
+        unit_cost ? `Custo unit: R$ ${unit_cost}` : null,
+      ].filter(Boolean).join(' | ') || 'Cadastrado como estoque novo.';
+
+      await client.query(
+        `INSERT INTO devices (
+          id, tag, serial_number, model, type, status, condition, created_at,
+          is_accessory, invoice_number, supplier, purchase_date, warranty_expiry
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+        [
+          id, tag, null, null, type, 'Estoque - Lacrado', conditionNote, now,
+          !!is_accessory, invoice_number || null, supplier || null,
+          purchase_date || null, warranty_expiry || null,
+        ]
+      );
+      created.push({ id, tag });
+    }
+
+    await client.query(
+      `INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        crypto.randomBytes(4).toString('hex'),
+        req.user.email,
+        'STOCK_BULK_CREATE',
+        `Cadastro em lote: ${qty}x ${type}. Tags ${created[0].tag} a ${created[created.length - 1].tag}.`,
+        'DEVICE',
+        created.map(c => c.id).join(','),
+        now,
+      ]
+    );
+
+    await client.query('COMMIT');
+    sendRealtimeUpdate('devices');
+    res.json({ success: true, count: created.length, devices: created });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[bulk-stock] Erro:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Transita um dispositivo lacrado para preparado (Disponível). Aceita
+// preencher serial, modelo detalhado, cor, etc. Body opcional -- se vier
+// vazio, apenas muda o status.
+app.patch('/api/devices/:id/prepare', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const {
+    serial_number,
+    model,
+    condition,
+    ram_gb,
+    cpu_model,
+    os_version,
+    hostname,
+  } = req.body || {};
+
+  try {
+    const { rows } = await pool.query('SELECT * FROM devices WHERE id = $1', [id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Dispositivo não encontrado.' });
+    const device = rows[0];
+    if (device.status !== 'Estoque - Lacrado') {
+      return res.status(409).json({
+        error: `Só é possível preparar dispositivos em Estoque - Lacrado. Estado atual: ${device.status}.`
+      });
+    }
+
+    // Se veio serial e ele ja existe em outro device, aborta.
+    if (serial_number) {
+      const dup = await pool.query(
+        'SELECT id FROM devices WHERE LOWER(serial_number) = LOWER($1) AND id <> $2',
+        [serial_number, id]
+      );
+      if (dup.rows.length > 0) {
+        return res.status(409).json({ error: 'Já existe outro dispositivo com esse serial number.' });
+      }
+    }
+
+    const now = new Date().toISOString();
+    await pool.query(
+      `UPDATE devices SET
+        status = $1,
+        serial_number = COALESCE($2, serial_number),
+        model = COALESCE($3, model),
+        condition = COALESCE($4, condition),
+        ram_gb = COALESCE($5, ram_gb),
+        cpu_model = COALESCE($6, cpu_model),
+        os_version = COALESCE($7, os_version),
+        hostname = COALESCE($8, hostname),
+        last_seen = $9
+       WHERE id = $10`,
+      ['Disponível', serial_number || null, model || null, condition || null,
+       ram_gb ? Math.round(ram_gb) : null, cpu_model || null, os_version || null,
+       hostname || null, now, id]
+    );
+
+    await pool.query(
+      `INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [crypto.randomBytes(4).toString('hex'), req.user.email, 'STOCK_PREPARE',
+       `${device.tag} preparado. Serial: ${serial_number || '(vazio)'} Modelo: ${model || '(vazio)'}`,
+       'DEVICE', id, now]
+    );
+
+    sendRealtimeUpdate('devices');
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[prepare] Erro:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API Local de Tutoriais (Sem Supabase)
 app.get('/api/tutorials', (req, res) => {
   const tutorials = readTutorials();
