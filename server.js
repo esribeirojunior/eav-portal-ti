@@ -339,17 +339,58 @@ async function readDBTable(sheetName) {
 }
 
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
+// Sessoes vivem em memoria. Reiniciar o container invalida todas.
+// Cada sessao: { email, role, createdAt, lastUsed }.
+// TTL_MS -- expira absoluta (contada a partir do createdAt).
+// IDLE_MS -- expira ociosa (contada a partir do lastUsed).
 const ACTIVE_SESSIONS = new Map();
+const SESSION_TTL_MS = 8 * 60 * 60 * 1000;   // 8 horas
+const SESSION_IDLE_MS = 2 * 60 * 60 * 1000;  // 2 horas ocioso
+
+function createSession(user) {
+  const token = crypto.randomUUID();
+  const now = Date.now();
+  ACTIVE_SESSIONS.set(token, {
+    email: user.email,
+    role: user.role,
+    createdAt: now,
+    lastUsed: now,
+  });
+  return token;
+}
+
+// Purga sessoes expiradas periodicamente para nao vazar memoria.
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, s] of ACTIVE_SESSIONS) {
+    if (now - s.createdAt > SESSION_TTL_MS || now - s.lastUsed > SESSION_IDLE_MS) {
+      ACTIVE_SESSIONS.delete(token);
+    }
+  }
+}, 15 * 60 * 1000).unref();
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-
-  if (token && ACTIVE_SESSIONS.has(token)) {
-    req.user = ACTIVE_SESSIONS.get(token);
-    return next();
+  if (!token) {
+    return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
   }
-  return res.status(401).json({ error: 'Acesso não autorizado. Por favor, faça login no sistema.' });
+
+  const session = ACTIVE_SESSIONS.get(token);
+  if (!session) {
+    return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
+  }
+
+  const now = Date.now();
+  if (now - session.createdAt > SESSION_TTL_MS || now - session.lastUsed > SESSION_IDLE_MS) {
+    ACTIVE_SESSIONS.delete(token);
+    return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
+  }
+
+  session.lastUsed = now;
+  req.user = session;
+  req.sessionToken = token;
+  return next();
 }
 
 // Guard para rotas administrativas: exige token E role superadmin.
@@ -1012,9 +1053,8 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     console.log(`[Auth] Login bem-sucedido para: ${email}`);
-    const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
-    return res.json({ 
+    const token = createSession(user);
+    return res.json({
       user: {
         id: user.id,
         email: user.email,
@@ -1028,6 +1068,14 @@ app.post('/api/auth/login', async (req, res) => {
     console.error('Erro no login local:', err);
     return res.status(500).json({ error: 'Erro interno no servidor ao autenticar.' });
   }
+});
+
+// Logout: remove a sessao do lado do servidor. O cliente ja limpa o
+// localStorage, mas se so limpar la, o token continua valido aqui ate
+// expirar/servidor reiniciar. Isso resolve.
+app.post('/api/auth/logout', authenticateToken, (req, res) => {
+  ACTIVE_SESSIONS.delete(req.sessionToken);
+  return res.json({ success: true });
 });
 
 // Endpoint de Autenticação com Google Login (GSI)
@@ -1063,8 +1111,7 @@ app.post('/api/auth/google', async (req, res) => {
     }
 
     console.log(`[Auth Google] Login bem-sucedido para: ${email}`);
-    const token = crypto.randomUUID();
-    ACTIVE_SESSIONS.set(token, { email: user.email, role: user.role });
+    const token = createSession(user);
 
     return res.json({
       user: {
@@ -1083,7 +1130,7 @@ app.post('/api/auth/google', async (req, res) => {
 });
 
 // --- AI COPILOT ROUTE ---
-app.post('/api/ai/chat', async (req, res) => {
+app.post('/api/ai/chat', authenticateToken, async (req, res) => {
   const { message, history = [], userRole = 'admin', userEmail = 'Desconhecido' } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória' });
   
