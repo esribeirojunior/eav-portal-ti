@@ -767,13 +767,16 @@ app.use(express.static(path.join(__dirname, 'dist'), {
 }));
 app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads')));
 
-// Endpoint proxy para a Monitcall
-app.get('/api/monitcall', (req, res) => {
+// Endpoint proxy para a Monitcall — autenticado; credenciais via env.
+app.get('/api/monitcall', authenticateToken, (req, res) => {
   const target = req.query.target || 'ramais';
   const fila = req.query.fila || '1021';
 
-  const username = 'Demo';
-  const password = 'Y7R8EM';
+  const username = process.env.MONITCALL_USER;
+  const password = process.env.MONITCALL_PASSWORD;
+  if (!username || !password) {
+    return res.status(503).json({ error: 'Monitcall credentials not configured' });
+  }
   const credentials = Buffer.from(`${username}:${password}`).toString('base64');
 
   const monitcallPath = target === 'agentes'
@@ -800,7 +803,6 @@ app.get('/api/monitcall', (req, res) => {
       try {
         const data = JSON.parse(body);
         console.log(`[Proxy] Monitcall respondeu: ${proxyRes.statusCode}`);
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Content-Type', 'application/json');
         res.status(200).json(data);
       } catch (e) {
