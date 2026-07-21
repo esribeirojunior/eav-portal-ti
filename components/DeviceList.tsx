@@ -91,21 +91,19 @@ export function DeviceList({
   const canSelect = userRole === 'superadmin' && !!onToggleSelect && !!selectedIds;
 
   // Checkbox reutilizavel; nao renderiza nada se o usuario nao pode selecionar.
+  // Nao usar <label> como wrapper -- em Chrome recente o onClick+stopPropagation
+  // no label cancela o click sintetico no input filho. Deixa o input direto.
   const SelectBox = ({ device }: { device: any }) => {
     if (!canSelect) return null;
     const checked = selectedIds!.has(device.id);
     return (
-      <label
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => onToggleSelect!(device.id)}
         onClick={(e) => e.stopPropagation()}
-        className="flex-shrink-0 flex items-center justify-center cursor-pointer"
-      >
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={() => onToggleSelect!(device.id)}
-          className="w-4 h-4 accent-indigo-500 cursor-pointer"
-        />
-      </label>
+        className="w-4 h-4 accent-indigo-500 cursor-pointer flex-shrink-0 relative z-10"
+      />
     );
   };
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
