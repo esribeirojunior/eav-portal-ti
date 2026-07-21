@@ -6,6 +6,7 @@ import { Dashboard } from './components/Dashboard';
 import { DeviceModal } from './components/DeviceModal';
 import { NewStockModal } from './components/NewStockModal';
 import { PrepareDeviceModal } from './components/PrepareDeviceModal';
+import { BulkDeleteBar } from './components/BulkDeleteBar';
 import { AssignmentModal } from './components/AssignmentModal';
 import { AccessoryModal } from './components/AccessoryModal';
 import { ReturnModal } from './components/ReturnModal';
@@ -426,6 +427,7 @@ const App: React.FC = () => {
   const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
   const [isNewStockModalOpen, setIsNewStockModalOpen] = useState(false);
   const [deviceToPrepare, setDeviceToPrepare] = useState<any | null>(null);
+  const [selectedDeviceIds, setSelectedDeviceIds] = useState<Set<string>>(new Set());
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   // Sincronização de cargos para todos os usuários
@@ -1037,6 +1039,14 @@ const App: React.FC = () => {
                     onRefresh={fetchDevices}
                     onPrepare={setDeviceToPrepare}
                     userRole={userRole}
+                    selectedIds={selectedDeviceIds}
+                    onToggleSelect={(id: string) => {
+                      setSelectedDeviceIds(prev => {
+                        const next = new Set(prev);
+                        if (next.has(id)) next.delete(id); else next.add(id);
+                        return next;
+                      });
+                    }}
                   />
                 )}
               </div>
@@ -1168,6 +1178,20 @@ const App: React.FC = () => {
                 showNotification('Dispositivo marcado como preparado.');
               }}
             />
+
+            {userRole === 'superadmin' && (
+              <BulkDeleteBar
+                selectedIds={Array.from(selectedDeviceIds)}
+                selectedDevices={devices.filter(d => selectedDeviceIds.has(d.id))}
+                onCancel={() => setSelectedDeviceIds(new Set())}
+                onDeleted={() => {
+                  const count = selectedDeviceIds.size;
+                  setSelectedDeviceIds(new Set());
+                  fetchDevices();
+                  showNotification(`${count} dispositivo${count !== 1 ? 's' : ''} excluído${count !== 1 ? 's' : ''} com sucesso.`);
+                }}
+              />
+            )}
 
 
             <AccessoryModal

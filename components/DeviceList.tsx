@@ -68,6 +68,8 @@ interface DeviceListProps {
   activeTab?: 'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage';
   searchQuery?: string;
   userRole?: string;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function DeviceList({
@@ -82,8 +84,30 @@ export function DeviceList({
   onPrepare,
   activeTab = 'available',
   searchQuery,
-  userRole
+  userRole,
+  selectedIds,
+  onToggleSelect
 }: DeviceListProps) {
+  const canSelect = userRole === 'superadmin' && !!onToggleSelect && !!selectedIds;
+
+  // Checkbox reutilizavel; nao renderiza nada se o usuario nao pode selecionar.
+  const SelectBox = ({ device }: { device: any }) => {
+    if (!canSelect) return null;
+    const checked = selectedIds!.has(device.id);
+    return (
+      <label
+        onClick={(e) => e.stopPropagation()}
+        className="flex-shrink-0 flex items-center justify-center cursor-pointer"
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={() => onToggleSelect!(device.id)}
+          className="w-4 h-4 accent-indigo-500 cursor-pointer"
+        />
+      </label>
+    );
+  };
   const [viewMode, setViewMode] = useState<'card' | 'shelf'>('card');
   const [selectedAvailableType, setSelectedAvailableType] = useState<string | null>(null);
   const [inUseCategory, setInUseCategory] = useState<'colaboradores' | 'professores' | 'alunos'>('colaboradores');
@@ -115,9 +139,14 @@ export function DeviceList({
   const renderSealedCard = (device: any) => (
     <div
       key={device.id}
-      className="group relative bg-white dark:bg-white/5 border border-amber-300/40 dark:border-amber-500/20 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all"
+      className={`group relative bg-white dark:bg-white/5 border ${
+        canSelect && selectedIds!.has(device.id)
+          ? 'border-indigo-500/60 ring-2 ring-indigo-500/30'
+          : 'border-amber-300/40 dark:border-amber-500/20'
+      } p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all`}
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
+        <SelectBox device={device} />
         <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
           {getIcon(device.type)}
         </div>
@@ -250,8 +279,13 @@ export function DeviceList({
 
   // Renderização de Item de Dispositivo Disponível (Lista Moderna)
   const renderDeviceCard = (device: any) => (
-    <div key={device.id} className="group relative bg-white dark:bg-white/5 border border-slate-400 dark:border-white/5 hover:border-indigo-500/30 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-white/10 shadow-sm">
+    <div key={device.id} className={`group relative bg-white dark:bg-white/5 border ${
+      canSelect && selectedIds!.has(device.id)
+        ? 'border-indigo-500/60 ring-2 ring-indigo-500/30'
+        : 'border-slate-400 dark:border-white/5 hover:border-indigo-500/30'
+    } p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-white/10 shadow-sm`}>
       <div className="flex items-center gap-4 flex-1">
+        <SelectBox device={device} />
         <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-800 dark:text-white/40">
           {getIcon(device.type)}
         </div>
@@ -336,8 +370,13 @@ export function DeviceList({
 
   // Renderização de Item de Dispositivo em Manutenção (Lista Moderna)
   const renderMaintenanceCard = (device: any) => (
-    <div key={device.id} className="group relative bg-rose-50/50 dark:bg-rose-500/5 border border-rose-200/50 dark:border-rose-500/20 hover:border-rose-500/50 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 shadow-sm">
+    <div key={device.id} className={`group relative bg-rose-50/50 dark:bg-rose-500/5 border ${
+      canSelect && selectedIds!.has(device.id)
+        ? 'border-indigo-500/60 ring-2 ring-indigo-500/30'
+        : 'border-rose-200/50 dark:border-rose-500/20 hover:border-rose-500/50'
+    } p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 shadow-sm`}>
       <div className="flex items-center gap-4 flex-1">
+        <SelectBox device={device} />
         <div className="w-12 h-12 bg-rose-100 dark:bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 dark:text-rose-400">
           {getIcon(device.type)}
         </div>

@@ -1309,6 +1309,72 @@ app.post('/api/devices/:id/link-mosyle', authenticateToken, async (req, res) => 
   }
 });
 
+// Exclui em lote um conjunto de dispositivos, junto com seus assignments
+// e maintenance_logs vinculados. Restrito a superadmin.
+// Body: { ids: string[] }  (limite: 200 por chamada)
+app.post('/api/devices/bulk-delete', authenticateToken, requireSuperadmin, async (req, res) => {
+  const { ids } = req.body || {};
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Envie um array de ids nao vazio.' });
+  }
+  if (ids.length > 200) {
+    return res.status(400).json({ error: 'Maximo 200 dispositivos por vez.' });
+  }
+  if (!ids.every(id => typeof id === 'string' && id.length > 0 && id.length < 64)) {
+    return res.status(400).json({ error: 'Ids invalidos.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Snapshot antes de deletar (pra audit log detalhado).
+    const snap = await client.query(
+      'SELECT id, tag, serial_number, status FROM devices WHERE id = ANY($1::text[])',
+      [ids]
+    );
+    const foundIds = snap.rows.map(r => r.id);
+    if (foundIds.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Nenhum dispositivo encontrado.' });
+    }
+
+    const del1 = await client.query('DELETE FROM assignments WHERE device_id = ANY($1::text[])', [foundIds]);
+    const del2 = await client.query('DELETE FROM maintenance_logs WHERE device_id = ANY($1::text[])', [foundIds]);
+    const del3 = await client.query('DELETE FROM devices WHERE id = ANY($1::text[])', [foundIds]);
+
+    await client.query(
+      `INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        crypto.randomBytes(4).toString('hex'),
+        req.user.email,
+        'BULK_DELETE_DEVICES',
+        `Deletados ${del3.rowCount} devices (assignments=${del1.rowCount}, maintenance=${del2.rowCount}). Tags: ${snap.rows.map(r => r.tag).slice(0, 30).join(', ')}${snap.rows.length > 30 ? '...' : ''}`,
+        'DEVICE',
+        foundIds.join(','),
+        new Date().toISOString(),
+      ]
+    );
+
+    await client.query('COMMIT');
+    sendRealtimeUpdate('devices');
+    res.json({
+      success: true,
+      deleted_devices: del3.rowCount,
+      deleted_assignments: del1.rowCount,
+      deleted_maintenance_logs: del2.rowCount,
+      not_found_ids: ids.filter(id => !foundIds.includes(id)),
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[bulk-delete] Erro:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 // Transita um dispositivo lacrado para preparado (Disponível). Aceita
 // preencher serial, modelo detalhado, cor, etc. Body opcional -- se vier
 // vazio, apenas muda o status.
