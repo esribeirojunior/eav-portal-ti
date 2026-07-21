@@ -2206,6 +2206,24 @@ app.get('*', (req, res) => {
   });
 });
 
+// ============================================================
+// SYNC AUTOMATICO DO MOSYLE
+// Roda a cada 1h em background. Se MOSYLE_ACCESS_TOKEN nao estiver
+// configurado, runMosyleSync ja faz o warning e retorna sem erro,
+// entao o interval fica sendo chamado inocuamente.
+// ============================================================
+const MOSYLE_AUTO_SYNC_MS = 60 * 60 * 1000; // 1 hora
+const MOSYLE_FIRST_RUN_MS = 60 * 1000;      // primeira execucao 1 min apos boot
+
+setTimeout(async () => {
+  console.log('[Auto-Sync] Primeira execucao automatica do sync do Mosyle...');
+  try { await runMosyleSync(); } catch (e) { console.error('[Auto-Sync] Falha na primeira execucao:', e.message); }
+  setInterval(async () => {
+    console.log('[Auto-Sync] Executando sync do Mosyle (intervalo horario)...');
+    try { await runMosyleSync(); } catch (e) { console.error('[Auto-Sync] Falha:', e.message); }
+  }, MOSYLE_AUTO_SYNC_MS).unref();
+}, MOSYLE_FIRST_RUN_MS).unref?.();
+
 export const serverReady = new Promise((resolve, reject) => {
   // Alterado para 0.0.0.0 para permitir acesso na rede local (LAN)
   const server = app.listen(PORT, '0.0.0.0');
