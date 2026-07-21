@@ -23,6 +23,22 @@ import { ImportModal } from './ImportModal';
 import { SectorDetailModal } from './SectorDetailModal';
 import { RmmStatusModal } from './RmmStatusModal';
 import { Activity } from 'lucide-react';
+import { extractChip, chipColor } from '../lib/deviceChip';
+
+// Badge do chip Apple (M1/M2/M3/M4/Intel). Extraido do campo model.
+// So renderiza se conseguir identificar um chip.
+const ChipBadge: React.FC<{ model?: string | null }> = ({ model }) => {
+  const chip = extractChip(model);
+  if (!chip) return null;
+  return (
+    <span
+      className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border flex-shrink-0 ${chipColor(chip)}`}
+      title={`Chip: ${chip}`}
+    >
+      {chip}
+    </span>
+  );
+};
 
 const SECTOR_CONFIGS: Record<string, { color: string; subtitle: string }> = {
   'COORDENAÇÃO': { color: '#667eea', subtitle: 'Gestão Administrativa' },
@@ -127,6 +143,7 @@ export function DeviceList({
             <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300/40 dark:border-amber-500/30 uppercase tracking-widest">
               Lacrado
             </span>
+            <ChipBadge model={device.model} />
           </h3>
           <p className="text-[11px] font-medium text-slate-600 dark:text-white/50 tracking-wide mt-0.5 truncate">
             {device.type}
@@ -258,6 +275,7 @@ export function DeviceList({
         <div className="flex flex-col min-w-0 flex-1">
           <h3 className="text-[14px] font-semibold text-slate-800 dark:text-white tracking-tight truncate flex items-center gap-2" title={`${device.model} - ${device.tag}`}>
             {device.model}
+            <ChipBadge model={device.model} />
             {device.supplier === 'Mosyle' && (
               <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20 flex-shrink-0" title="Gerenciado pelo MDM Mosyle">
                 MOSYLE
@@ -344,6 +362,7 @@ export function DeviceList({
         <div className="flex flex-col min-w-0 flex-1">
           <h3 className="text-[15px] font-semibold text-rose-900 dark:text-rose-100 tracking-tight truncate flex items-center gap-2">
             {device.model}
+            <ChipBadge model={device.model} />
             {device.supplier === 'Mosyle' && (
               <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20" title="Gerenciado pelo MDM Mosyle">
                 MOSYLE
@@ -677,6 +696,7 @@ export function DeviceList({
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
                                         <p className="text-[10px] font-bold text-slate-800 dark:text-white uppercase break-all line-clamp-2">{device.model}</p>
+                                        <ChipBadge model={device.model} />
                                         <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 leading-none shrink-0 truncate max-w-[80px]">
                                           {device.type}
                                         </span>
