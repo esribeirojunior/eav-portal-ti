@@ -710,8 +710,14 @@ export function DeviceList({
                             </div>
                             <div className="space-y-2">
                               {user.items.map((device: any) => (
-                                <div key={device.id} className="custody-device-item flex items-center justify-between transition-colors">
+                                <div
+                                  key={device.id}
+                                  className={`custody-device-item flex items-center justify-between transition-colors ${
+                                    canSelect && selectedIds!.has(device.id) ? 'ring-2 ring-indigo-500/40 rounded-lg' : ''
+                                  }`}
+                                >
                                   <div className="flex items-center gap-3">
+                                    <SelectBox device={device} />
                                     <div className="custody-device-icon">{getIcon(device.type)}</div>
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-start sm:items-center flex-col sm:flex-row gap-2">
