@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Device } from '../types';
-import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2, Wrench } from 'lucide-react';
+import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2, Wrench, RefreshCw, UserPlus, UserMinus, ArrowRightLeft, Link2 } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -9,7 +9,52 @@ interface Props {
   onDelete?: (assignmentId: string) => void;
 }
 
+interface AuditEvent {
+  id: string;
+  user_email: string;
+  action: string;
+  details: string;
+  created_at: string;
+}
+
+// Metadata pra renderizar cada tipo de audit_log na timeline do Mosyle.
+const AUDIT_ACTION_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  MOSYLE_USER_ASSIGN:   { label: 'Novo usuário no Mosyle',      icon: <UserPlus size={14} />,      color: 'emerald' },
+  MOSYLE_USER_CHANGE:   { label: 'Troca de usuário no Mosyle',  icon: <ArrowRightLeft size={14} />, color: 'indigo'  },
+  MOSYLE_USER_UNASSIGN: { label: 'Usuário removido no Mosyle',  icon: <UserMinus size={14} />,     color: 'amber'   },
+  LINK_MOSYLE:          { label: 'Vinculado ao Mosyle',         icon: <Link2 size={14} />,         color: 'emerald' },
+  STOCK_PREPARE:        { label: 'Marcado como Preparado',      icon: <CheckCircle2 size={14} />,  color: 'emerald' },
+  STOCK_BULK_CREATE:    { label: 'Cadastrado no estoque',       icon: <UserPlus size={14} />,      color: 'amber'   },
+};
+
 export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelete }) => {
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+
+  // Carrega audit_logs sempre que o modal abre com um device.
+  useEffect(() => {
+    if (!isOpen || !device) return;
+    let cancelled = false;
+    setLoadingAudit(true);
+    setAuditEvents([]);
+    (async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch(`/api/devices/${device.id}/history`, {
+          headers: { Authorization: token ? `Bearer ${token}` : '' },
+        });
+        const json = await res.json();
+        if (!res.ok || cancelled) return;
+        setAuditEvents(json.audit_logs || []);
+      } catch (err) {
+        console.error('[HistoryModal] Erro ao carregar audit:', err);
+      } finally {
+        if (!cancelled) setLoadingAudit(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, device?.id]);
+
   if (!isOpen || !device) return null;
 
   const formatDate = (isoStr: string) => {
@@ -168,6 +213,53 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                   <Printer size={16} />
                   Imprimir Termo
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Timeline de eventos automáticos (Mosyle sync, cadastros, etc) */}
+          {(loadingAudit || auditEvents.length > 0) && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 px-1 text-left flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                Eventos do sistema
+                {loadingAudit && <RefreshCw size={11} className="animate-spin text-white/30" />}
+              </h4>
+              <div className="space-y-2">
+                {auditEvents.map((ev) => {
+                  const meta = AUDIT_ACTION_META[ev.action] || { label: ev.action, icon: <Clock size={14} />, color: 'slate' };
+                  const colorClasses: Record<string, string> = {
+                    emerald: 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400',
+                    indigo:  'bg-indigo-500/5 border-indigo-500/10 text-indigo-400',
+                    amber:   'bg-amber-500/5 border-amber-500/10 text-amber-400',
+                    slate:   'bg-white/5 border-white/10 text-white/50',
+                  };
+                  return (
+                    <div key={ev.id} className={`p-3 rounded-2xl border flex items-start gap-3 ${colorClasses[meta.color] || colorClasses.slate}`}>
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                        {meta.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline justify-between gap-3 mb-0.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest">
+                            {meta.label}
+                          </p>
+                          <p className="text-[10px] text-white/40 whitespace-nowrap">
+                            {formatDate(ev.created_at)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-white/70 break-words">
+                          {ev.details || '(sem detalhes)'}
+                        </p>
+                        {ev.user_email && ev.user_email !== 'mosyle-sync@system' && (
+                          <p className="text-[9px] text-white/30 uppercase tracking-widest mt-1">
+                            por {ev.user_email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

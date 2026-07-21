@@ -1375,6 +1375,44 @@ app.post('/api/devices/bulk-delete', authenticateToken, requireSuperadmin, async
   }
 });
 
+// Retorna a timeline completa do dispositivo: todos os assignments
+// (ativos e devolvidos) + audit_logs relevantes, ordenados do mais
+// recente pro mais antigo. Usado no HistoryModal do frontend.
+app.get('/api/devices/:id/history', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [dev, assigns, audits] = await Promise.all([
+      pool.query('SELECT id, tag, serial_number, model, type, status, supplier FROM devices WHERE id = $1', [id]),
+      pool.query(`
+        SELECT id, user_name, user_email, user_role, department_id, campus,
+               assigned_at, returned_at, return_photo_url, created_at
+        FROM assignments
+        WHERE device_id = $1
+        ORDER BY assigned_at DESC NULLS LAST
+      `, [id]),
+      pool.query(`
+        SELECT id, user_email, action, details, created_at
+        FROM audit_logs
+        WHERE resource_type = 'DEVICE'
+          AND resource_id = $1
+        ORDER BY created_at DESC
+        LIMIT 100
+      `, [id]),
+    ]);
+
+    if (dev.rows.length === 0) return res.status(404).json({ error: 'Dispositivo não encontrado.' });
+
+    res.json({
+      device: dev.rows[0],
+      assignments: assigns.rows,
+      audit_logs: audits.rows,
+    });
+  } catch (err) {
+    console.error('[device history] Erro:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Transita um dispositivo lacrado para preparado (Disponível). Aceita
 // preencher serial, modelo detalhado, cor, etc. Body opcional -- se vier
 // vazio, apenas muda o status.
@@ -2205,21 +2243,36 @@ async function runMosyleSync(manualResponse = null) {
                         );
                     }
 
-                    // 2. Lógica de Atribuição (Assignments)
-                    
+                    // 2. Lógica de Atribuição (Assignments) + audit trail
+
+                    // Helper local pra gravar audit_log de mudanca detectada pelo sync.
+                    const logMosyleAudit = async (action, details) => {
+                        try {
+                            await client.query(
+                                `INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at)
+                                 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+                                [crypto.randomBytes(4).toString('hex'), 'mosyle-sync@system', action, details, 'DEVICE', centralDeviceId, now]
+                            );
+                        } catch (e) {
+                            console.warn(`[Auto-Sync] Falha ao gravar audit ${action}:`, e.message);
+                        }
+                    };
+
                     if (mUser) {
-                        let mRole = dev.usertype || 'Colaborador'; 
+                        let mRole = dev.usertype || 'Colaborador';
                         if (mRole === 'Student') mRole = 'Aluno';
                         else if (mRole === 'Teacher') mRole = 'Professor';
                         else if (mRole === 'Staff' || mRole === 'Administrator') mRole = 'Colaborador';
 
                         const assignRes = await client.query('SELECT id, user_name FROM assignments WHERE device_id = $1 AND returned_at IS NULL', [centralDeviceId]);
-                        
+
                         let needsNewAssignment = false;
+                        let previousUser = null;
                         if (assignRes.rows.length > 0) {
                             const currentAssign = assignRes.rows[0];
                             if (currentAssign.user_name !== (dev.username || dev.useremail)) {
                                 await client.query('UPDATE assignments SET returned_at = $1 WHERE id = $2', [now, currentAssign.id]);
+                                previousUser = currentAssign.user_name;
                                 needsNewAssignment = true;
                             } else {
                                 // O usuário é o mesmo, mas vamos forçar a atualização do cargo caso esteja com o termo inglês
@@ -2231,14 +2284,35 @@ async function runMosyleSync(manualResponse = null) {
 
                         if (needsNewAssignment) {
                             const assignId = Math.random().toString(36).substring(2, 9);
+                            const newUserName = dev.username || dev.useremail || 'Desconhecido';
                             await client.query(
                                 'INSERT INTO assignments (id, device_id, user_name, user_email, user_role, assigned_at, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                                [assignId, centralDeviceId, dev.username || dev.useremail || 'Desconhecido', dev.useremail || '', mRole, now, now]
+                                [assignId, centralDeviceId, newUserName, dev.useremail || '', mRole, now, now]
                             );
+                            // Grava audit trail conforme o caso.
+                            if (previousUser) {
+                                await logMosyleAudit(
+                                    'MOSYLE_USER_CHANGE',
+                                    `Trocou de usuario no Mosyle: ${previousUser} -> ${newUserName}${dev.useremail ? ` <${dev.useremail}>` : ''} (${mRole})`
+                                );
+                            } else {
+                                await logMosyleAudit(
+                                    'MOSYLE_USER_ASSIGN',
+                                    `Novo usuario no Mosyle: ${newUserName}${dev.useremail ? ` <${dev.useremail}>` : ''} (${mRole})`
+                                );
+                            }
                         }
                     } else {
-                        // Sem usuário no MDM -> encerra qualquer atribuição ativa
-                        await client.query('UPDATE assignments SET returned_at = $1 WHERE device_id = $2 AND returned_at IS NULL', [now, centralDeviceId]);
+                        // Sem usuário no MDM -> encerra qualquer atribuição ativa e loga.
+                        const activeRes = await client.query('SELECT id, user_name, user_email FROM assignments WHERE device_id = $1 AND returned_at IS NULL', [centralDeviceId]);
+                        if (activeRes.rows.length > 0) {
+                            const wasWith = activeRes.rows.map(a => `${a.user_name}${a.user_email ? ` <${a.user_email}>` : ''}`).join(', ');
+                            await client.query('UPDATE assignments SET returned_at = $1 WHERE device_id = $2 AND returned_at IS NULL', [now, centralDeviceId]);
+                            await logMosyleAudit(
+                                'MOSYLE_USER_UNASSIGN',
+                                `Usuario removido no Mosyle: ${wasWith} (mac agora sem vinculo no MDM)`
+                            );
+                        }
                     }
                 }
             }
