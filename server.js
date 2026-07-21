@@ -1932,33 +1932,46 @@ function getFriendlyAppleModelName(identifier) {
 async function runMosyleSync(manualResponse = null) {
     try {
         let token = process.env.MOSYLE_ACCESS_TOKEN;
-        let config = { email: '', password: '' };
-        
-        // Se não tiver variável de ambiente, tenta pegar do banco
+        let config = {
+            email: process.env.MOSYLE_EMAIL || '',
+            password: process.env.MOSYLE_PASSWORD || '',
+        };
+
+        // Se nao tiver o token no env, tenta pegar tudo (token+email+password) do vault.
         if (!token) {
             const result = await pool.query('SELECT encrypted_value FROM vault_secrets WHERE key_name = $1', ['mosyle_api_config']);
             if (result.rows.length === 0) {
-                if (manualResponse) return manualResponse.status(400).json({ error: 'Token não configurado. Adicione no Environment Variables do Coolify ou pela interface.' });
-                console.log('[Auto-Sync] Token do Mosyle não configurado no Cofre.');
+                if (manualResponse) return manualResponse.status(400).json({ error: 'Credenciais do Mosyle nao configuradas. Adicione MOSYLE_ACCESS_TOKEN, MOSYLE_EMAIL e MOSYLE_PASSWORD nas Environment Variables do Coolify, ou reconfigure via portal.' });
+                console.log('[Auto-Sync] Credenciais do Mosyle nao configuradas.');
                 return;
             }
-            
+
             const decrypted = decryptSecret(result.rows[0].encrypted_value);
             if (!decrypted) {
                 if (manualResponse) return manualResponse.status(500).json({ error: 'Erro ao descriptografar credenciais do banco.' });
                 console.error('[Auto-Sync] Erro ao descriptografar credenciais do banco.');
                 return;
             }
-            
-            config = JSON.parse(decrypted);
-            token = config.token ? config.token.trim() : null;
+
+            const stored = JSON.parse(decrypted);
+            token = stored.token ? stored.token.trim() : null;
+            // Env var tem precedencia; so pega do vault se env estiver vazia.
+            if (!config.email) config.email = stored.email || '';
+            if (!config.password) config.password = stored.password || '';
         } else {
             token = token.trim();
         }
-        
+
         if (!token) {
-            if (manualResponse) return manualResponse.status(400).json({ error: 'Token inválido ou vazio.' });
-            console.error('[Auto-Sync] Token inválido ou vazio.');
+            if (manualResponse) return manualResponse.status(400).json({ error: 'Token invalido ou vazio.' });
+            console.error('[Auto-Sync] Token invalido ou vazio.');
+            return;
+        }
+
+        if (!config.email || !config.password) {
+            const errMsg = 'Email/Senha do Mosyle nao configurados. Adicione MOSYLE_EMAIL e MOSYLE_PASSWORD no Coolify, ou reconfigure via portal.';
+            if (manualResponse) return manualResponse.status(400).json({ error: errMsg });
+            console.error('[Auto-Sync] ' + errMsg);
             return;
         }
         
