@@ -55,6 +55,11 @@ export function PrepareDeviceModal({ device, onClose, onSuccess }: PrepareDevice
       setConditionNotes('');
       setSelectedMosyleId('');
       setMacsError(null);
+      // Zera a lista de macs em cache. Isso obriga o proximo useEffect
+      // a refetchar /api/mosyle/unlinked-macs -- se voce acabou de vincular
+      // um mac e agora esta preparando outro EAV, o dropdown reflete o
+      // estado atual do banco (o mac vinculado ja saiu).
+      setUnlinkedMacs(null);
       setMode(isMacBook ? 'mosyle' : 'manual');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
