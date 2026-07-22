@@ -221,23 +221,25 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
           {/* Timeline de eventos automáticos (Mosyle sync, cadastros, etc) */}
           {(loadingAudit || auditEvents.length > 0) && (
             <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white/40 px-1 text-left flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-white/40 px-1 text-left flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400" />
                 Eventos do sistema
-                {loadingAudit && <RefreshCw size={11} className="animate-spin text-white/30" />}
+                {loadingAudit && <RefreshCw size={11} className="animate-spin text-slate-400 dark:text-white/30" />}
               </h4>
               <div className="space-y-2">
                 {auditEvents.map((ev) => {
                   const meta = AUDIT_ACTION_META[ev.action] || { label: ev.action, icon: <Clock size={14} />, color: 'slate' };
+                  // Classes theme-aware: fundo claro em light, tint escuro em dark.
+                  // O `text-<cor>` cobre só o header/label; texto do detalhe usa slate-700/dark:white/70.
                   const colorClasses: Record<string, string> = {
-                    emerald: 'bg-emerald-500/5 border-emerald-500/10 text-emerald-400',
-                    indigo:  'bg-indigo-500/5 border-indigo-500/10 text-indigo-400',
-                    amber:   'bg-amber-500/5 border-amber-500/10 text-amber-400',
-                    slate:   'bg-white/5 border-white/10 text-white/50',
+                    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-500/5 dark:border-emerald-500/10 dark:text-emerald-400',
+                    indigo:  'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/5 dark:border-indigo-500/10 dark:text-indigo-400',
+                    amber:   'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-500/5 dark:border-amber-500/10 dark:text-amber-400',
+                    slate:   'bg-slate-50 border-slate-200 text-slate-600 dark:bg-white/5 dark:border-white/10 dark:text-white/50',
                   };
                   return (
                     <div key={ev.id} className={`p-3 rounded-2xl border flex items-start gap-3 ${colorClasses[meta.color] || colorClasses.slate}`}>
-                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-white/60 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
                         {meta.icon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -245,15 +247,15 @@ export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelet
                           <p className="text-[10px] font-black uppercase tracking-widest">
                             {meta.label}
                           </p>
-                          <p className="text-[10px] text-white/40 whitespace-nowrap">
+                          <p className="text-[10px] text-slate-500 dark:text-white/40 whitespace-nowrap">
                             {formatDate(ev.created_at)}
                           </p>
                         </div>
-                        <p className="text-xs text-white/70 break-words">
+                        <p className="text-xs text-slate-700 dark:text-white/70 break-words">
                           {ev.details || '(sem detalhes)'}
                         </p>
                         {ev.user_email && ev.user_email !== 'mosyle-sync@system' && (
-                          <p className="text-[9px] text-white/30 uppercase tracking-widest mt-1">
+                          <p className="text-[9px] text-slate-500 dark:text-white/30 uppercase tracking-widest mt-1">
                             por {ev.user_email}
                           </p>
                         )}
