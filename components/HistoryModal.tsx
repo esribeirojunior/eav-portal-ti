@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Device } from '../types';
-import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2, Wrench, RefreshCw, UserPlus, UserMinus, ArrowRightLeft, Link2 } from 'lucide-react';
+import { X, User, Clock, ArrowRight, Camera, ClipboardCheck, CheckCircle2, Printer, Trash2, Wrench, RefreshCw, UserPlus, UserMinus, ArrowRightLeft, Link2, UserSearch } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -19,12 +19,13 @@ interface AuditEvent {
 
 // Metadata pra renderizar cada tipo de audit_log na timeline do Mosyle.
 const AUDIT_ACTION_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  MOSYLE_USER_ASSIGN:   { label: 'Novo usuário no Mosyle',      icon: <UserPlus size={14} />,      color: 'emerald' },
-  MOSYLE_USER_CHANGE:   { label: 'Troca de usuário no Mosyle',  icon: <ArrowRightLeft size={14} />, color: 'indigo'  },
-  MOSYLE_USER_UNASSIGN: { label: 'Usuário removido no Mosyle',  icon: <UserMinus size={14} />,     color: 'amber'   },
-  LINK_MOSYLE:          { label: 'Vinculado ao Mosyle',         icon: <Link2 size={14} />,         color: 'emerald' },
-  STOCK_PREPARE:        { label: 'Marcado como Preparado',      icon: <CheckCircle2 size={14} />,  color: 'emerald' },
-  STOCK_BULK_CREATE:    { label: 'Cadastrado no estoque',       icon: <UserPlus size={14} />,      color: 'amber'   },
+  MOSYLE_USER_ASSIGN:        { label: 'Novo usuário no Mosyle',           icon: <UserPlus size={14} />,       color: 'emerald' },
+  MOSYLE_USER_CHANGE:        { label: 'Troca de usuário no Mosyle',       icon: <ArrowRightLeft size={14} />, color: 'indigo'  },
+  MOSYLE_USER_UNASSIGN:      { label: 'Usuário removido no Mosyle',       icon: <UserMinus size={14} />,      color: 'amber'   },
+  MOSYLE_INFERRED_LAST_USER: { label: 'Último usuário conhecido',         icon: <UserSearch size={14} />,     color: 'slate'   },
+  LINK_MOSYLE:               { label: 'Vinculado ao Mosyle',              icon: <Link2 size={14} />,          color: 'emerald' },
+  STOCK_PREPARE:             { label: 'Marcado como Preparado',           icon: <CheckCircle2 size={14} />,   color: 'emerald' },
+  STOCK_BULK_CREATE:         { label: 'Cadastrado no estoque',            icon: <UserPlus size={14} />,       color: 'amber'   },
 };
 
 export const HistoryModal: React.FC<Props> = ({ isOpen, device, onClose, onDelete }) => {
