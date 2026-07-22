@@ -2033,6 +2033,29 @@ function getFriendlyAppleModelName(identifier) {
     return mapping[id] || identifier;
 }
 
+// Extrai o nome do "último usuário" do campo device_name do Mosyle.
+// Reconhece "MacBook Air de <NOME>", "Mac de <NOME>", "iPad de <NOME>",
+// ou aceita o nome direto se parece nome próprio (capitalizado, sem números).
+// Retorna null se não conseguir extrair com confiança.
+const DEVICE_NAME_PREFIX_RE = /^(MacBook\s+(?:Air|Pro)?|MacBook|Mac\s+mini|Mac|iMac|iPad|iPhone)\s+de\s+/i;
+function inferLastUserFromDeviceName(deviceName) {
+  if (!deviceName) return null;
+  const s = String(deviceName).trim();
+  if (s.length === 0) return null;
+  if (DEVICE_NAME_PREFIX_RE.test(s)) {
+    const name = s.replace(DEVICE_NAME_PREFIX_RE, '').trim();
+    if (name.length >= 3 && !/^(desconhecido|test|admin|aluno teste)$/i.test(name)) {
+      return name;
+    }
+    return null;
+  }
+  // Nome direto: primeira letra maiúscula, tem espaço, sem números/símbolos.
+  if (/^[A-ZÁÉÍÓÚÂÊÔÇ][a-záéíóúâêôç]/.test(s) && s.includes(' ') && !/[0-9(),]/.test(s)) {
+    return s;
+  }
+  return null;
+}
+
 async function runMosyleSync(manualResponse = null) {
     try {
         let token = process.env.MOSYLE_ACCESS_TOKEN;
@@ -2312,6 +2335,27 @@ async function runMosyleSync(manualResponse = null) {
                                 'MOSYLE_USER_UNASSIGN',
                                 `Usuario removido no Mosyle: ${wasWith} (mac agora sem vinculo no MDM)`
                             );
+                        }
+
+                        // Se o mac esta sem usuario atual mas o device_name tem
+                        // padrao "MacBook de <NOME>" ou similar, infere o ultimo
+                        // usuario conhecido pelo nome do device. Grava so uma
+                        // vez por device (idempotente).
+                        const deviceName = dev.device_name || dev.LocalHostName || '';
+                        const inferred = inferLastUserFromDeviceName(deviceName);
+                        if (inferred) {
+                            const existing = await client.query(
+                                `SELECT id FROM audit_logs
+                                 WHERE resource_id = $1 AND action = 'MOSYLE_INFERRED_LAST_USER'
+                                 LIMIT 1`,
+                                [centralDeviceId]
+                            );
+                            if (existing.rows.length === 0) {
+                                await logMosyleAudit(
+                                    'MOSYLE_INFERRED_LAST_USER',
+                                    `Último usuário conhecido (inferido do device_name do Mosyle): ${inferred}. Estado atual: sem vínculo no MDM.`
+                                );
+                            }
                         }
                     }
                 }
