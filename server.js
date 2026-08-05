@@ -281,6 +281,19 @@ async function initPostgresDB() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_email TEXT, action TEXT, details TEXT, resource_type TEXT, resource_id TEXT, created_at TEXT);
     `);
+
+    // Sessoes de login persistidas -- sobrevivem a restart do container.
+    // created_at / last_used sao epoch millis (BIGINT).
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        token TEXT PRIMARY KEY,
+        email TEXT,
+        role TEXT,
+        created_at BIGINT,
+        last_used BIGINT
+      );
+    `);
+
     console.log('[PostgreSQL] Banco de dados inicializado com sucesso.');
     
     // Auto-popula departamentos padrão se o banco de dados estiver vazio
@@ -332,7 +345,8 @@ async function initPostgresDB() {
   }
 }
 
-initPostgresDB();
+// Inicializa o banco e, so depois, recarrega as sessoes persistidas pro Map.
+initPostgresDB().then(() => loadSessionsFromDB());
 
 async function readDBTable(sheetName) {
   try {
@@ -368,13 +382,40 @@ async function verifyPassword(plain, stored) {
 }
 
 // --- CONTROLE DE SESSÕES & AUTENTICAÇÃO ---
-// Sessoes vivem em memoria. Reiniciar o container invalida todas.
-// Cada sessao: { email, role, createdAt, lastUsed }.
-// TTL_MS -- expira absoluta (contada a partir do createdAt).
+// Sessoes ficam num Map em memoria (caminho rapido, sem hit no banco por
+// requisicao) MAS sao persistidas na tabela user_sessions do Postgres para
+// sobreviver a restart do container. No boot, carregamos as sessoes validas
+// do banco de volta pro Map -- assim um redeploy NAO desloga todo mundo.
+//
+// Cada sessao no Map: { email, role, createdAt, lastUsed } (epoch millis).
+// TTL_MS  -- expira absoluta (contada a partir do createdAt).
 // IDLE_MS -- expira ociosa (contada a partir do lastUsed).
 const ACTIVE_SESSIONS = new Map();
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;   // 8 horas
 const SESSION_IDLE_MS = 2 * 60 * 60 * 1000;  // 2 horas ocioso
+
+// Recarrega sessoes validas do banco pro Map no boot. Chamado apos initPostgresDB.
+async function loadSessionsFromDB() {
+  try {
+    const now = Date.now();
+    const { rows } = await pool.query('SELECT token, email, role, created_at, last_used FROM user_sessions');
+    let loaded = 0;
+    for (const r of rows) {
+      const createdAt = Number(r.created_at);
+      const lastUsed = Number(r.last_used);
+      if (now - createdAt > SESSION_TTL_MS || now - lastUsed > SESSION_IDLE_MS) {
+        // Expirada -- apaga do banco.
+        pool.query('DELETE FROM user_sessions WHERE token = $1', [r.token]).catch(() => {});
+        continue;
+      }
+      ACTIVE_SESSIONS.set(r.token, { email: r.email, role: r.role, createdAt, lastUsed });
+      loaded++;
+    }
+    console.log(`[Sessions] ${loaded} sessao(oes) recarregada(s) do banco apos boot.`);
+  } catch (e) {
+    console.error('[Sessions] Falha ao carregar sessoes do banco:', e.message);
+  }
+}
 
 function createSession(user) {
   const token = crypto.randomUUID();
@@ -385,17 +426,36 @@ function createSession(user) {
     createdAt: now,
     lastUsed: now,
   });
+  // Persiste no banco (fire-and-forget -- nao bloqueia o login).
+  pool.query(
+    `INSERT INTO user_sessions (token, email, role, created_at, last_used)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (token) DO UPDATE SET last_used = EXCLUDED.last_used`,
+    [token, user.email, user.role, now, now]
+  ).catch(e => console.error('[Sessions] Falha ao persistir sessao:', e.message));
   return token;
 }
 
-// Purga sessoes expiradas periodicamente para nao vazar memoria.
+function destroySession(token) {
+  ACTIVE_SESSIONS.delete(token);
+  pool.query('DELETE FROM user_sessions WHERE token = $1', [token]).catch(() => {});
+}
+
+// Purga sessoes expiradas periodicamente (Map + banco) e faz flush do
+// last_used das sessoes vivas pro banco (para o idle timeout sobreviver
+// a restart com precisao de ~15min, sem escrita por requisicao).
 setInterval(() => {
   const now = Date.now();
   for (const [token, s] of ACTIVE_SESSIONS) {
     if (now - s.createdAt > SESSION_TTL_MS || now - s.lastUsed > SESSION_IDLE_MS) {
-      ACTIVE_SESSIONS.delete(token);
+      destroySession(token);
+    } else {
+      pool.query('UPDATE user_sessions SET last_used = $1 WHERE token = $2', [s.lastUsed, token]).catch(() => {});
     }
   }
+  // Limpeza de linhas orfas expiradas que porventura nao estejam no Map.
+  pool.query('DELETE FROM user_sessions WHERE created_at < $1 OR last_used < $2',
+    [now - SESSION_TTL_MS, now - SESSION_IDLE_MS]).catch(() => {});
 }, 15 * 60 * 1000).unref();
 
 function authenticateToken(req, res, next) {
@@ -412,7 +472,7 @@ function authenticateToken(req, res, next) {
 
   const now = Date.now();
   if (now - session.createdAt > SESSION_TTL_MS || now - session.lastUsed > SESSION_IDLE_MS) {
-    ACTIVE_SESSIONS.delete(token);
+    destroySession(token);
     return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   }
 
@@ -1619,7 +1679,7 @@ app.post('/api/auth/login', async (req, res) => {
 // localStorage, mas se so limpar la, o token continua valido aqui ate
 // expirar/servidor reiniciar. Isso resolve.
 app.post('/api/auth/logout', authenticateToken, (req, res) => {
-  ACTIVE_SESSIONS.delete(req.sessionToken);
+  destroySession(req.sessionToken);
   return res.json({ success: true });
 });
 

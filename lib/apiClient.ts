@@ -2,6 +2,26 @@
 
 export const isTestMode = false; // Set to false to enable local login screen
 
+// Guard pra nao disparar multiplos redirects quando varias requisicoes
+// tomam 401 ao mesmo tempo (ex: o polling de 5s + o fetch inicial).
+// Reinicia sozinho a cada reload da pagina (o modulo re-inicializa).
+let isHandlingSessionExpiry = false;
+
+// Chamado quando qualquer request autenticada volta 401. Limpa a sessao
+// local e recarrega a pagina -> cai na tela de login. Antes disso o app
+// ficava em loop de retry mostrando "conexao perdida", exigindo limpeza
+// manual de cache pra voltar. Agora e automatico.
+function handleSessionExpired() {
+  if (typeof window === 'undefined' || isHandlingSessionExpiry) return;
+  isHandlingSessionExpiry = true;
+  try {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_authenticated');
+  } catch {}
+  // Recarrega na raiz -> LoginScreen (isAuthenticated agora e false).
+  window.location.href = '/';
+}
+
 class ApiQueryBuilder implements PromiseLike<any> {
     private table: string;
     private filters: any = {};
@@ -106,6 +126,11 @@ class ApiQueryBuilder implements PromiseLike<any> {
                     isSingle: this.isSingle
                 })
             });
+            // Sessao invalida/expirada -> limpa e manda pro login (sem loop de retry).
+            if (response.status === 401) {
+                handleSessionExpired();
+                return { data: null, error: { message: 'Sessão expirada. Faça login novamente.', status: 401 } };
+            }
             return await response.json();
         } catch (error: any) {
             return { data: null, error: { message: error.message } };
