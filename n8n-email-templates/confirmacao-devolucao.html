@@ -1,0 +1,121 @@
+<!--
+  Template de email - Confirmação de Devolução de Equipamento
+  Projeto: eav-portal-ti (Controle de Equipamentos)
+
+  COMO USAR NO N8N:
+  1. Cole esse HTML no campo "HTML" do node de envio de email (Send Email / Gmail / SMTP).
+  2. Ajuste os placeholders {{ $json.CAMPO }} abaixo para os nomes reais dos campos
+     que chegam nesse node (confira no node anterior do workflow, ex.: um Set ou
+     o próprio payload do webhook vindo do server.js).
+  3. Sobre o horário errado: se a data vier como {{ $json.returned_at }} (ISO em UTC,
+     ex. "2026-07-14T14:19:00.000Z"), formatar direto sem fuso mostra a hora do
+     servidor (Coolify roda em UTC), 3h adiantada da hora de Brasília. Use:
+
+       {{ DateTime.fromISO($json.returned_at).setZone('America/Sao_Paulo').toFormat("dd/MM/yyyy 'às' HH:mm") }}
+
+     em vez de só {{ $json.returned_at }} ou um toFormat sem o .setZone(...).
+-->
+<div style="margin:0; padding:0; background-color:#eef2f6; font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2f6; padding: 24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);">
+
+          <!-- Cabeçalho -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #001f3f 0%, #004578 50%, #0a5c96 100%); padding: 28px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="vertical-align: middle;">
+                    <span style="display:inline-block; width:8px; height:32px; background:#10b981; border-radius:4px; vertical-align:middle; margin-right:14px;"></span>
+                    <span style="color:#ffffff; font-size:20px; font-weight:700; vertical-align:middle;">Equipamento Devolvido</span>
+                  </td>
+                </tr>
+              </table>
+              <div style="color:#cbd5e1; font-size:13px; margin-top:6px; margin-left:22px;">
+                Controle de Equipamentos &middot; TI &middot; Escola Americana de Vitória
+              </div>
+            </td>
+          </tr>
+
+          <!-- Corpo -->
+          <tr>
+            <td style="padding: 32px;">
+              <p style="margin:0 0 4px; font-size:16px; color:#0f172a;">
+                Olá, <strong>{{ $json.user_name }}</strong>
+              </p>
+              <p style="margin:0 0 24px; font-size:14px; color:#64748b; line-height:1.5;">
+                Confirmamos o recebimento da devolução do seu equipamento. Os dados
+                do registro estão abaixo para sua conferência.
+              </p>
+
+              <!-- Cartão de informações -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                <tr>
+                  <td style="background:#f8fafc; padding:10px 18px; border-bottom:1px solid #e2e8f0; font-size:13px; font-weight:700; color:#004578; text-transform:uppercase; letter-spacing:0.03em;">
+                    Informações da Devolução
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                    <span style="color:#64748b;">Departamento</span>
+                    <div style="color:#0f172a; font-weight:600; margin-top:2px;">{{ $json.department_id }}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                    <span style="color:#64748b;">Campus</span>
+                    <div style="color:#0f172a; font-weight:600; margin-top:2px;">{{ $json.campus }}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                    <span style="color:#64748b;">Equipamento</span>
+                    <div style="color:#0f172a; font-weight:600; margin-top:2px;">{{ $json.device_type }}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                    <span style="color:#64748b;">Modelo</span>
+                    <div style="color:#0f172a; font-weight:600; margin-top:2px;">{{ $json.device_model }}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; border-bottom:1px solid #f1f5f9; font-size:14px;">
+                    <span style="color:#64748b;">Service Tag</span>
+                    <div style="margin-top:4px;">
+                      <span style="display:inline-block; background:#eff6ff; color:#004578; font-family: monospace; font-weight:700; font-size:13px; padding:3px 10px; border-radius:6px;">{{ $json.tag }}</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 18px; font-size:14px;">
+                    <span style="color:#64748b;">Data/Hora da Devolução</span>
+                    <div style="color:#0f172a; font-weight:600; margin-top:2px;">
+                      {{ DateTime.fromISO($json.returned_at).setZone('America/Sao_Paulo').toFormat("dd/MM/yyyy 'às' HH:mm") }}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:24px 0 0; font-size:12.5px; color:#94a3b8; line-height:1.5;">
+                Se algum dado acima estiver incorreto, entre em contato com o time de TI
+                respondendo este email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Rodapé -->
+          <tr>
+            <td style="background:#f8fafc; padding:18px 32px; border-top:1px solid #e2e8f0;">
+              <p style="margin:0; font-size:11.5px; color:#94a3b8; text-align:center;">
+                Escola Americana de Vitória &middot; Controle de Equipamentos de TI &middot; Este é um email automático, não responda diretamente.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

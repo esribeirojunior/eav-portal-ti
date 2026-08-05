@@ -5,8 +5,13 @@ dist-electron
 build
 app-stderr.log
 app-stdout.log
-recovered_app.txt
-replace.txt
-target.txt
 logs/
 data/google-credentials.json
+
+# Scripts legados / one-shots — não precisam ir pra imagem
+scripts/
+
+# Documentos e binários que não são usados em runtime
+*.docx
+*.md
+mac/
