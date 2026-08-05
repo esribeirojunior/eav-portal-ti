@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-electron
+build
+data
+package-lock.json
+scripts/legacy
+supabase
+sql
+mac
+*.docx
