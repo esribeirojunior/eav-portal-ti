@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
     // Testes unitarios (Vitest). Roda com `npm test`.
     test: {
       environment: 'node',
-      include: ['lib/**/*.test.ts', 'components/**/*.test.ts'],
+      include: ['lib/**/*.test.ts', 'components/**/*.test.ts', 'server/**/*.test.ts'],
     },
     server: {
       port: 3000,

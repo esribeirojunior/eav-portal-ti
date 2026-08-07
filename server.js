@@ -10,6 +10,8 @@ import OpenAI from 'openai';
 import { OAuth2Client } from 'google-auth-library';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
+import { getFriendlyAppleModelName } from './server/services/apple-models.js';
+import { inferLastUserFromDeviceName } from './server/lib/device-names.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1993,128 +1995,9 @@ app.post('/api/mosyle/deactivate', authenticateToken, async (req, res) => {
     }
 });
 
-function getFriendlyAppleModelName(identifier) {
-    if (!identifier) return 'Desconhecido';
-    const id = identifier.toString().trim().toUpperCase();
-    
-    const mapping = {
-        // MacBooks Air
-        'MACBOOKAIR8,1': 'MacBook Air (Retina, 13-inch, 2018)',
-        'MACBOOKAIR8,2': 'MacBook Air (Retina, 13-inch, 2019)',
-        'MACBOOKAIR9,1': 'MacBook Air (Retina, 13-inch, 2020)',
-        'MACBOOKAIR10,1': 'MacBook Air (M1, 2020)',
-        'MAC14,2': 'MacBook Air (13-inch, M2, 2022)',
-        'MAC14,15': 'MacBook Air (15-inch, M2, 2023)',
-        'MAC15,12': 'MacBook Air (13-inch, M3, 2024)',
-        'MAC15,13': 'MacBook Air (15-inch, M3, 2024)',
-        'MAC16,1': 'MacBook Air (13-inch, M4, 2025)',
-        'MAC16,2': 'MacBook Air (15-inch, M4, 2025)',
-        
-        // MacBooks Pro
-        'MACBOOKPRO15,1': 'MacBook Pro (15-inch, 2018)',
-        'MACBOOKPRO15,2': 'MacBook Pro (13-inch, 2018/2019)',
-        'MACBOOKPRO15,3': 'MacBook Pro (15-inch, 2019)',
-        'MACBOOKPRO15,4': 'MacBook Pro (13-inch, 2019)',
-        'MACBOOKPRO16,1': 'MacBook Pro (16-inch, 2019)',
-        'MACBOOKPRO16,2': 'MacBook Pro (13-inch, 2020)',
-        'MACBOOKPRO16,3': 'MacBook Pro (13-inch, 2020, 2 TB3)',
-        'MACBOOKPRO16,4': 'MacBook Pro (16-inch, 2019)',
-        'MACBOOKPRO17,1': 'MacBook Pro (13-inch, M1, 2020)',
-        'MACBOOKPRO18,3': 'MacBook Pro (14-inch, M1 Pro, 2021)',
-        'MACBOOKPRO18,4': 'MacBook Pro (14-inch, M1 Max, 2021)',
-        'MACBOOKPRO18,1': 'MacBook Pro (16-inch, M1 Pro, 2021)',
-        'MACBOOKPRO18,2': 'MacBook Pro (16-inch, M1 Max, 2021)',
-        'MAC14,9': 'MacBook Pro (14-inch, M2 Pro, 2023)',
-        'MAC14,5': 'MacBook Pro (14-inch, M2 Max, 2023)',
-        'MAC14,10': 'MacBook Pro (16-inch, M2 Pro, 2023)',
-        'MAC14,6': 'MacBook Pro (16-inch, M2 Max, 2023)',
-        'MAC15,3': 'MacBook Pro (14-inch, M3, Nov 2023)',
-        'MAC15,6': 'MacBook Pro (14-inch, M3 Pro, Nov 2023)',
-        'MAC15,8': 'MacBook Pro (14-inch, M3 Max, Nov 2023)',
-        'MAC15,7': 'MacBook Pro (16-inch, M3 Pro, Nov 2023)',
-        'MAC15,9': 'MacBook Pro (16-inch, M3 Max, Nov 2023)',
-        'MAC15,10': 'MacBook Pro (16-inch, M3 Max, Nov 2023)',
-        'MAC15,11': 'MacBook Pro (16-inch, M3 Max, Nov 2023)',
-        'MAC16,10': 'MacBook Pro (14-inch, M4, 2024)',
-        'MAC16,6': 'MacBook Pro (14-inch, M4 Pro, 2024)',
-        'MAC16,8': 'MacBook Pro (14-inch, M4 Max, 2024)',
-        'MAC16,7': 'MacBook Pro (16-inch, M4 Pro, 2024)',
-        'MAC16,5': 'MacBook Pro (16-inch, M4 Max, 2024)',
-
-        // Macs Mini & Studio
-        'MACMINI9,1': 'Mac mini (M1, 2020)',
-        'MAC14,3': 'Mac mini (M2, 2023)',
-        'MAC14,12': 'Mac mini (M2 Pro, 2023)',
-        'MAC13,1': 'Mac Studio (M1 Max, 2022)',
-        'MAC13,2': 'Mac Studio (M1 Ultra, 2022)',
-        'MAC14,13': 'Mac Studio (M2 Max, 2023)',
-        'MAC14,14': 'Mac Studio (M2 Ultra, 2023)',
-        'MAC16,12': 'Mac mini (M4, 2024)',
-
-        // iPads
-        'IPAD8,11': 'iPad Pro (12.9-inch, 4th gen)',
-        'IPAD8,12': 'iPad Pro (12.9-inch, 4th gen)',
-        'IPAD13,8': 'iPad Pro (12.9-inch, 5th gen)',
-        'IPAD13,9': 'iPad Pro (12.9-inch, 5th gen)',
-        'IPAD13,10': 'iPad Pro (12.9-inch, 5th gen)',
-        'IPAD13,11': 'iPad Pro (12.9-inch, 5th gen)',
-        'IPAD14,5': 'iPad Pro (12.9-inch, 6th gen)',
-        'IPAD14,6': 'iPad Pro (12.9-inch, 6th gen)',
-        'IPAD13,4': 'iPad Pro (11-inch, 3rd gen)',
-        'IPAD13,5': 'iPad Pro (11-inch, 3rd gen)',
-        'IPAD13,6': 'iPad Pro (11-inch, 3rd gen)',
-        'IPAD13,7': 'iPad Pro (11-inch, 3rd gen)',
-        'IPAD14,3': 'iPad Pro (11-inch, 4th gen)',
-        'IPAD14,4': 'iPad Pro (11-inch, 4th gen)',
-        'IPAD11,3': 'iPad Air (3rd gen)',
-        'IPAD11,4': 'iPad Air (3rd gen)',
-        'IPAD13,1': 'iPad Air (4th gen)',
-        'IPAD13,2': 'iPad Air (4th gen)',
-        'IPAD13,16': 'iPad Air (5th gen)',
-        'IPAD13,17': 'iPad Air (5th gen)',
-        'IPAD14,8': 'iPad Air (11-inch, M2)',
-        'IPAD14,9': 'iPad Air (11-inch, M2)',
-        'IPAD14,10': 'iPad Air (13-inch, M2)',
-        'IPAD14,11': 'iPad Air (13-inch, M2)',
-        'IPAD11,1': 'iPad mini (5th gen)',
-        'IPAD11,2': 'iPad mini (5th gen)',
-        'IPAD14,1': 'iPad mini (6th gen)',
-        'IPAD14,2': 'iPad mini (6th gen)',
-        'IPAD7,11': 'iPad (7th gen)',
-        'IPAD7,12': 'iPad (7th gen)',
-        'IPAD11,6': 'iPad (8th gen)',
-        'IPAD11,7': 'iPad (8th gen)',
-        'IPAD12,1': 'iPad (9th gen)',
-        'IPAD12,2': 'iPad (9th gen)',
-        'IPAD13,18': 'iPad (10th gen)',
-        'IPAD13,19': 'iPad (10th gen)'
-    };
-    
-    return mapping[id] || identifier;
-}
-
-// Extrai o nome do "último usuário" do campo device_name do Mosyle.
-// Reconhece "MacBook Air de <NOME>", "Mac de <NOME>", "iPad de <NOME>",
-// ou aceita o nome direto se parece nome próprio (capitalizado, sem números).
-// Retorna null se não conseguir extrair com confiança.
-const DEVICE_NAME_PREFIX_RE = /^(MacBook\s+(?:Air|Pro)?|MacBook|Mac\s+mini|Mac|iMac|iPad|iPhone)\s+de\s+/i;
-function inferLastUserFromDeviceName(deviceName) {
-  if (!deviceName) return null;
-  const s = String(deviceName).trim();
-  if (s.length === 0) return null;
-  if (DEVICE_NAME_PREFIX_RE.test(s)) {
-    const name = s.replace(DEVICE_NAME_PREFIX_RE, '').trim();
-    if (name.length >= 3 && !/^(desconhecido|test|admin|aluno teste)$/i.test(name)) {
-      return name;
-    }
-    return null;
-  }
-  // Nome direto: primeira letra maiúscula, tem espaço, sem números/símbolos.
-  if (/^[A-ZÁÉÍÓÚÂÊÔÇ][a-záéíóúâêôç]/.test(s) && s.includes(' ') && !/[0-9(),]/.test(s)) {
-    return s;
-  }
-  return null;
-}
+// getFriendlyAppleModelName -> server/services/apple-models.js
+// inferLastUserFromDeviceName -> server/lib/device-names.js
+// (ambas importadas no topo deste arquivo)
 
 async function runMosyleSync(manualResponse = null) {
     try {
