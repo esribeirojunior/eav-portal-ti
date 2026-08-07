@@ -12,6 +12,8 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import { getFriendlyAppleModelName } from './server/services/apple-models.js';
 import { inferLastUserFromDeviceName } from './server/lib/device-names.js';
+import { createTutorialsRouter } from './server/routes/tutorials.js';
+import { createMiscRouter } from './server/routes/misc.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -949,67 +951,8 @@ app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads'), {
   setHeaders: (res) => { res.setHeader('X-Content-Type-Options', 'nosniff'); },
 }));
 
-// Endpoint proxy para a Monitcall — autenticado; credenciais via env.
-app.get('/api/monitcall', authenticateToken, (req, res) => {
-  const target = req.query.target || 'ramais';
-  const fila = req.query.fila || '1021';
-
-  const username = process.env.MONITCALL_USER;
-  const password = process.env.MONITCALL_PASSWORD;
-  if (!username || !password) {
-    return res.status(503).json({ error: 'Monitcall credentials not configured' });
-  }
-  const credentials = Buffer.from(`${username}:${password}`).toString('base64');
-
-  const monitcallPath = target === 'agentes'
-    ? `/monitcall/api/v1/buscarEstadoDosAgentes.php?fila=${fila}`
-    : '/monitcall/api/v1/buscarEstadoDosRamais.php';
-
-  console.log(`[Proxy] GET https://escolaamericana.monitcall.com${monitcallPath}`);
-
-  const options = {
-    hostname: 'escolaamericana.monitcall.com',
-    path: monitcallPath,
-    method: 'GET',
-    headers: {
-      'Authorization': `Basic ${credentials}`,
-      'Accept': 'application/json'
-    },
-    rejectUnauthorized: false // Aceita o certificado auto-assinado da Monitcall
-  };
-
-  const proxyReq = https.request(options, (proxyRes) => {
-    let body = '';
-    proxyRes.on('data', (chunk) => body += chunk);
-    proxyRes.on('end', () => {
-      try {
-        const data = JSON.parse(body);
-        console.log(`[Proxy] Monitcall respondeu: ${proxyRes.statusCode}`);
-        res.setHeader('Content-Type', 'application/json');
-        res.status(200).json(data);
-      } catch (e) {
-        console.error('[Proxy] Erro ao parsear resposta:', e.message);
-        res.status(500).json({ error: 'Resposta inválida da Monitcall' });
-      }
-    });
-  });
-
-  proxyReq.on('error', (e) => {
-    console.error('[Proxy] Erro de conexão:', e.message);
-    res.status(502).json({ error: `Falha ao conectar à Monitcall: ${e.message}` });
-  });
-
-  proxyReq.setTimeout(15000, () => {
-    proxyReq.destroy();
-    res.status(504).json({ error: 'Timeout ao conectar à Monitcall' });
-  });
-
-  proxyReq.end();
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+// Rotas utilitarias (/health, /api/monitcall) -> server/routes/misc.js
+app.use(createMiscRouter({ authenticateToken }));
 
 // --- INFRAESTRUTURA DE ATUALIZAÇÃO EM TEMPO REAL (SSE) ---
 let clients = [];
@@ -1545,42 +1488,8 @@ app.patch('/api/devices/:id/prepare', authenticateToken, async (req, res) => {
   }
 });
 
-// API Local de Tutoriais (Sem Supabase)
-app.get('/api/tutorials', (req, res) => {
-  const tutorials = readTutorials();
-  // Ordena por data decrescente (mais novo primeiro)
-  tutorials.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  res.json(tutorials);
-});
-
-app.post('/api/tutorials', authenticateToken, (req, res) => {
-  const tutorials = readTutorials();
-  const newTutorial = {
-    ...req.body,
-    id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
-    created_at: new Date().toISOString()
-  };
-  tutorials.push(newTutorial);
-  writeTutorials(tutorials);
-  res.status(201).json(newTutorial);
-});
-
-app.put('/api/tutorials/:id', authenticateToken, (req, res) => {
-  const tutorials = readTutorials();
-  const index = tutorials.findIndex(t => t.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Tutorial não encontrado' });
-  
-  tutorials[index] = { ...tutorials[index], ...req.body };
-  writeTutorials(tutorials);
-  res.json(tutorials[index]);
-});
-
-app.delete('/api/tutorials/:id', authenticateToken, (req, res) => {
-  let tutorials = readTutorials();
-  tutorials = tutorials.filter(t => t.id !== req.params.id);
-  writeTutorials(tutorials);
-  res.status(204).end();
-});
+// API Local de Tutoriais (Sem Supabase) -> server/routes/tutorials.js
+app.use('/api/tutorials', createTutorialsRouter({ authenticateToken, readTutorials, writeTutorials }));
 
 // --- SETTINGS ENDPOINTS ---
 
