@@ -15,6 +15,8 @@ import { createTutorialsRouter } from './server/routes/tutorials.js';
 import { createMiscRouter } from './server/routes/misc.js';
 import { createUploadRouter } from './server/routes/upload.js';
 import { createAdminRouter } from './server/routes/admin.js';
+import { createVaultRouter } from './server/routes/vault.js';
+import { createAiRouter } from './server/routes/ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1541,101 +1543,9 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-// --- AI COPILOT ROUTE ---
-app.post('/api/ai/chat', authenticateToken, async (req, res) => {
-  const { message, history = [], userRole = 'admin', userEmail = 'Desconhecido' } = req.body;
-  if (!message) return res.status(400).json({ error: 'Mensagem obrigatória' });
-  
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'Chave da OpenAI não configurada no servidor.' });
-  }
+// --- AI COPILOT ROUTE --- -> server/routes/ai.js
+app.use('/api/ai', createAiRouter({ authenticateToken, readDBTable, openai }));
 
-  try {
-    let devices = [];
-    let assignments = [];
-    let audit_logs = [];
-    let departments = [];
-    try {
-      devices = await readDBTable('devices');
-      assignments = await readDBTable('assignments');
-      audit_logs = await readDBTable('audit_logs');
-      departments = await readDBTable('department');
-    } catch(e) { console.error('Erro lendo banco para IA', e); }
-
-    const contextData = `
-Contexto do Sistema EAV Equipamentos (Central de Gestão TI):
-Temos ${devices.length} equipamentos cadastrados, ${assignments.length} empréstimos registrados e ${audit_logs.length} logs de auditoria.
-
-Lista de Setores/Departamentos:
-${JSON.stringify(departments.map(d => ({ ID: d.id, Nome: d.name })), null, 2)}
-
-Resumo dos Equipamentos (Ativos):
-${JSON.stringify(devices.map(d => {
-  let hostname = d.hostname || 'Desconhecido';
-  let ip = 'N/A';
-  let loggedUser = 'N/A';
-  if (d.condition && d.condition.includes('Hostname: ')) {
-    hostname = d.condition.split('Hostname: ')[1].split(' |')[0];
-  }
-  if (d.condition && d.condition.includes('IP: ')) {
-    ip = d.condition.split('IP: ')[1].split(' |')[0];
-  }
-  if (d.condition && d.condition.includes('Usuário Logado: ')) {
-    loggedUser = d.condition.split('Usuário Logado: ')[1].split(' |')[0];
-  }
-  const activeAssign = assignments.find(a => String(a.device_id) === String(d.id) && !a.returned_at);
-  const deviceCampus = activeAssign ? (activeAssign.campus || 'Desconhecido') : 'Desconhecido';
-  const deviceDept = activeAssign ? activeAssign.department_id : null;
-  return { ID: d.id, SN: d.serial_number || d.serialNumber, Hostname: hostname, IP: ip, Tipo: d.type, UsuarioAtivo: loggedUser, Campus: deviceCampus, Status: d.status, Model: d.model, Dept: deviceDept };
-}), null, 2)}
-
-Resumo dos Empréstimos Ativos:
-${JSON.stringify(assignments.filter(a => !a.returned_at).map(a => ({ DeviceID: a.device_id, User: a.user_name, Campus: a.campus, Date: a.assigned_at })), null, 2)}
-
-Últimos 30 Registros de Atividades (Auditoria / Histórico de quem fez o quê por último):
-${JSON.stringify(audit_logs.slice(-30).map(a => ({ Acao: a.action, Device: a.device_id, Detalhes: a.details, Usuario: a.user_email, Data: a.timestamp })), null, 2)}
-
-Você é o "EAV Copilot", um analista de dados assistente super inteligente para a equipe de TI da Escola Americana de Vitória (EAV).
-Responda de forma direta, amigável e em Português usando os dados fornecidos. Você consegue cruzar os IDs dos departamentos com os nomes deles para dar respostas claras.
-Use as tabelas de auditoria para saber as últimas ações, movimentações ou "último equipamento" adicionado/alterado.
-Formate a resposta usando Markdown (listas, negrito) para ficar bonito no chat.
-
-REGRA DE PERMISSÃO E IDENTIDADE (MUITO IMPORTANTE):
-O e-mail/identificação do usuário atual conversando com você é: "${userEmail}". 
-Se ele se referir a si mesmo (ex: "meus itens", "no meu nome"), filtre os dados procurando por este e-mail/identificação.
-O nível de acesso dele é: "${userRole}".
-Se o acesso for "viewer" (Somente Leitura) e o usuário pedir para você cadastrar, adicionar, alterar, emprestar ou excluir qualquer ativo ou dado, VOCÊ ESTÁ ESTRITAMENTE PROIBIDA de aceitar o comando. Você deve responder educadamente que ele possui acesso de "Somente Leitura" e não tem permissão para realizar alterações no sistema.
-
-REGRA MUITO IMPORTANTE DE ACESSO REMOTO:
-Se o usuário pedir para acessar remotamente (VNC) a tela de um computador, laboratório, ou de um usuário, você DEVE procurar o Hostname ou IP desse(s) computador(es) na tabela.
-Se você encontrar, adicione no final da sua resposta a tag exata: [ACTION:VNC|nomedopc] (substitua nomedopc pelo hostname ou IP real).
-IMPORTANTE: Se o usuário estiver utilizando MAIS DE UM computador, você deve adicionar uma tag [ACTION:VNC|nomedopc] separada para CADA UM dos computadores encontrados! Exemplo:
-[ACTION:VNC|PC1]
-[ACTION:VNC|PC2]
-
-Histórico da Conversa:
-${history.map(h => `${h.role === 'user' ? 'Usuário' : 'Copilot'}: ${h.text}`).join('\n')}
-
-Nova Mensagem do Usuário: ${message}
-`;
-
-    const result = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: contextData }],
-    });
-    
-    return res.json({ reply: result.choices[0].message.content });
-  } catch (err) {
-    console.error('Erro no EAV Copilot:', err);
-    let errorMessage = err.message || '';
-    
-    if (errorMessage.includes('429') || errorMessage.includes('quota')) {
-      return res.status(429).json({ error: `Você atingiu o limite da OpenAI! Verifique os fundos da sua API Key.` });
-    }
-
-    return res.status(500).json({ error: 'Falha ao conectar com a IA: ' + errorMessage });
-  }
-});
 
 
 // Rota temporária de debug — restrita a superadmin autenticado. Considerar remover em breve.
@@ -1650,101 +1560,8 @@ app.get('/api/debug-emails', authenticateToken, requireSuperadmin, async (req, r
 
 // --- VAULT API ROUTES ---
 // --- Rota de Auditoria do Cofre ---
-app.post('/api/vault/audit', authenticateToken, async (req, res) => {
-    try {
-        const { action, secret_id, secret_name } = req.body;
-        const id = crypto.randomUUID();
-        const created_at = new Date().toISOString();
-        const user_email = req.user ? req.user.email : 'unknown';
-        const details = `Segredo: ${secret_name || secret_id}`;
-        
-        await pool.query(
-            'INSERT INTO audit_logs (id, user_email, action, details, resource_type, resource_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [id, user_email, action, details, 'VAULT', secret_id, created_at]
-        );
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.get('/api/vault/projects', authenticateToken, async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM vault_projects ORDER BY name ASC');
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/api/vault/projects', authenticateToken, async (req, res) => {
-    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar projetos.' });
-    try {
-        const { name } = req.body;
-        const id = crypto.randomUUID();
-        const created_at = new Date().toISOString();
-        await pool.query('INSERT INTO vault_projects (id, name, created_at) VALUES ($1, $2, $3)', [id, name, created_at]);
-        res.json({ id, name, created_at });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.get('/api/vault/secrets', authenticateToken, async (req, res) => {
-    try {
-        const result = await pool.query('SELECT id, key_name as key, note, project_id, encrypted_value, created_at FROM vault_secrets ORDER BY key_name ASC');
-        const secrets = result.rows.map(row => ({
-            id: row.id,
-            key: row.key,
-            note: row.note,
-            projectIds: row.project_id ? [row.project_id] : [],
-            value: decryptSecret(row.encrypted_value) || 'ERRO_DESCRIPTOGRAFIA',
-            created_at: row.created_at
-        }));
-        res.json(secrets);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/api/vault/secrets', authenticateToken, async (req, res) => {
-    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem criar segredos.' });
-    try {
-        const { key, value, note, projectId } = req.body;
-        const id = crypto.randomUUID();
-        const encryptedValue = encryptSecret(value);
-        const created_at = new Date().toISOString();
-        
-        await pool.query(
-            'INSERT INTO vault_secrets (id, key_name, encrypted_value, note, project_id, created_at) VALUES ($1, $2, $3, $4, $5, $6)',
-            [id, key, encryptedValue, note, projectId, created_at]
-        );
-        res.json({ id, key, value, note, projectIds: [projectId] });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.delete('/api/vault/secrets/:id', authenticateToken, async (req, res) => {
-    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir segredos.' });
-    try {
-        await pool.query('DELETE FROM vault_secrets WHERE id = $1', [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.delete('/api/vault/projects/:id', authenticateToken, async (req, res) => {
-    if (req.user && req.user.role !== 'superadmin') return res.status(403).json({ error: 'Apenas Super Admins podem excluir projetos.' });
-    try {
-        await pool.query('DELETE FROM vault_secrets WHERE project_id = $1', [req.params.id]);
-        await pool.query('DELETE FROM vault_projects WHERE id = $1', [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// Rotas do cofre (/api/vault/*) -> server/routes/vault.js
+app.use('/api/vault', createVaultRouter({ pool, authenticateToken, encryptSecret, decryptSecret }));
 
 // --- MOSYLE API INTEGRATION ---
 app.post('/api/mosyle/config', authenticateToken, async (req, res) => {
