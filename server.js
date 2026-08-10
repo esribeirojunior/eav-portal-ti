@@ -7,7 +7,6 @@ import crypto from 'crypto';
 import { exec, execFile, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import { OAuth2Client } from 'google-auth-library';
 import bcrypt from 'bcryptjs';
 import { getFriendlyAppleModelName } from './server/services/apple-models.js';
 import { inferLastUserFromDeviceName } from './server/lib/device-names.js';
@@ -18,6 +17,7 @@ import { createAdminRouter } from './server/routes/admin.js';
 import { createVaultRouter } from './server/routes/vault.js';
 import { createAiRouter } from './server/routes/ai.js';
 import { createAgentRouter } from './server/routes/agent.js';
+import { createAuthRouter } from './server/routes/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -1274,116 +1274,8 @@ app.use('/api/tutorials', createTutorialsRouter({ authenticateToken, readTutoria
 // --- SETTINGS ENDPOINTS ---
 // (rotas /api/admin/users movidas para server/routes/admin.js)
 
-// Endpoint de Login Local Offline (Valida contra a aba authorized_users da planilha)
-app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
-  }
-
-  try {
-    const users = await readDBTable('authorized_users');
-    const user = users.find(u => String(u.email || '').toLowerCase().trim() === String(email).toLowerCase().trim());
-
-    // Mensagem unificada para nao vazar quais emails existem no sistema.
-    const INVALID = { status: 401, body: { error: 'Credenciais inválidas.' } };
-    if (!user) {
-      return res.status(INVALID.status).json(INVALID.body);
-    }
-
-    const { ok, needsRehash } = await verifyPassword(password, user.password);
-    if (!ok) {
-      return res.status(INVALID.status).json(INVALID.body);
-    }
-
-    // Migracao lazy: se a senha estava em plaintext no banco, agora que
-    // sabemos que confere, gravamos hash bcrypt no lugar.
-    if (needsRehash) {
-      try {
-        const newHash = await hashPassword(password);
-        await pool.query('UPDATE authorized_users SET password = $1 WHERE id = $2', [newHash, user.id]);
-        console.log(`[Auth] Senha migrada para bcrypt: ${email}`);
-      } catch (e) {
-        console.error(`[Auth] Falha ao migrar senha para bcrypt (${email}):`, e.message);
-      }
-    }
-
-    console.log(`[Auth] Login bem-sucedido para: ${email}`);
-    const token = createSession(user);
-    return res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        modules: user.modules,
-        name: user.email.split('@')[0]
-      },
-      token: token
-    });
-  } catch (err) {
-    console.error('Erro no login local:', err);
-    return res.status(500).json({ error: 'Erro interno no servidor ao autenticar.' });
-  }
-});
-
-// Logout: remove a sessao do lado do servidor. O cliente ja limpa o
-// localStorage, mas se so limpar la, o token continua valido aqui ate
-// expirar/servidor reiniciar. Isso resolve.
-app.post('/api/auth/logout', authenticateToken, (req, res) => {
-  destroySession(req.sessionToken);
-  return res.json({ success: true });
-});
-
-// Endpoint de Autenticação com Google Login (GSI)
-const googleClient = new OAuth2Client();
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '219719535721-26k832m63t27fpik9cionsnje45mp0du.apps.googleusercontent.com';
-
-app.post('/api/auth/google', async (req, res) => {
-  const { credential } = req.body;
-  if (!credential) {
-    return res.status(400).json({ error: 'Token de credencial do Google é obrigatório.' });
-  }
-
-  try {
-    // Valida o ID Token enviado pelo Google
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: GOOGLE_CLIENT_ID
-    });
-    
-    const payload = ticket.getPayload();
-    const email = payload['email'];
-    
-    if (!email) {
-      return res.status(401).json({ error: 'Não foi possível ler o e-mail da conta Google.' });
-    }
-
-    // Verifica se o e-mail está na lista de usuários autorizados no banco
-    const users = await readDBTable('authorized_users');
-    const user = users.find(u => String(u.email || '').toLowerCase().trim() === String(email).toLowerCase().trim());
-
-    if (!user) {
-      return res.status(401).json({ error: `O e-mail ${email} não está autorizado a acessar a Central de TI.` });
-    }
-
-    console.log(`[Auth Google] Login bem-sucedido para: ${email}`);
-    const token = createSession(user);
-
-    return res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        modules: user.modules,
-        name: payload['name'] || user.email.split('@')[0]
-      },
-      token: token
-    });
-  } catch (err) {
-    console.error('Erro na autenticação do Google:', err);
-    return res.status(401).json({ error: 'Autenticação do Google falhou.' });
-  }
-});
+// Rotas de autenticacao (/api/auth/*) -> server/routes/auth.js
+app.use('/api/auth', createAuthRouter({ pool, readDBTable, verifyPassword, hashPassword, createSession, destroySession, authenticateToken }));
 
 // --- AI COPILOT ROUTE --- -> server/routes/ai.js
 app.use('/api/ai', createAiRouter({ authenticateToken, readDBTable, openai }));
