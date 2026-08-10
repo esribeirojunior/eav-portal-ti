@@ -8,12 +8,13 @@ import { exec, execFile, spawn } from 'child_process';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { OAuth2Client } from 'google-auth-library';
-import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import { getFriendlyAppleModelName } from './server/services/apple-models.js';
 import { inferLastUserFromDeviceName } from './server/lib/device-names.js';
 import { createTutorialsRouter } from './server/routes/tutorials.js';
 import { createMiscRouter } from './server/routes/misc.js';
+import { createUploadRouter } from './server/routes/upload.js';
+import { createAdminRouter } from './server/routes/admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -89,59 +90,8 @@ app.use('/uploads', express.static(UPLOADS_DIR, {
   },
 }));
 
-// Configuração do Multer para upload de imagens.
-// Restricoes: apenas MIME de imagem, tamanho maximo 5MB, extensao gerada
-// pelo servidor (nao usa a original), so autenticados podem chamar.
-const ALLOWED_UPLOAD_MIMES = new Set([
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'image/gif',
-]);
-const MIME_TO_EXT = {
-  'image/png': '.png',
-  'image/jpeg': '.jpg',
-  'image/webp': '.webp',
-  'image/gif': '.gif',
-};
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
-    const ext = MIME_TO_EXT[file.mimetype] || '.bin';
-    cb(null, 'anexo-' + uniqueSuffix + ext);
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
-  fileFilter: (req, file, cb) => {
-    if (!ALLOWED_UPLOAD_MIMES.has(file.mimetype)) {
-      return cb(new Error('Tipo de arquivo nao permitido'));
-    }
-    cb(null, true);
-  }
-});
-
-app.post('/api/upload', authenticateToken, (req, res) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      const msg = err.message === 'Tipo de arquivo nao permitido'
-        ? 'Apenas imagens PNG, JPG, WebP ou GIF sao permitidas.'
-        : err.code === 'LIMIT_FILE_SIZE'
-          ? 'Arquivo excede 5MB.'
-          : 'Falha no upload.';
-      return res.status(400).json({ error: msg });
-    }
-    if (!req.file) {
-      return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
-    }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
-  });
-});
+// Rota de upload -> server/routes/upload.js (montada mais abaixo, depois
+// que authenticateToken esta definido).
 
 // Função utilitária para interceptar e salvar imagens em Base64 localmente
 function processBase64Fields(obj) {
@@ -494,25 +444,8 @@ function requireSuperadmin(req, res, next) {
   return next();
 }
 
-// Endpoint de Debug/Fix — restrito a superadmin autenticado.
-app.get('/api/admin/fix-roles', authenticateToken, requireSuperadmin, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, email, role FROM authorized_users');
-    res.json(result.rows);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Endpoint Forçar Recriação da Coluna — restrito a superadmin autenticado.
-app.get('/api/admin/force-role', authenticateToken, requireSuperadmin, async (req, res) => {
-  try {
-    await pool.query("ALTER TABLE authorized_users ADD COLUMN role TEXT DEFAULT 'admin'");
-    res.json({ success: true, message: "Coluna criada com sucesso!" });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
-});
+// Rotas admin (fix-roles, force-role, users CRUD) -> server/routes/admin.js
+app.use('/api/admin', createAdminRouter({ pool, authenticateToken, requireSuperadmin, hashPassword }));
 
 // Endpoint de Banco de Dados simulado
 app.post('/api/db', authenticateToken, async (req, res) => {
@@ -953,6 +886,9 @@ app.use('/uploads', express.static(path.join(DATA_DIR, 'uploads'), {
 
 // Rotas utilitarias (/health, /api/monitcall) -> server/routes/misc.js
 app.use(createMiscRouter({ authenticateToken }));
+
+// Upload de imagens -> server/routes/upload.js
+app.use('/api/upload', createUploadRouter({ authenticateToken, uploadsDir: UPLOADS_DIR }));
 
 // --- INFRAESTRUTURA DE ATUALIZAÇÃO EM TEMPO REAL (SSE) ---
 let clients = [];
@@ -1492,47 +1428,7 @@ app.patch('/api/devices/:id/prepare', authenticateToken, async (req, res) => {
 app.use('/api/tutorials', createTutorialsRouter({ authenticateToken, readTutorials, writeTutorials }));
 
 // --- SETTINGS ENDPOINTS ---
-
-app.get('/api/admin/users', authenticateToken, async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, email, role, modules, created_at FROM authorized_users ORDER BY created_at DESC');
-    res.json({ data: result.rows });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/admin/users', authenticateToken, async (req, res) => {
-  try {
-    const { email, password, role } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email obrigatorio' });
-    const id = Math.random().toString(36).substring(2, 9);
-    const pwd = password || 'eav@123';
-    const pwdHash = await hashPassword(pwd);
-    const userRole = role || 'admin';
-    const defaultModules = '["assets","links","audit","tasks","vault","tutorials","lab"]';
-
-    const check = await pool.query('SELECT * FROM authorized_users WHERE email = $1', [email]);
-    if (check.rows.length > 0) return res.status(400).json({ error: 'Usuario ja existe' });
-
-    await pool.query(
-      "INSERT INTO authorized_users (id, email, password, role, modules, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
-      [id, email, pwdHash, userRole, defaultModules, new Date().toISOString()]
-    );
-    res.json({ data: { id, email, role: userRole, modules: defaultModules } });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
-  try {
-    await pool.query('DELETE FROM authorized_users WHERE id = $1', [req.params.id]);
-    res.json({ data: 'ok' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// (rotas /api/admin/users movidas para server/routes/admin.js)
 
 // Endpoint de Login Local Offline (Valida contra a aba authorized_users da planilha)
 app.post('/api/auth/login', async (req, res) => {
