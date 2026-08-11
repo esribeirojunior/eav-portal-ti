@@ -118,6 +118,24 @@ export function DeviceList({
   const inUseDevices = devices.filter(d => d.status === 'Em Uso' && !triageDevices.find(t => t.id === d.id));
   const maintenanceDevices = devices.filter(d => d.status === 'Manutenção' && !triageDevices.find(t => t.id === d.id));
 
+  // Dispositivos da aba ativa + resumo por tipo (faixa de composição no topo).
+  const currentTabDevices =
+    activeTab === 'sealed' ? sealedDevices :
+    activeTab === 'available' ? availableDevices :
+    activeTab === 'in_use' ? inUseDevices :
+    activeTab === 'maintenance' ? maintenanceDevices :
+    activeTab === 'triage' ? triageDevices : [];
+
+  const tabTypeSummary = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const d of currentTabDevices) {
+      const t = d.type || 'Outros';
+      counts[t] = (counts[t] || 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTabDevices.length, activeTab]);
+
   // Agrupa dispositivos lacrados por tipo pra facilitar a visualização em lote.
   const sealedGroups = useMemo(() => {
     return sealedDevices.reduce((acc: Record<string, any[]>, device) => {
@@ -442,6 +460,25 @@ export function DeviceList({
           )}
         </div>
       </div>
+
+      {/* Faixa de resumo por tipo (composição da aba num olhar) */}
+      {tabTypeSummary.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 px-2 -mt-2 mb-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40 mr-1">
+            {currentTabDevices.length} {currentTabDevices.length === 1 ? 'item' : 'itens'} ·
+          </span>
+          {tabTypeSummary.map(([type, count]) => (
+            <span
+              key={type}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-white/70"
+              title={`${count} ${type}`}
+            >
+              {type}
+              <span className="px-1.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-black">{count}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="flex flex-col gap-4">
