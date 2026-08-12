@@ -14,13 +14,33 @@ if ($baseUrl -notlike "http://*" -and $baseUrl -notlike "https://*") {
     }
 }
 
-Clear-Host
-Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "       AGENTE EAV EQUIPAMENTOS                   " -ForegroundColor Cyan
-Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "Objetivo: sincronizar hardware/IP/RustDesk com o portal." -ForegroundColor Yellow
-Write-Host "Acesso remoto e feito pelo painel via RustDesk (Suporte Externo)." -ForegroundColor Yellow
-Write-Host "================================================" -ForegroundColor Cyan
+# Forca TLS 1.2 -- Windows PowerShell 5.1 pode negociar TLS 1.0 por padrao e
+# falhar no HTTPS contra servidores modernos (Coolify). Sem isso, o sync via
+# GPO/tarefa agendada quebra silenciosamente em varias maquinas.
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
+
+# Log em arquivo -- essencial pro modo automatico (GPO/SYSTEM), onde nao ha
+# console visivel. Toda execucao registra inicio/resultado/erro aqui.
+$LogFile = "C:\EAV_Agente\agent.log"
+function Write-AgentLog($msg) {
+    try {
+        $dir = Split-Path $LogFile
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+        Add-Content -Path $LogFile -Value ("[{0}] {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg) -ErrorAction SilentlyContinue
+    } catch {}
+}
+Write-AgentLog ("Inicio (Automated={0})" -f [bool]$Automated)
+
+# Banner so no modo interativo (no automatico polui/limpa o log).
+if (-not $Automated) {
+    Clear-Host
+    Write-Host "================================================" -ForegroundColor Cyan
+    Write-Host "       AGENTE EAV EQUIPAMENTOS                   " -ForegroundColor Cyan
+    Write-Host "================================================" -ForegroundColor Cyan
+    Write-Host "Objetivo: sincronizar hardware/IP/RustDesk com o portal." -ForegroundColor Yellow
+    Write-Host "Acesso remoto e feito pelo painel via RustDesk (Suporte Externo)." -ForegroundColor Yellow
+    Write-Host "================================================" -ForegroundColor Cyan
+}
 
 # ============================================================
 # CONFIGURACAO ONE-TIME (so no modo interativo)
@@ -206,23 +226,26 @@ if ($ipAddress -like "10.10.156.*") {
 } elseif ($ipAddress -like "10.5.*" -or $ipAddress -like "10.10.157.*") {
     $detectedCampus = "Aeroporto"
     Write-Host "Rede detectada automaticamente como Campus Aeroporto (IP: $ipAddress)" -ForegroundColor Green
+} elseif ($Automated) {
+    # Modo automatico (GPO/Scheduled Task, roda como SYSTEM sem console):
+    # NUNCA perguntar. Usa SavedCampus se veio, senao marca "Nao identificado"
+    # (o admin ajusta pelo portal). Um Read-Host aqui travaria o processo.
+    # if/else (nao ternario) por compatibilidade com Windows PowerShell 5.1.
+    if ($SavedCampus) { $detectedCampus = $SavedCampus } else { $detectedCampus = "Nao identificado" }
+    Write-Host "Rede nao mapeada (IP: $ipAddress). Campus = $detectedCampus (modo automatico)." -ForegroundColor Yellow
 } else {
-    if ($Automated -and $SavedCampus) {
-        $detectedCampus = $SavedCampus
+    Write-Host "Rede atual nao mapeada automaticamente para nenhum Campus (IP: $ipAddress)." -ForegroundColor Yellow
+    Write-Host "Selecione o Campus correspondente:" -ForegroundColor Yellow
+    Write-Host "[1] Álvares"
+    Write-Host "[2] Aeroporto"
+    $campOp = ""
+    while ($campOp -ne "1" -and $campOp -ne "2") {
+        $campOp = Read-Host "Selecione a opcao (1 ou 2)"
+    }
+    if ($campOp -eq "2") {
+        $detectedCampus = "Aeroporto"
     } else {
-        Write-Host "Rede atual nao mapeada automaticamente para nenhum Campus (IP: $ipAddress)." -ForegroundColor Yellow
-        Write-Host "Selecione o Campus correspondente:" -ForegroundColor Yellow
-        Write-Host "[1] Álvares"
-        Write-Host "[2] Aeroporto"
-        $campOp = ""
-        while ($campOp -ne "1" -and $campOp -ne "2") {
-            $campOp = Read-Host "Selecione a opcao (1 ou 2)"
-        }
-        if ($campOp -eq "2") {
-            $detectedCampus = "Aeroporto"
-        } else {
-            $detectedCampus = "Álvares"
-        }
+        $detectedCampus = "Álvares"
     }
 }
 
@@ -259,6 +282,7 @@ Write-Host "Enviando dados para o servidor: $serverUrl ..." -ForegroundColor Yel
 $agentToken = $env:EAV_AGENT_TOKEN
 if (-not $agentToken) {
     Write-Host "[ERRO] Variavel de ambiente EAV_AGENT_TOKEN nao definida. Solicite ao administrador." -ForegroundColor Red
+    Write-AgentLog "ERRO: EAV_AGENT_TOKEN nao definida. Abortando."
     if (-not $Automated) {
         Start-Sleep -Seconds 10
     }
@@ -270,17 +294,23 @@ try {
         "Bypass-Tunnel-Reminder" = "true"
         "Authorization" = "Bearer $agentToken"
     }
-    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json" -Headers $headers
+    # -TimeoutSec evita que a tarefa agendada pendure se o servidor nao responder.
+    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json" -Headers $headers -TimeoutSec 30
     if ($response.success) {
         Write-Host "Sincronizacao concluida com sucesso!" -ForegroundColor Green
         Write-Host "Acao no servidor: $($response.action)" -ForegroundColor Cyan
         Write-Host "Dispositivo ID/Tag: $($response.device.tag)" -ForegroundColor Cyan
+        Write-AgentLog ("OK host={0} ip={1} campus={2} acao={3} tag={4}" -f $hostname, $ipAddress, $detectedCampus, $response.action, $response.device.tag)
     } else {
         Write-Host "Servidor retornou sucesso falso: $response" -ForegroundColor Red
+        Write-AgentLog ("FALHA logica: resposta sem success. host={0}" -f $hostname)
+        exit 1
     }
 } catch {
     Write-Host "Erro ao enviar dados. Verifique a conexao com o servidor." -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
+    Write-AgentLog ("ERRO envio host={0} url={1}: {2}" -f $hostname, $serverUrl, $_.Exception.Message)
+    exit 1
 }
 
 # ============================================
