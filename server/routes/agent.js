@@ -70,6 +70,7 @@ export function createAgentRouter({
       if (battery_health !== undefined) technicalInfo += ` | Bateria: ${battery_health}`;
       if (monitors !== undefined) technicalInfo += ` | Monitores: ${monitors}`;
       if (rustdesk_id) technicalInfo += ` | RustDesk ID: ${rustdesk_id}`;
+      if (campus && campus !== 'Nao identificado') technicalInfo += ` | Campus: ${campus}`;
 
       let targetDevice;
       let actionStr;

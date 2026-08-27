@@ -806,25 +806,22 @@ const App: React.FC = () => {
         selectedCategory === 'Manutenção' ? d.status === DeviceStatus.MAINTENANCE :
           (d.type || '').toLowerCase() === selectedCategory.toLowerCase();
 
+    // Campus do device: usa a atribuicao se houver; senao o campus detectado
+    // pelo agente (gravado como "| Campus: X" no condition).
+    const campusMatch = d.condition ? d.condition.match(/Campus:\s*([^|]+)/i) : null;
+    const deviceCampusNorm = normalizeText(
+      (d.currentAssignment && d.currentAssignment.campus) || (campusMatch ? campusMatch[1] : '')
+    );
     const matchesCampus =
       selectedCampus === 'Todos' ? true :
       selectedCampus === 'Álvares / Aeroporto' ? (
-        d.currentAssignment ? (
-          normalizeText(d.currentAssignment.campus).includes('alvares') &&
-          normalizeText(d.currentAssignment.campus).includes('aeroporto')
-        ) : false
+        deviceCampusNorm.includes('alvares') && deviceCampusNorm.includes('aeroporto')
       ) :
       selectedCampus === 'Álvares' ? (
-        d.currentAssignment ? (
-          normalizeText(d.currentAssignment.campus).includes('alvares') &&
-          !normalizeText(d.currentAssignment.campus).includes('aeroporto')
-        ) : false
+        deviceCampusNorm.includes('alvares') && !deviceCampusNorm.includes('aeroporto')
       ) :
       selectedCampus === 'Aeroporto' ? (
-        d.currentAssignment ? (
-          normalizeText(d.currentAssignment.campus).includes('aeroporto') &&
-          !normalizeText(d.currentAssignment.campus).includes('alvares')
-        ) : false
+        deviceCampusNorm.includes('aeroporto') && !deviceCampusNorm.includes('alvares')
       ) : false;
 
     return matchesCategory && matchesCampus;
