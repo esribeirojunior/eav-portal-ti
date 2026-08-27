@@ -93,7 +93,20 @@ $manufacturer = $csInfo.Manufacturer
 $macInfo = Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object { $_.IPEnabled -eq $true } | Select-Object -First 1
 $macAddress = $macInfo.MACAddress
 
-$ipAddress = (Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null } | Select-Object -First 1).IPv4Address.IPAddress
+# IP: prefere o IP privado (LAN) do adaptador com gateway; evita pegar IP publico/VPN
+# (importante pro mapeamento de campus, que usa as faixas 10.x internas).
+$ipAddress = $null
+$ipCandidates = Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null } | ForEach-Object { $_.IPv4Address.IPAddress } | Where-Object { $_ }
+$privateRe = '^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)'
+$privateIp = $ipCandidates | Where-Object { $_ -match $privateRe } | Select-Object -First 1
+if ($privateIp) {
+    $ipAddress = $privateIp
+} elseif ($ipCandidates) {
+    $ipAddress = $ipCandidates | Select-Object -First 1
+} else {
+    $anyPrivate = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -match $privateRe } | Select-Object -First 1
+    if ($anyPrivate) { $ipAddress = $anyPrivate.IPAddress }
+}
 if (-not $ipAddress) { $ipAddress = "Desconhecido" }
 
 $lastBoot = $osInfo.LastBootUpTime
@@ -188,27 +201,32 @@ foreach ($dir in $rdDirs) {
     if ($rustdeskId) { break }
 }
 
-# Fallback: tentar rodar o rustdesk.exe diretamente para pegar o ID
+# Fallback: rodar rustdesk.exe --get-id redirecionando a saida pra arquivo.
+# O RustDesk e app grafico (subsystem Windows): a saida NAO volta no console
+# com "& exe --get-id". So captura via Start-Process -RedirectStandardOutput.
 if (-not $rustdeskId) {
-    $rdInstallDirs = @(
-        "C:\Program Files\RustDesk",
-        "C:\Program Files (x86)\RustDesk"
-    )
-    foreach ($dir in $rdInstallDirs) {
-        if (Test-Path $dir) {
-            $exes = Get-ChildItem -Path $dir -Filter "rustdesk*.exe" -File -ErrorAction SilentlyContinue
-            foreach ($exe in $exes) {
-                try {
-                    $outputId = & $exe.FullName --get-id 2>&1
-                    if ($outputId -match "^[0-9]+$") {
-                        $rustdeskId = $outputId.Trim()
-                        Write-Host "RustDesk ID detectado via executável ($($exe.Name)): $rustdeskId" -ForegroundColor Green
-                        break
+    $rdExe = $null
+    foreach ($dir in @("C:\Program Files\RustDesk", "C:\Program Files (x86)\RustDesk")) {
+        $cand = Join-Path $dir "rustdesk.exe"
+        if (Test-Path $cand) { $rdExe = $cand; break }
+    }
+    if ($rdExe) {
+        try {
+            $tmpOut = Join-Path $env:TEMP ("rdid_{0}.txt" -f $PID)
+            Start-Process -FilePath $rdExe -ArgumentList "--get-id" -RedirectStandardOutput $tmpOut -NoNewWindow -Wait -ErrorAction Stop
+            Start-Sleep -Milliseconds 500
+            if (Test-Path $tmpOut) {
+                $out = Get-Content $tmpOut -Raw -ErrorAction SilentlyContinue
+                Remove-Item $tmpOut -Force -ErrorAction SilentlyContinue
+                if ($out) {
+                    $m = [regex]::Match($out, '\d{6,}')
+                    if ($m.Success) {
+                        $rustdeskId = $m.Value
+                        Write-Host "RustDesk ID detectado via executável: $rustdeskId" -ForegroundColor Green
                     }
-                } catch {}
+                }
             }
-            if ($rustdeskId) { break }
-        }
+        } catch {}
     }
 }
 

@@ -41,6 +41,8 @@ try {
 $token    = $cfg.Token
 $serverIp = $cfg.ServerIP
 $rdPass   = $cfg.RustDeskPassword
+$rdHost   = $cfg.RustDeskHost
+$rdKey    = $cfg.RustDeskKey
 if (-not $token -or -not $serverIp) { Log 'ERRO: config sem Token ou ServerIP.'; exit 1 }
 
 # --- 2. Env var de maquina ---
@@ -89,17 +91,85 @@ if ($rdPass) {
             $installer = Join-Path $SharePath 'rustdesk.exe'
             if (Test-Path $installer) {
                 Log 'Instalando RustDesk...'
-                Start-Process -FilePath $installer -ArgumentList '--silent-install' -Wait
-                Start-Sleep -Seconds 15
+                # NAO usar -Wait: o --silent-install bifurca o processo e o -Wait trava pra sempre.
+                # Em vez disso, dispara e espera o servico/exe aparecer (ate ~90s).
+                Start-Process -FilePath $installer -ArgumentList '--silent-install' -WindowStyle Hidden
+                for ($i = 0; $i -lt 45; $i++) {
+                    Start-Sleep -Seconds 2
+                    if (Get-Service -Name 'RustDesk' -ErrorAction SilentlyContinue) { break }
+                    if (Get-RD) { break }
+                }
+                Start-Sleep -Seconds 3
                 $rd = Get-RD
+                if ($rd) { Log 'RustDesk instalado.' } else { Log 'AVISO: RustDesk nao confirmado apos instalacao.' }
             } else { Log "AVISO: rustdesk.exe nao esta no share; pulando instalacao." }
         }
         if ($rd) {
             $svc = Get-Service -Name 'RustDesk' -ErrorAction SilentlyContinue
             if ($svc -and $svc.Status -ne 'Running') { Start-Service 'RustDesk' -ErrorAction SilentlyContinue; Start-Sleep -Seconds 8 }
+
+            # Senha nao-supervisionada (grava a senha no config do servico)
             & $rd --password $rdPass
             Start-Sleep -Seconds 2
-            try { $rid = (& $rd --get-id 2>&1 | Out-String).Trim(); Log "RustDesk OK. ID=$rid" } catch { Log 'RustDesk configurado (ID nao lido agora).' }
+
+            # Apontar pro servidor RustDesk self-hosted (fecha o acesso; nao usa o servidor publico).
+            # Grava no config do SERVICO (LocalService/systemprofile), que e o que vale pro nao-supervisionado.
+            if ($rdHost -and $rdKey) {
+                try {
+                    if ($svc) { Stop-Service 'RustDesk' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 }
+                    $cfgDirs = @(
+                        'C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\config',
+                        'C:\Windows\System32\config\systemprofile\AppData\Roaming\RustDesk\config'
+                    )
+                    foreach ($cd in $cfgDirs) {
+                        if (-not (Test-Path $cd)) { New-Item -ItemType Directory -Force -Path $cd | Out-Null }
+                        $toml = Join-Path $cd 'RustDesk2.toml'
+                        $existing = @()
+                        if (Test-Path $toml) { $existing = Get-Content $toml }
+                        # Remove as chaves que vamos redefinir (preserva o resto, inclusive a senha)
+                        $filtered = $existing | Where-Object {
+                            $_ -notmatch '^\s*rendezvous_server\s*=' -and
+                            $_ -notmatch '^\s*custom-rendezvous-server\s*=' -and
+                            $_ -notmatch '^\s*relay-server\s*=' -and
+                            $_ -notmatch '^\s*key\s*='
+                        }
+                        # Separa o topo da secao [options]
+                        $top = New-Object System.Collections.ArrayList
+                        $opt = New-Object System.Collections.ArrayList
+                        $inOpt = $false
+                        foreach ($l in $filtered) {
+                            if ($l -match '^\[options\]') { $inOpt = $true; continue }
+                            elseif ($l -match '^\[') { $inOpt = $false; [void]$top.Add($l); continue }
+                            if ($inOpt) { [void]$opt.Add($l) } else { [void]$top.Add($l) }
+                        }
+                        $new = New-Object System.Collections.ArrayList
+                        [void]$new.Add("rendezvous_server = '$rdHost`:21116'")
+                        foreach ($l in $top) { if ($l.Trim() -ne '') { [void]$new.Add($l) } }
+                        [void]$new.Add('')
+                        [void]$new.Add('[options]')
+                        [void]$new.Add("custom-rendezvous-server = '$rdHost'")
+                        [void]$new.Add("relay-server = '$rdHost'")
+                        [void]$new.Add("key = '$rdKey'")
+                        foreach ($l in $opt) { if ($l.Trim() -ne '') { [void]$new.Add($l) } }
+                        Set-Content -Path $toml -Value $new -Encoding UTF8
+                    }
+                    Start-Service 'RustDesk' -ErrorAction SilentlyContinue
+                    Start-Sleep -Seconds 5
+                    Log "RustDesk apontado pro servidor self-hosted ($rdHost)."
+                } catch { Log "ERRO ao apontar RustDesk pro servidor: $($_.Exception.Message)" }
+            } else {
+                Log 'AVISO: RustDeskHost/RustDeskKey nao definidos; cliente ficaria no servidor PUBLICO.'
+            }
+
+            # Pega o ID (app grafico: precisa redirecionar a saida pra arquivo)
+            try {
+                $tmpOut = Join-Path $env:TEMP 'rdid_setup.txt'
+                Start-Process -FilePath $rd -ArgumentList '--get-id' -RedirectStandardOutput $tmpOut -NoNewWindow -Wait
+                Start-Sleep -Milliseconds 500
+                $rid = ''
+                if (Test-Path $tmpOut) { $rid = ((Get-Content $tmpOut -Raw) -replace '\D', '').Trim(); Remove-Item $tmpOut -Force -ErrorAction SilentlyContinue }
+                Log "RustDesk OK. ID=$rid"
+            } catch { Log 'RustDesk configurado (ID nao lido agora).' }
         }
     } catch { Log "ERRO no RustDesk: $($_.Exception.Message)" }
 } else {

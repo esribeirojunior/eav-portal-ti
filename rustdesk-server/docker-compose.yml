@@ -1,0 +1,58 @@
+# ============================================================
+# RustDesk Server self-hosted (OSS) — EAV
+#   hbbs = servidor de ID / rendezvous
+#   hbbr = servidor de relay
+#
+# Sobe no Coolify como recurso "Docker Compose".
+# Defina a variavel de ambiente RUSTDESK_HOST com o dominio/IP publico
+# do servidor (ex: rustdesk.escolaamericana.com.br).
+#
+# PORTAS (abrir no firewall / security group do servidor):
+#   21115/tcp  - hbbs  (teste de tipo de NAT)
+#   21116/tcp  - hbbs  (registro de ID / heartbeat)
+#   21116/udp  - hbbs  (hole punching)   <-- UDP e OBRIGATORIO
+#   21117/tcp  - hbbr  (relay)
+#   21118/tcp  - hbbs  (suporte a web client, opcional)
+#   21119/tcp  - hbbr  (relay do web client, opcional)
+#
+# Obs: usamos network_mode host (recomendado pelo RustDesk) para o servidor
+# enxergar o IP real dos clientes e lidar bem com UDP. Nesse modo o bloco
+# "ports:" e ignorado — basta abrir as portas acima no firewall do host.
+# ============================================================
+
+services:
+  hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: eav-rustdesk-hbbs
+    command: hbbs -r ${RUSTDESK_HOST}:21117
+    volumes:
+      - ./data:/root
+    network_mode: host
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+
+  hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: eav-rustdesk-hbbr
+    command: hbbr
+    volumes:
+      - ./data:/root
+    network_mode: host
+    restart: unless-stopped
+
+# ------------------------------------------------------------
+# ALTERNATIVA sem host networking (se o Coolify nao permitir host mode):
+# comente os dois "network_mode: host" acima e descomente os "ports:" abaixo.
+#
+#  hbbs:
+#    ports:
+#      - "21115:21115"
+#      - "21116:21116"
+#      - "21116:21116/udp"
+#      - "21118:21118"
+#  hbbr:
+#    ports:
+#      - "21117:21117"
+#      - "21119:21119"
+# ------------------------------------------------------------
