@@ -783,7 +783,9 @@ const App: React.FC = () => {
            (d.currentAssignment?.userName || '').toLowerCase().includes(term);
   });
 
-  const triageDevicesForStats = searchedDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
+  // Triagem = veio do agente, sem depto e sem atribuicao. Se ja foi marcado como
+  // "Disponivel" (estoque), considera-se triado e sai da triagem (vai pra Disponivel).
+  const triageDevicesForStats = searchedDevices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment && d.status !== DeviceStatus.AVAILABLE);
   const sealedDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.STOCK_SEALED);
   const availableDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.AVAILABLE && !triageDevicesForStats.find(t => t.id === d.id));
   const inUseDevicesForStats = searchedDevices.filter(d => d.status === DeviceStatus.IN_USE && !triageDevicesForStats.find(t => t.id === d.id));

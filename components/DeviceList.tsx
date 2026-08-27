@@ -110,8 +110,9 @@ export function DeviceList({
   const [isSectorModalOpen, setIsSectorModalOpen] = useState(false);
   const [selectedRmmDevice, setSelectedRmmDevice] = useState<any>(null);
 
-  // Isolar dispositivos de triagem
-  const triageDevices = devices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment);
+  // Isolar dispositivos de triagem. Se ja foi marcado como "Disponível" (estoque),
+  // considera-se triado e sai da triagem (passa a aparecer na aba Disponível).
+  const triageDevices = devices.filter(d => d.condition && d.condition.includes('Sistema:') && !d.custom_department && !d.currentAssignment && d.status !== 'Disponível');
 
   const sealedDevices = devices.filter(d => d.status === 'Estoque - Lacrado');
   const availableDevices = devices.filter(d => d.status === 'Disponível' && !triageDevices.find(t => t.id === d.id));
