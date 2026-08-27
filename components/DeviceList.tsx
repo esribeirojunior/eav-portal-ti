@@ -17,7 +17,8 @@ import {
   FileDown,
   FileUp,
   Trash2,
-  Wrench
+  Wrench,
+  MapPin
 } from 'lucide-react';
 import { ImportModal } from './ImportModal';
 import { SectorDetailModal } from './SectorDetailModal';
@@ -36,6 +37,30 @@ const ChipBadge: React.FC<{ model?: string | null }> = ({ model }) => {
       title={`Chip: ${chip}`}
     >
       {chip}
+    </span>
+  );
+};
+
+// Campus do device: usa a atribuicao, senao o campus detectado pelo agente
+// (gravado como "| Campus: X" no condition pelo agent-sync).
+const getDeviceCampus = (device: any): string => {
+  if (device?.currentAssignment?.campus) return device.currentAssignment.campus;
+  const m = device?.condition ? device.condition.match(/Campus:\s*([^|]+)/i) : null;
+  return m ? m[1].trim() : '';
+};
+
+// Badge de campus (Álvares / Aeroporto). So renderiza se houver campus conhecido.
+const CampusBadge: React.FC<{ device: any }> = ({ device }) => {
+  const campus = getDeviceCampus(device);
+  if (!campus || /nao identificado/i.test(campus)) return null;
+  const isAero = /aeroporto/i.test(campus);
+  return (
+    <span
+      className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border flex-shrink-0 flex items-center gap-1 ${isAero ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'}`}
+      title={`Campus: ${campus}`}
+    >
+      <MapPin size={10} />
+      {campus}
     </span>
   );
 };
@@ -300,6 +325,7 @@ export function DeviceList({
                 MOSYLE
               </span>
             )}
+            <CampusBadge device={device} />
           </h3>
           <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 truncate">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
