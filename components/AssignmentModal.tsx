@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, User, Building, Save, Laptop, Monitor, Headphones, MousePointer, Keyboard, Settings } from 'lucide-react';
+import { X, User, Building, Save, Laptop, Monitor, Headphones, MousePointer, Keyboard, Settings, Package } from 'lucide-react';
 import { apiClient, logAuditAction } from '../lib/apiClient';
-import { DeviceType } from '../types';
+import { DeviceType, DeviceStatus } from '../types';
 
 interface AssignmentModalProps {
   isOpen: boolean;
@@ -262,6 +262,41 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
     }
   };
 
+  // Alternativa à entrega: manda o equipamento direto pro estoque "Disponível",
+  // sem atribuir a ninguém e sem gerar termo.
+  const handleSendToStock = async () => {
+    if (loading) return;
+    const ok = window.confirm(
+      `Enviar ${device?.tag || 'este equipamento'} para o Estoque Disponível?\nEle NÃO será atribuído a ninguém.`
+    );
+    if (!ok) return;
+    setLoading(true);
+    try {
+      const { error } = await apiClient
+        .from('devices')
+        .update({ status: DeviceStatus.AVAILABLE })
+        .eq('id', device.id);
+
+      if (error) throw error;
+
+      onSuccess();
+      onClose();
+
+      logAuditAction(
+        userEmail,
+        'ESTOQUE',
+        `Equipamento ${device.tag} enviado para Estoque Disponível`,
+        'DEVICE',
+        device.id
+      ).catch((err) => console.error('Erro silencioso na auditoria:', err));
+    } catch (error: any) {
+      console.error('Erro ao enviar para estoque:', error);
+      alert('Erro ao enviar para estoque: ' + (error.message || 'Verifique a conexão.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -437,7 +472,23 @@ export function AssignmentModal({ isOpen, onClose, onSuccess, device, userEmail 
             </div>
           )}
 
-          <div className="flex justify-between items-center pt-4">
+          {/* Alternativa: mandar direto pro estoque, sem atribuir a ninguém */}
+          <div className="pt-4 space-y-1.5">
+            <button
+              type="button"
+              onClick={handleSendToStock}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600/90 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Package size={16} />
+              Enviar para Estoque Disponível
+            </button>
+            <p className="text-[10px] text-slate-500 text-center">
+              Coloca o equipamento como “Disponível”, sem atribuir a uma pessoa.
+            </p>
+          </div>
+
+          <div className="flex justify-between items-center pt-1 border-t border-slate-800 mt-2">
             <button type="button" onClick={onClose} className="text-xs font-bold text-slate-500 hover:text-white uppercase px-4 py-2 transition-colors">
               Cancelar
             </button>
