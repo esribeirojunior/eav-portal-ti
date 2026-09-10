@@ -49,18 +49,31 @@ const getDeviceCampus = (device: any): string => {
   return m ? m[1].trim() : '';
 };
 
-// Badge de campus (Álvares / Aeroporto). So renderiza se houver campus conhecido.
+// Badge de campus (Álvares / Aeroporto). Renderiza o nome canonico detectando
+// o trecho que sobrevive ('lvares' / 'aero'), pra ficar correto mesmo quando o
+// valor vem corrompido do banco (ex: acento mal codificado pelo agente).
 const CampusBadge: React.FC<{ device: any }> = ({ device }) => {
-  const campus = getDeviceCampus(device);
-  if (!campus || /nao identificado/i.test(campus)) return null;
-  const isAero = /aeroporto/i.test(campus);
+  const raw = getDeviceCampus(device);
+  if (!raw) return null;
+  const n = raw.toLowerCase();
+  let label: string;
+  let isAero: boolean;
+  if (n.includes('aero')) {
+    label = 'Aeroporto';
+    isAero = true;
+  } else if (n.includes('lvares')) {
+    label = 'Álvares';
+    isAero = false;
+  } else {
+    return null; // "Nao identificado" ou desconhecido: nao mostra chip
+  }
   return (
     <span
       className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border flex-shrink-0 flex items-center gap-1 ${isAero ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'}`}
-      title={`Campus: ${campus}`}
+      title={`Campus: ${label}`}
     >
       <MapPin size={10} />
-      {campus}
+      {label}
     </span>
   );
 };

@@ -812,16 +812,17 @@ const App: React.FC = () => {
     const deviceCampusNorm = normalizeText(
       (d.currentAssignment && d.currentAssignment.campus) || (campusMatch ? campusMatch[1] : '')
     );
+    // Usa trechos que sobrevivem a corrupcao de acento ('lvares' / 'aero').
     const matchesCampus =
       selectedCampus === 'Todos' ? true :
       selectedCampus === 'Álvares / Aeroporto' ? (
-        deviceCampusNorm.includes('alvares') && deviceCampusNorm.includes('aeroporto')
+        deviceCampusNorm.includes('lvares') && deviceCampusNorm.includes('aero')
       ) :
       selectedCampus === 'Álvares' ? (
-        deviceCampusNorm.includes('alvares') && !deviceCampusNorm.includes('aeroporto')
+        deviceCampusNorm.includes('lvares') && !deviceCampusNorm.includes('aero')
       ) :
       selectedCampus === 'Aeroporto' ? (
-        deviceCampusNorm.includes('aeroporto') && !deviceCampusNorm.includes('alvares')
+        deviceCampusNorm.includes('aero') && !deviceCampusNorm.includes('lvares')
       ) : false;
 
     return matchesCategory && matchesCampus;
