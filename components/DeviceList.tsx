@@ -341,12 +341,24 @@ export function DeviceList({
             <CampusBadge device={device} />
           </h3>
           <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 truncate">
-            <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span> <span className="opacity-70">• S/N: {device.serialNumber} {device.condition && device.condition.includes('Hostname: ') && `• HOST: ${device.condition.split('Hostname: ')[1].split(' |')[0]}`}</span>
+            <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>
+            {(() => {
+              const host = device.condition && device.condition.includes('Hostname: ')
+                ? device.condition.split('Hostname: ')[1].split(' |')[0].trim()
+                : '';
+              const parts: string[] = [];
+              if (device.serialNumber) parts.push(`S/N: ${device.serialNumber}`);
+              // So mostra HOST se ele NAO estiver ja embutido na tag (evita repetir).
+              if (host && !(device.tag || '').toUpperCase().includes(host.toUpperCase())) {
+                parts.push(`HOST: ${host}`);
+              }
+              return parts.length > 0 ? <span className="opacity-70"> • {parts.join(' • ')}</span> : null;
+            })()}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-400 dark:border-white/5 pt-4 xl:pt-0">
+      <div className="flex flex-wrap items-center gap-y-2 gap-x-4 sm:gap-x-6 flex-1 justify-between xl:justify-end w-full xl:w-auto mt-4 xl:mt-0 border-t xl:border-none border-slate-400 dark:border-white/5 pt-4 xl:pt-0">
         <div className="flex flex-col items-start xl:items-end min-w-0">
           <span className="text-[9px] font-black text-slate-700 dark:text-white/30 uppercase tracking-widest">Tipo</span>
           <span className="text-[11px] font-bold text-slate-700 dark:text-white/80 truncate max-w-[120px]">{device.type}</span>
