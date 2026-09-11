@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, Camera, Image as ImageIcon, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
+import { X, Save, Camera, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
 import { apiClient, logAuditAction } from '../lib/apiClient';
 
 interface Props {
@@ -84,6 +84,55 @@ const PHOTOS: { key: string; label: string; required: boolean }[] = [
 ];
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+const inputCls =
+  'w-full bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-colors';
+
+// Sub-componentes em nivel de modulo (NAO dentro do componente principal),
+// senao o React remonta os inputs a cada tecla e o foco se perde.
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <div className="space-y-3">
+    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 dark:text-indigo-400">{title}</h3>
+    {children}
+  </div>
+);
+
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-1.5">
+    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">{label}</label>
+    {children}
+  </div>
+);
+
+const Radio: React.FC<{ value: string; options: string[]; danger?: string[]; onChange: (v: string) => void }> = ({
+  value,
+  options,
+  danger = [],
+  onChange,
+}) => (
+  <div className="flex flex-wrap gap-2">
+    {options.map((opt) => {
+      const active = value === opt;
+      const isDanger = danger.includes(opt);
+      return (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${
+            active
+              ? isDanger
+                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40'
+                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-300 dark:border-white/10 hover:border-slate-400'
+          }`}
+        >
+          {opt}
+        </button>
+      );
+    })}
+  </div>
+);
 
 export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Props) {
   if (!device) return null;
@@ -171,48 +220,6 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
     }
   };
 
-  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="space-y-3">
-      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 dark:text-indigo-400">{title}</h3>
-      {children}
-    </div>
-  );
-
-  const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-    <div className="space-y-1.5">
-      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">{label}</label>
-      {children}
-    </div>
-  );
-
-  const inputCls =
-    'w-full bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-slate-800 dark:text-white outline-none focus:border-indigo-500 transition-colors';
-
-  const Radio: React.FC<{ name: string; options: string[]; danger?: string[] }> = ({ name, options, danger = [] }) => (
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => {
-        const active = (form as any)[name] === opt;
-        const isDanger = danger.includes(opt);
-        return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => set(name, opt)}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${
-              active
-                ? isDanger
-                  ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/40'
-                  : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40'
-                : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-300 dark:border-white/10 hover:border-slate-400'
-            }`}
-          >
-            {opt}
-          </button>
-        );
-      })}
-    </div>
-  );
-
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-6 overflow-y-auto">
       <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl my-auto flex flex-col max-h-[95vh]">
@@ -261,7 +268,7 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
                 <input className={inputCls} value={form.serial_number} onChange={(e) => set('serial_number', e.target.value)} />
               </Field>
               <Field label="Funcionando">
-                <Radio name="funcionando" options={['Sim', 'Não']} danger={['Não']} />
+                <Radio value={form.funcionando} options={['Sim', 'Não']} danger={['Não']} onChange={(v) => set('funcionando', v)} />
               </Field>
               <Field label="Data de Recebimento">
                 <input type="date" className={inputCls} value={form.data_recebimento} onChange={(e) => set('data_recebimento', e.target.value)} />
@@ -274,13 +281,13 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
 
           <Section title="Testes Realizados">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-              <Field label="Funcionamento do Carregador"><Radio name="teste_carregador" options={CARREGADOR} danger={['Não funciona']} /></Field>
-              <Field label="Cabo do Carregador"><Radio name="teste_cabo" options={CABO} danger={['Não funciona', 'Não entregue']} /></Field>
-              <Field label="Rede"><Radio name="teste_rede" options={OK_PROB} danger={['Problemas']} /></Field>
-              <Field label="Bluetooth"><Radio name="teste_bluetooth" options={OK_PROB} danger={['Problemas']} /></Field>
-              <Field label="Teclado"><Radio name="teste_teclado" options={OK_PROB} danger={['Problemas']} /></Field>
-              <Field label="Portas"><Radio name="teste_portas" options={OK_PROB} danger={['Problemas']} /></Field>
-              <Field label="Estado Capa Acrílica"><Radio name="estado_capa" options={CAPA} danger={['Avariada', 'Não entregue']} /></Field>
+              <Field label="Funcionamento do Carregador"><Radio value={form.teste_carregador} options={CARREGADOR} danger={['Não funciona']} onChange={(v) => set('teste_carregador', v)} /></Field>
+              <Field label="Cabo do Carregador"><Radio value={form.teste_cabo} options={CABO} danger={['Não funciona', 'Não entregue']} onChange={(v) => set('teste_cabo', v)} /></Field>
+              <Field label="Rede"><Radio value={form.teste_rede} options={OK_PROB} danger={['Problemas']} onChange={(v) => set('teste_rede', v)} /></Field>
+              <Field label="Bluetooth"><Radio value={form.teste_bluetooth} options={OK_PROB} danger={['Problemas']} onChange={(v) => set('teste_bluetooth', v)} /></Field>
+              <Field label="Teclado"><Radio value={form.teste_teclado} options={OK_PROB} danger={['Problemas']} onChange={(v) => set('teste_teclado', v)} /></Field>
+              <Field label="Portas"><Radio value={form.teste_portas} options={OK_PROB} danger={['Problemas']} onChange={(v) => set('teste_portas', v)} /></Field>
+              <Field label="Estado Capa Acrílica"><Radio value={form.estado_capa} options={CAPA} danger={['Avariada', 'Não entregue']} onChange={(v) => set('estado_capa', v)} /></Field>
             </div>
           </Section>
 
@@ -329,7 +336,7 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
           </Section>
 
           <Section title="Resultado">
-            <Radio name="resultado" options={RESULTADOS} danger={['Reprovado - Manutenção Necessária']} />
+            <Radio value={form.resultado} options={RESULTADOS} danger={['Reprovado - Manutenção Necessária']} onChange={(v) => set('resultado', v)} />
             <Field label="Observações / Parecer Técnico">
               <textarea
                 className={`${inputCls} h-20 resize-none`}
