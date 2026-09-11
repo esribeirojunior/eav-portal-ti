@@ -14,6 +14,7 @@ import { HistoryModal } from './components/HistoryModal';
 import { MaintenanceModal } from './components/MaintenanceModal';
 import { InspectionModal } from './components/InspectionModal';
 import { RecebimentoModal } from './components/RecebimentoModal';
+import { RecebimentoViewerModal } from './components/RecebimentoViewerModal';
 import { ModuleSelector } from './components/ModuleSelector';
 import { CustodyView } from './components/CustodyView';
 import { LinksModule } from './components/LinksModule';
@@ -458,6 +459,8 @@ const App: React.FC = () => {
   const [returningDevice, setReturningDevice] = useState<Device | null>(null);
   const [inspectingDevice, setInspectingDevice] = useState<Device | null>(null);
   const [recebimentoDevice, setRecebimentoDevice] = useState<Device | null>(null);
+  const [viewingRecebimentos, setViewingRecebimentos] = useState<Device | null>(null);
+  const [recebimentosMap, setRecebimentosMap] = useState<Record<string, { resultado: string; count: number }>>({});
   const [maintenanceDevice, setMaintenanceDevice] = useState<Device | null>(null);
   const [viewingHistory, setViewingHistory] = useState<Device | null>(null);
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'info' } | null>(null);
@@ -491,6 +494,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchDevices(); // Busca com loading (tela inicial)
+      fetchRecebimentosSummary(); // Resumo de recebimentos (pro selo no card)
 
       // Polling a cada 5 segundos (Atualização Automática de Tela)
       const interval = setInterval(() => {
@@ -500,6 +504,27 @@ const App: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
+
+  // Resumo dos recebimentos por device (ultimo resultado + contagem) para o selo.
+  const fetchRecebimentosSummary = async () => {
+    try {
+      const { data } = await apiClient.from('recebimentos').select('*');
+      const map: Record<string, { resultado: string; count: number; created_at: string }> = {};
+      (data || []).forEach((r: any) => {
+        const d = r.device_id;
+        if (!d) return;
+        if (!map[d]) map[d] = { resultado: r.resultado, count: 0, created_at: '' };
+        map[d].count += 1;
+        if ((r.created_at || '') >= map[d].created_at) {
+          map[d].resultado = r.resultado;
+          map[d].created_at = r.created_at || '';
+        }
+      });
+      setRecebimentosMap(map);
+    } catch (e) {
+      console.error('Erro ao buscar resumo de recebimentos:', e);
+    }
+  };
 
   // --- FUNÇÃO FETCH DEVICES COM RETRY E SILENT ---
   const fetchDevices = async (retries = 3, silent = false) => {
@@ -1039,6 +1064,8 @@ const App: React.FC = () => {
                     onRefresh={fetchDevices}
                     onPrepare={setDeviceToPrepare}
                     onRecebimento={setRecebimentoDevice}
+                    onViewRecebimentos={setViewingRecebimentos}
+                    recebimentosMap={recebimentosMap}
                     userRole={userRole}
                   />
                 )}
@@ -1140,9 +1167,15 @@ const App: React.FC = () => {
               onClose={() => setRecebimentoDevice(null)}
               onSuccess={() => {
                 fetchDevices();
+                fetchRecebimentosSummary();
                 showNotification('Recebimento registrado com sucesso!');
               }}
               userEmail={userEmail}
+            />
+
+            <RecebimentoViewerModal
+              device={viewingRecebimentos}
+              onClose={() => setViewingRecebimentos(null)}
             />
 
             <MaintenanceModal

@@ -79,6 +79,32 @@ const CampusBadge: React.FC<{ device: any }> = ({ device }) => {
   );
 };
 
+// Selo do ultimo recebimento (devolucao). Clicavel -> abre o visualizador.
+const RecebimentoBadge: React.FC<{
+  info?: { resultado: string; count: number };
+  onClick?: (e: React.MouseEvent) => void;
+}> = ({ info, onClick }) => {
+  if (!info) return null;
+  const reprovado = /reprovado/i.test(info.resultado || '');
+  const avarias = /avarias/i.test(info.resultado || '');
+  const cls = reprovado
+    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+    : avarias
+      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+      : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border flex-shrink-0 flex items-center gap-1 hover:brightness-110 transition-all ${cls}`}
+      title={`Recebimento: ${info.resultado}${info.count > 1 ? ` (${info.count})` : ''} — clique para ver`}
+    >
+      <ClipboardCheck size={10} />
+      {reprovado ? 'Reprovado' : avarias ? 'Avarias' : 'Aprovado'}
+    </button>
+  );
+};
+
 const SECTOR_CONFIGS: Record<string, { color: string; subtitle: string }> = {
   'COORDENAÇÃO': { color: '#667eea', subtitle: 'Gestão Administrativa' },
   'DIRETORIA': { color: '#f093fb', subtitle: 'Alta Gestão' },
@@ -121,6 +147,8 @@ interface DeviceListProps {
   onRefresh?: () => void;
   onPrepare?: (device: any) => void;
   onRecebimento?: (device: any) => void;
+  onViewRecebimentos?: (device: any) => void;
+  recebimentosMap?: Record<string, { resultado: string; count: number }>;
   activeTab?: 'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage';
   searchQuery?: string;
   userRole?: string;
@@ -137,6 +165,8 @@ export function DeviceList({
   onRefresh,
   onPrepare,
   onRecebimento,
+  onViewRecebimentos,
+  recebimentosMap,
   activeTab = 'available',
   searchQuery,
   userRole
@@ -342,6 +372,10 @@ export function DeviceList({
               </span>
             )}
             <CampusBadge device={device} />
+            <RecebimentoBadge
+              info={recebimentosMap?.[device.id]}
+              onClick={(e) => { e.stopPropagation(); onViewRecebimentos?.(device); }}
+            />
           </h3>
           <p className="text-[11px] font-medium text-slate-800 dark:text-white/50 tracking-wide mt-0.5 truncate">
             <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>
@@ -799,6 +833,10 @@ export function DeviceList({
                                             MOSYLE
                                           </span>
                                         )}
+                                        <RecebimentoBadge
+                                          info={recebimentosMap?.[device.id]}
+                                          onClick={(e) => { e.stopPropagation(); onViewRecebimentos?.(device); }}
+                                        />
                                       </div>
                                       <p className="text-[8px] text-slate-500 dark:text-white/30 uppercase tracking-widest mt-1 break-all line-clamp-2">
                                         {device.tag && <span className="text-indigo-500 dark:text-indigo-400 font-bold">#{device.tag}</span>}
