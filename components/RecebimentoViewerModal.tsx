@@ -246,16 +246,14 @@ export function RecebimentoViewerModal({ device, onClose }: Props) {
                   return <span className={`px-3 py-1.5 rounded-lg text-[12px] font-black uppercase ${cls}`}>{selected.resultado}</span>;
                 })()}
                 <div className="flex items-center gap-2 flex-wrap">
-                  {smtpOn && (
-                    <button
-                      onClick={() => sendEmail(selected)}
-                      disabled={sending}
-                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 disabled:opacity-50"
-                      title="Envia a confirmação SÓ para o responsável/aluno deste recebimento"
-                    >
-                      {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Enviar e-mail
-                    </button>
-                  )}
+                  <button
+                    onClick={() => sendEmail(selected)}
+                    disabled={sending}
+                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 disabled:opacity-50"
+                    title="Envia a confirmação SÓ para o responsável/aluno deste recebimento"
+                  >
+                    {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Enviar e-mail
+                  </button>
                   <button onClick={() => printLaudo(selected)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95">
                     <Printer size={15} /> Imprimir laudo
                   </button>
