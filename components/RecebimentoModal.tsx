@@ -184,9 +184,16 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
 
   const handleSubmit = async () => {
     setError('');
-    if (!form.user_name.trim()) return setError('Preencha o nome do usuário.');
+    if (!form.user_name.trim()) {
+      setError('Preencha o nome do usuário.');
+      return;
+    }
+    // Fotos sao recomendadas, mas NAO bloqueiam o registro — so avisam.
     if (missingPhotos.length > 0) {
-      return setError(`Faltam fotos obrigatórias: ${missingPhotos.map((p) => p.label).join(', ')}.`);
+      const ok = window.confirm(
+        `Faltam fotos: ${missingPhotos.map((p) => p.label).join(', ')}.\n\nRegistrar mesmo assim?`
+      );
+      if (!ok) return;
     }
     setSaving(true);
     try {
@@ -214,7 +221,9 @@ export function RecebimentoModal({ device, onClose, onSuccess, userEmail }: Prop
       onClose();
     } catch (e: any) {
       console.error('Erro ao salvar recebimento:', e);
-      setError('Erro ao salvar: ' + (e.message || 'verifique a conexão.'));
+      const msg = 'Erro ao salvar: ' + (e.message || 'verifique a conexão.');
+      setError(msg);
+      alert(msg);
     } finally {
       setSaving(false);
     }
