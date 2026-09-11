@@ -216,6 +216,7 @@ async function initPostgresDB() {
       CREATE TABLE IF NOT EXISTS authorized_users (id TEXT PRIMARY KEY, email TEXT, password TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS it_tasks (id TEXT PRIMARY KEY, title TEXT, description TEXT, status TEXT, priority TEXT, due_date TEXT, created_by TEXT, created_at TEXT);
       CREATE TABLE IF NOT EXISTS it_task_comments (id TEXT PRIMARY KEY, task_id TEXT, user_email TEXT, content TEXT, created_at TEXT);
+      CREATE TABLE IF NOT EXISTS recebimentos (id TEXT PRIMARY KEY, device_id TEXT, device_tag TEXT, serial_number TEXT, user_name TEXT, user_email TEXT, responsavel_email TEXT, serie_turma TEXT, data_recebimento TEXT, data_verificacao TEXT, marca TEXT, modelo TEXT, funcionando TEXT, teste_carregador TEXT, teste_cabo TEXT, teste_rede TEXT, teste_bluetooth TEXT, teste_teclado TEXT, teste_portas TEXT, estado_capa TEXT, foto_tampa TEXT, foto_base TEXT, foto_teclado TEXT, foto_serie TEXT, foto_tela TEXT, foto_lateral_dir TEXT, foto_lateral_esq TEXT, foto_extra1 TEXT, foto_extra2 TEXT, resultado TEXT, observacoes TEXT, analista_email TEXT, created_at TEXT);
     `);
     
     // Assegura que colunas novas existam caso as tabelas tenham sido criadas numa versão anterior

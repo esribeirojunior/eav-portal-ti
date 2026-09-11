@@ -13,6 +13,7 @@ import { ImportModal } from './components/ImportModal';
 import { HistoryModal } from './components/HistoryModal';
 import { MaintenanceModal } from './components/MaintenanceModal';
 import { InspectionModal } from './components/InspectionModal';
+import { RecebimentoModal } from './components/RecebimentoModal';
 import { ModuleSelector } from './components/ModuleSelector';
 import { CustodyView } from './components/CustodyView';
 import { LinksModule } from './components/LinksModule';
@@ -456,6 +457,7 @@ const App: React.FC = () => {
   const [assigningDevice, setAssigningDevice] = useState<Device | null>(null);
   const [returningDevice, setReturningDevice] = useState<Device | null>(null);
   const [inspectingDevice, setInspectingDevice] = useState<Device | null>(null);
+  const [recebimentoDevice, setRecebimentoDevice] = useState<Device | null>(null);
   const [maintenanceDevice, setMaintenanceDevice] = useState<Device | null>(null);
   const [viewingHistory, setViewingHistory] = useState<Device | null>(null);
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'info' } | null>(null);
@@ -1036,6 +1038,7 @@ const App: React.FC = () => {
                     onDelete={handleDeleteDevice}
                     onRefresh={fetchDevices}
                     onPrepare={setDeviceToPrepare}
+                    onRecebimento={setRecebimentoDevice}
                     userRole={userRole}
                   />
                 )}
@@ -1131,7 +1134,17 @@ const App: React.FC = () => {
               device={inspectingDevice}
               userEmail={userEmail}
             />
-            
+
+            <RecebimentoModal
+              device={recebimentoDevice}
+              onClose={() => setRecebimentoDevice(null)}
+              onSuccess={() => {
+                fetchDevices();
+                showNotification('Recebimento registrado com sucesso!');
+              }}
+              userEmail={userEmail}
+            />
+
             <MaintenanceModal
               isOpen={!!maintenanceDevice}
               onClose={() => setMaintenanceDevice(null)}

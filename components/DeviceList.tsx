@@ -18,7 +18,8 @@ import {
   FileUp,
   Trash2,
   Wrench,
-  MapPin
+  MapPin,
+  ClipboardCheck
 } from 'lucide-react';
 import { ImportModal } from './ImportModal';
 import { SectorDetailModal } from './SectorDetailModal';
@@ -119,6 +120,7 @@ interface DeviceListProps {
   onEdit?: (device: any) => void;
   onRefresh?: () => void;
   onPrepare?: (device: any) => void;
+  onRecebimento?: (device: any) => void;
   activeTab?: 'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage';
   searchQuery?: string;
   userRole?: string;
@@ -134,6 +136,7 @@ export function DeviceList({
   onEdit,
   onRefresh,
   onPrepare,
+  onRecebimento,
   activeTab = 'available',
   searchQuery,
   userRole
@@ -829,6 +832,15 @@ export function DeviceList({
                                         >
                                           <Wrench size={14} />
                                         </button>
+                                        {onRecebimento && (
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); onRecebimento(device); }}
+                                            className="custody-history-btn hover:!bg-emerald-500/20 !text-slate-800 dark:!text-white/40 hover:!text-emerald-600 dark:hover:!text-emerald-500"
+                                            title="Recebimento / Análise de Estado"
+                                          >
+                                            <ClipboardCheck size={14} />
+                                          </button>
+                                        )}
                                         <button
                                           onClick={(e) => { e.stopPropagation(); onReturn(device); }}
                                           className="custody-return-btn"

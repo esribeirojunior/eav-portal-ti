@@ -24,6 +24,7 @@ const ALLOWED_TABLES = new Set([
   'it_tasks',
   'it_task_comments',
   'audit_logs',
+  'recebimentos',
 ]);
 
 const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
