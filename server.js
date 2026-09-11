@@ -492,7 +492,7 @@ app.use(createMiscRouter({ authenticateToken }));
 app.use('/api/upload', createUploadRouter({ authenticateToken, uploadsDir: UPLOADS_DIR }));
 
 // E-mail de confirmacao do Recebimento (envio MANUAL e pontual — nunca automatico).
-const mailer = createMailer();
+const mailer = createMailer({ uploadsDir: UPLOADS_DIR });
 app.use('/api/recebimento', createRecebimentoRouter({ pool, authenticateToken, mailer }));
 
 // --- INFRAESTRUTURA DE ATUALIZAÇÃO EM TEMPO REAL (SSE) ---

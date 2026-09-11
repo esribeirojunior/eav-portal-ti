@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { buildRecebimentoPdf } from './recebimento-pdf.js';
 
 // Serviço de e-mail (noreply) via SMTP. Todas as credenciais vêm de variáveis
 // de ambiente — NADA hardcoded. Se as variáveis não estiverem setadas, o envio
@@ -11,7 +12,7 @@ import nodemailer from 'nodemailer';
 //   SMTP_USER      a conta noreply (ex: noreply@escolaamericana.com.br)
 //   SMTP_PASS      a senha (ou App Password, no caso do Google Workspace)
 //   SMTP_FROM      remetente exibido (ex: "EAV TI <noreply@escolaamericana.com.br>")
-export function createMailer() {
+export function createMailer({ uploadsDir } = {}) {
   const host = process.env.SMTP_HOST;
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
@@ -51,7 +52,7 @@ export function createMailer() {
       </td></tr>
       <tr><td style="padding: 32px;">
         <p style="margin:0 0 4px; font-size:16px; color:#0f172a;">Ol&aacute;, <strong>${esc(rec.user_name)}</strong></p>
-        <p style="margin:0 0 24px; font-size:14px; color:#64748b; line-height:1.5;">Confirmamos o recebimento e a an&aacute;lise de estado do equipamento abaixo. Os dados do registro seguem para sua confer&ecirc;ncia.</p>
+        <p style="margin:0 0 16px; font-size:14px; color:#64748b; line-height:1.5;">Confirmamos o recebimento e a an&aacute;lise de estado do equipamento abaixo. O <strong>laudo completo, com as fotos</strong>, segue em anexo neste e-mail (PDF).</p>
         <div style="margin:0 0 20px;">
           <span style="display:inline-block; background:${barColor}1a; color:${barColor}; font-weight:800; text-transform:uppercase; font-size:13px; padding:8px 16px; border-radius:8px;">${esc(rec.resultado || '—')}</span>
         </div>
@@ -93,12 +94,26 @@ export function createMailer() {
     if (!configured) return { sent: false, reason: 'SMTP nao configurado' };
     const to = [rec.responsavel_email, rec.user_email].filter((e) => e && String(e).includes('@'));
     if (to.length === 0) return { sent: false, reason: 'Sem e-mail de destino' };
+
+    // Gera o laudo em PDF (com fotos) e anexa. Se falhar, envia sem anexo.
+    const attachments = [];
+    if (uploadsDir) {
+      try {
+        const pdf = await buildRecebimentoPdf(rec, uploadsDir);
+        const safeTag = String(rec.device_tag || rec.serial_number || 'EAV').replace(/[^A-Za-z0-9_-]/g, '');
+        attachments.push({ filename: `Laudo-Recebimento-${safeTag}.pdf`, content: pdf, contentType: 'application/pdf' });
+      } catch (e) {
+        console.error('[mailer] falha ao gerar PDF do laudo:', e.message);
+      }
+    }
+
     try {
       await transporter.sendMail({
         from,
         to,
         subject: `Recebimento de Equipamento — ${rec.device_tag || rec.modelo || 'EAV'}`,
         html: buildHtml(rec),
+        attachments,
       });
       return { sent: true };
     } catch (e) {
