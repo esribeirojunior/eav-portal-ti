@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Printer, Loader2, CheckCircle2, AlertTriangle, ChevronLeft } from 'lucide-react';
+import { X, Printer, Loader2, CheckCircle2, AlertTriangle, ChevronLeft, Send } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 
 interface Props {
@@ -116,6 +116,17 @@ export function RecebimentoViewerModal({ device, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [list, setList] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
+  const [smtpOn, setSmtpOn] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    fetch('/api/recebimento/status', { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((r) => r.json())
+      .then((d) => setSmtpOn(!!d.configured))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!device) return;
@@ -145,6 +156,33 @@ export function RecebimentoViewerModal({ device, onClose }: Props) {
     }
     w.document.write(buildLaudoHtml(rec));
     w.document.close();
+  };
+
+  // Envio MANUAL e pontual: mostra o destinatario e pede confirmacao. Nunca automatico.
+  const sendEmail = async (rec: any) => {
+    const dests = [rec.responsavel_email, rec.user_email].filter((e) => e && String(e).includes('@'));
+    if (dests.length === 0) {
+      setEmailMsg({ ok: false, text: 'Este recebimento não tem e-mail de responsável/aluno preenchido.' });
+      return;
+    }
+    if (!window.confirm(`Enviar a confirmação deste recebimento para:\n\n${dests.join('\n')}\n\nConfirmar envio?`)) return;
+    setSending(true);
+    setEmailMsg(null);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const res = await fetch('/api/recebimento/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ id: rec.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Falha no envio.');
+      setEmailMsg({ ok: true, text: `E-mail enviado para: ${(data.to || dests).join(', ')}` });
+    } catch (e: any) {
+      setEmailMsg({ ok: false, text: e.message });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -207,10 +245,28 @@ export function RecebimentoViewerModal({ device, onClose }: Props) {
                   const cls = rb.color === 'rose' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' : rb.color === 'amber' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
                   return <span className={`px-3 py-1.5 rounded-lg text-[12px] font-black uppercase ${cls}`}>{selected.resultado}</span>;
                 })()}
-                <button onClick={() => printLaudo(selected)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95">
-                  <Printer size={15} /> Imprimir laudo
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {smtpOn && (
+                    <button
+                      onClick={() => sendEmail(selected)}
+                      disabled={sending}
+                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 disabled:opacity-50"
+                      title="Envia a confirmação SÓ para o responsável/aluno deste recebimento"
+                    >
+                      {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Enviar e-mail
+                    </button>
+                  )}
+                  <button onClick={() => printLaudo(selected)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95">
+                    <Printer size={15} /> Imprimir laudo
+                  </button>
+                </div>
               </div>
+
+              {emailMsg && (
+                <div className={`p-3 rounded-xl text-[12px] font-semibold border ${emailMsg.ok ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
+                  {emailMsg.text}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-[12px]">
                 {[

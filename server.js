@@ -13,6 +13,8 @@ import { inferLastUserFromDeviceName } from './server/lib/device-names.js';
 import { createTutorialsRouter } from './server/routes/tutorials.js';
 import { createMiscRouter } from './server/routes/misc.js';
 import { createUploadRouter } from './server/routes/upload.js';
+import { createRecebimentoRouter } from './server/routes/recebimento.js';
+import { createMailer } from './server/services/mailer.js';
 import { createAdminRouter } from './server/routes/admin.js';
 import { createVaultRouter } from './server/routes/vault.js';
 import { createAiRouter } from './server/routes/ai.js';
@@ -488,6 +490,10 @@ app.use(createMiscRouter({ authenticateToken }));
 
 // Upload de imagens -> server/routes/upload.js
 app.use('/api/upload', createUploadRouter({ authenticateToken, uploadsDir: UPLOADS_DIR }));
+
+// E-mail de confirmacao do Recebimento (envio MANUAL e pontual — nunca automatico).
+const mailer = createMailer();
+app.use('/api/recebimento', createRecebimentoRouter({ pool, authenticateToken, mailer }));
 
 // --- INFRAESTRUTURA DE ATUALIZAÇÃO EM TEMPO REAL (SSE) ---
 let clients = [];

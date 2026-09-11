@@ -15,7 +15,7 @@ cofre de senhas, tarefas de TI e um assistente (Copilot).
 | Auth | Google Sign-In (GSI) + login local (bcrypt) |
 | MDM | Mosyle Manager API (sync automático de Macs/iPads) |
 | Acesso remoto | RustDesk (`rustdesk://<id>`) |
-| E-mails | Automação via n8n (webhook) |
+| E-mails | SMTP direto (noreply) — envio manual da confirmação de recebimento |
 | Deploy | Docker via Coolify |
 | Desktop (opcional) | Electron (`electron-main.js`) |
 
@@ -66,7 +66,6 @@ lib/                 Utilitários do frontend (apiClient, deviceStatus, etc.)
 data/                Dados em runtime (tutorials.json, vault.key — não versionar)
 sql/                 Scripts SQL de referência (legado Supabase)
 supabase/            Edge functions legadas (não usadas em runtime)
-n8n-email-templates/ Templates dos e-mails disparados pelo n8n
 mac/                 Agente de sync para máquinas macOS
 scripts/legacy/      Scripts one-shot já aplicados (histórico — ver README lá)
 agent-sync.ps1       Agente RMM para máquinas Windows (coleta hardware + RustDesk ID)
