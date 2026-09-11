@@ -80,6 +80,15 @@ export function createMailer() {
     return configured;
   }
 
+  // Quais variaveis essenciais estao faltando (nomes, nunca valores).
+  function missing() {
+    const m = [];
+    if (!host) m.push('SMTP_HOST');
+    if (!user) m.push('SMTP_USER');
+    if (!pass) m.push('SMTP_PASS');
+    return m;
+  }
+
   async function sendRecebimentoEmail(rec) {
     if (!configured) return { sent: false, reason: 'SMTP nao configurado' };
     const to = [rec.responsavel_email, rec.user_email].filter((e) => e && String(e).includes('@'));
@@ -97,5 +106,5 @@ export function createMailer() {
     }
   }
 
-  return { isConfigured, sendRecebimentoEmail };
+  return { isConfigured, sendRecebimentoEmail, missing };
 }

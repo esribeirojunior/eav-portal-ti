@@ -10,7 +10,7 @@ export function createRecebimentoRouter({ pool, authenticateToken, mailer }) {
 
   // Frontend usa pra saber se deve mostrar/habilitar o botao de enviar.
   router.get('/status', authenticateToken, (req, res) => {
-    res.json({ configured: mailer.isConfigured() });
+    res.json({ configured: mailer.isConfigured(), missing: mailer.missing() });
   });
 
   // Envio manual e pontual da confirmacao de UM recebimento especifico.
@@ -19,7 +19,9 @@ export function createRecebimentoRouter({ pool, authenticateToken, mailer }) {
       const id = req.body && req.body.id;
       if (!id) return res.status(400).json({ error: 'id do recebimento obrigatorio.' });
       if (!mailer.isConfigured()) {
-        return res.status(400).json({ error: 'SMTP nao configurado no servidor (variaveis SMTP_*).' });
+        return res.status(400).json({
+          error: 'SMTP nao configurado no servidor. Faltam (nao lidas em runtime): ' + mailer.missing().join(', '),
+        });
       }
 
       const result = await pool.query('SELECT * FROM recebimentos WHERE id = $1', [id]);
