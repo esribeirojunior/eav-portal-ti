@@ -378,6 +378,15 @@ export function DeviceList({
   const renderDeviceCard = (device: any) => (
     <div key={device.id} className="group relative bg-white dark:bg-white/5 border border-slate-400 dark:border-white/5 hover:border-indigo-500/30 p-4 rounded-2xl flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 transition-all duration-300 hover:bg-slate-100/50 dark:hover:bg-white/10 shadow-sm">
       <div className="flex items-center gap-4 flex-1">
+        {selectMode && (
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleSelectId(device.id); }}
+            className={`w-6 h-6 rounded-md border flex items-center justify-center flex-shrink-0 transition-all ${selectedIds.has(device.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-transparent border-slate-400 dark:border-white/20 text-transparent hover:border-rose-400'}`}
+            title="Selecionar"
+          >
+            <Check size={14} />
+          </button>
+        )}
         <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-800 dark:text-white/40">
           {getIcon(device.type)}
         </div>
@@ -658,13 +667,46 @@ export function DeviceList({
             ) : (
               // Visão de itens da categoria com botão de voltar
               <div className="space-y-4 w-full">
-                <button
-                  onClick={() => setSelectedAvailableType(null)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white/70 rounded-xl transition-colors text-xs font-bold uppercase tracking-wider w-fit"
-                >
-                  <ChevronRight size={16} className="rotate-180" />
-                  Voltar para Categorias ({selectedAvailableType})
-                </button>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <button
+                    onClick={() => setSelectedAvailableType(null)}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-white/70 rounded-xl transition-colors text-xs font-bold uppercase tracking-wider w-fit"
+                  >
+                    <ChevronRight size={16} className="rotate-180" />
+                    Voltar para Categorias ({selectedAvailableType})
+                  </button>
+                  {userRole !== 'viewer' && (
+                    !selectMode ? (
+                      <button
+                        onClick={() => setSelectMode(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/50 border border-slate-300 dark:border-white/10 hover:border-rose-400 hover:text-rose-500 transition-all"
+                      >
+                        <Trash2 size={14} /> Selecionar vários
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {selectedIds.size > 0 && (
+                          <button
+                            onClick={async () => {
+                              const sel = devices.filter((d: any) => selectedIds.has(d.id));
+                              if (onBulkDelete) await onBulkDelete(sel);
+                              exitSelect();
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest bg-rose-600 text-white hover:bg-rose-500 transition-all active:scale-95 shadow-lg shadow-rose-500/20"
+                          >
+                            <Trash2 size={14} /> Apagar ({selectedIds.size})
+                          </button>
+                        )}
+                        <button
+                          onClick={exitSelect}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/50 border border-slate-300 dark:border-white/10 hover:text-slate-900 dark:hover:text-white transition-all"
+                        >
+                          Cancelar seleção
+                        </button>
+                      </div>
+                    )
+                  )}
+                </div>
                 <div className={`${viewMode === 'shelf' ? 'grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4' : 'flex flex-col gap-4'}`}>
                   {viewMode === 'shelf' ? (
                     // --- MODO PRATELEIRA (SHELF VIEW) ---
