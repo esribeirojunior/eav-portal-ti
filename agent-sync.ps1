@@ -237,11 +237,12 @@ if (-not $rustdeskId) {
 # ============================================
 # IDENTIFICAÇÃO DE CAMPUS BASEADA NA REDE (IP/SSID)
 # ============================================
+# Faixas confirmadas em campo (2026-09): 10.10.* = Alvares; 10.5.* = Aeroporto.
 $detectedCampus = "Álvares"
-if ($ipAddress -like "10.10.156.*") {
+if ($ipAddress -like "10.10.*") {
     $detectedCampus = "Álvares"
     Write-Host "Rede detectada automaticamente como Campus Álvares (IP: $ipAddress)" -ForegroundColor Green
-} elseif ($ipAddress -like "10.5.*" -or $ipAddress -like "10.10.157.*") {
+} elseif ($ipAddress -like "10.5.*") {
     $detectedCampus = "Aeroporto"
     Write-Host "Rede detectada automaticamente como Campus Aeroporto (IP: $ipAddress)" -ForegroundColor Green
 } elseif ($Automated) {
@@ -312,8 +313,12 @@ try {
         "Bypass-Tunnel-Reminder" = "true"
         "Authorization" = "Bearer $agentToken"
     }
+    # Envia o corpo como bytes UTF-8 explicitos. No PowerShell 5.1, passar a
+    # string direto faz o corpo ir em ISO-8859-1 e corrompe acentos (ex: "Álvares"
+    # virava "�lvares", "Saudável" -> "Saud�vel"). Com UTF-8 explicito, chega certo.
+    $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($jsonPayload)
     # -TimeoutSec evita que a tarefa agendada pendure se o servidor nao responder.
-    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $jsonPayload -ContentType "application/json" -Headers $headers -TimeoutSec 30
+    $response = Invoke-RestMethod -Uri $serverUrl -Method Post -Body $bodyBytes -ContentType "application/json; charset=utf-8" -Headers $headers -TimeoutSec 30
     if ($response.success) {
         Write-Host "Sincronizacao concluida com sucesso!" -ForegroundColor Green
         Write-Host "Acao no servidor: $($response.action)" -ForegroundColor Cyan
