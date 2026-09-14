@@ -778,33 +778,27 @@ export function DeviceList({
                   <Trash2 size={14} /> Selecionar vários
                 </button>
               ) : (
-                <button
-                  onClick={exitSelect}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/50 border border-slate-300 dark:border-white/10 hover:text-slate-900 dark:hover:text-white transition-all"
-                >
-                  Cancelar seleção
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedIds.size > 0 && (
+                    <button
+                      onClick={async () => {
+                        const sel = devices.filter((d: any) => selectedIds.has(d.id));
+                        if (onBulkDelete) await onBulkDelete(sel);
+                        exitSelect();
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest bg-rose-600 text-white hover:bg-rose-500 transition-all active:scale-95 shadow-lg shadow-rose-500/20"
+                    >
+                      <Trash2 size={14} /> Apagar ({selectedIds.size})
+                    </button>
+                  )}
+                  <button
+                    onClick={exitSelect}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/50 border border-slate-300 dark:border-white/10 hover:text-slate-900 dark:hover:text-white transition-all"
+                  >
+                    Cancelar seleção
+                  </button>
+                </div>
               )}
-            </div>
-          )}
-
-          {/* Barra flutuante: apagar selecionados */}
-          {selectMode && selectedIds.size > 0 && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/10">
-              <span className="text-[12px] font-bold">{selectedIds.size} selecionado(s)</span>
-              <button
-                onClick={async () => {
-                  const sel = devices.filter((d: any) => selectedIds.has(d.id));
-                  if (onBulkDelete) await onBulkDelete(sel);
-                  exitSelect();
-                }}
-                className="flex items-center gap-2 bg-rose-600 hover:bg-rose-500 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all active:scale-95"
-              >
-                <Trash2 size={14} /> Apagar selecionados
-              </button>
-              <button onClick={exitSelect} className="text-[11px] font-bold uppercase tracking-widest text-white/50 hover:text-white">
-                Cancelar
-              </button>
             </div>
           )}
 
