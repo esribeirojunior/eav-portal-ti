@@ -149,6 +149,7 @@ interface DeviceListProps {
   onRefresh?: () => void;
   onPrepare?: (device: any) => void;
   onRecebimento?: (device: any) => void;
+  onMoveSector?: (device: any) => void;
   onViewRecebimentos?: (device: any) => void;
   recebimentosMap?: Record<string, { resultado: string; count: number }>;
   activeTab?: 'sealed' | 'available' | 'in_use' | 'maintenance' | 'triage';
@@ -168,6 +169,7 @@ export function DeviceList({
   onRefresh,
   onPrepare,
   onRecebimento,
+  onMoveSector,
   onViewRecebimentos,
   recebimentosMap,
   activeTab = 'available',
@@ -938,6 +940,15 @@ export function DeviceList({
                                             title="Recebimento / Análise de Estado"
                                           >
                                             <ClipboardCheck size={14} />
+                                          </button>
+                                        )}
+                                        {onMoveSector && (
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); onMoveSector(device); }}
+                                            className="custody-history-btn hover:!bg-indigo-500/20 !text-slate-800 dark:!text-white/40 hover:!text-indigo-600 dark:hover:!text-indigo-400"
+                                            title="Mover para Setor"
+                                          >
+                                            <Building size={14} />
                                           </button>
                                         )}
                                         <button

@@ -258,6 +258,10 @@ async function initPostgresDB() {
       );
     `);
 
+    // Migracao: setor manual por device (override do agrupamento). O sync do
+    // Mosyle NAO toca nessa coluna, entao o setor definido aqui persiste.
+    await pool.query('ALTER TABLE devices ADD COLUMN IF NOT EXISTS custom_department TEXT;');
+
     console.log('[PostgreSQL] Banco de dados inicializado com sucesso.');
     
     // Auto-popula departamentos padrão se o banco de dados estiver vazio

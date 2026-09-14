@@ -15,6 +15,7 @@ import { MaintenanceModal } from './components/MaintenanceModal';
 import { InspectionModal } from './components/InspectionModal';
 import { RecebimentoModal } from './components/RecebimentoModal';
 import { RecebimentoViewerModal } from './components/RecebimentoViewerModal';
+import { MoveSectorModal } from './components/MoveSectorModal';
 import { ModuleSelector } from './components/ModuleSelector';
 import { CustodyView } from './components/CustodyView';
 import { LinksModule } from './components/LinksModule';
@@ -460,6 +461,7 @@ const App: React.FC = () => {
   const [inspectingDevice, setInspectingDevice] = useState<Device | null>(null);
   const [recebimentoDevice, setRecebimentoDevice] = useState<Device | null>(null);
   const [viewingRecebimentos, setViewingRecebimentos] = useState<Device | null>(null);
+  const [movingSectorDevice, setMovingSectorDevice] = useState<Device | null>(null);
   const [recebimentosMap, setRecebimentosMap] = useState<Record<string, { resultado: string; count: number }>>({});
   const [maintenanceDevice, setMaintenanceDevice] = useState<Device | null>(null);
   const [viewingHistory, setViewingHistory] = useState<Device | null>(null);
@@ -1094,6 +1096,7 @@ const App: React.FC = () => {
                     onRefresh={fetchDevices}
                     onPrepare={setDeviceToPrepare}
                     onRecebimento={setRecebimentoDevice}
+                    onMoveSector={setMovingSectorDevice}
                     onViewRecebimentos={setViewingRecebimentos}
                     recebimentosMap={recebimentosMap}
                     userRole={userRole}
@@ -1206,6 +1209,16 @@ const App: React.FC = () => {
             <RecebimentoViewerModal
               device={viewingRecebimentos}
               onClose={() => setViewingRecebimentos(null)}
+            />
+
+            <MoveSectorModal
+              device={movingSectorDevice}
+              onClose={() => setMovingSectorDevice(null)}
+              onSuccess={() => {
+                fetchDevices();
+                showNotification('Setor atualizado!');
+              }}
+              userEmail={userEmail}
             />
 
             <MaintenanceModal
