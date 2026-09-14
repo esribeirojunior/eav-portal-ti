@@ -1355,10 +1355,12 @@ const App: React.FC = () => {
         <Moon size={24} className="block dark:hidden group-hover:text-indigo-500 transition-colors" />
       </button>
 
-      {/* EAV COPILOT (Chatbot IA) */}
+      {/* EAV COPILOT (Chatbot IA) — DESATIVADO em producao a pedido.
+          Para reativar, descomente o bloco abaixo.
       {(userRole === 'admin' || userRole === 'superadmin') && (
         <Copilot userRole={userRole} userEmail={userEmail} />
       )}
+      */}
     </div >
   );
 };
