@@ -1213,6 +1213,7 @@ const App: React.FC = () => {
 
             <MoveSectorModal
               device={movingSectorDevice}
+              existingSectors={Array.from(new Set(devices.map((d: any) => d.custom_department || d.currentAssignment?.userDepartment).filter(Boolean))) as string[]}
               onClose={() => setMovingSectorDevice(null)}
               onSuccess={() => {
                 fetchDevices();

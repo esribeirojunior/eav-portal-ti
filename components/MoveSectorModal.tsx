@@ -7,35 +7,41 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
   userEmail: string;
+  existingSectors?: string[];
 }
 
 // Define o setor manual (custom_department) de um device. Esse campo tem
 // prioridade no agrupamento por setor e NAO e tocado pelo sync do Mosyle.
-export function MoveSectorModal({ device, onClose, onSuccess, userEmail }: Props) {
-  const [departments, setDepartments] = useState<any[]>([]);
+export function MoveSectorModal({ device, onClose, onSuccess, userEmail, existingSectors = [] }: Props) {
+  const [tableDepts, setTableDepts] = useState<string[]>([]);
   const [value, setValue] = useState('');
+  const [custom, setCustom] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!device) return;
     setValue(device.custom_department || device.currentAssignment?.userDepartment || '');
-    apiClient
-      .from('department')
-      .select('*')
-      .order('name')
-      .then(({ data }: any) => {
-        if (data) setDepartments(data);
-      });
+    setCustom('');
+    (async () => {
+      const { data } = await apiClient.from('department').select('*').order('name');
+      if (data) setTableDepts(data.map((d: any) => d.name).filter(Boolean));
+    })();
   }, [device]);
 
   if (!device) return null;
 
+  // Junta setores da tabela + os que ja existem nos equipamentos, sem duplicar.
+  const options = Array.from(new Set([...existingSectors, ...tableDepts].filter(Boolean))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+
   const save = async () => {
+    const finalValue = (custom.trim() || value).trim();
     setSaving(true);
     try {
-      const { error } = await apiClient.from('devices').update({ custom_department: value || null }).eq('id', device.id);
+      const { error } = await apiClient.from('devices').update({ custom_department: finalValue || null }).eq('id', device.id);
       if (error) throw error;
-      logAuditAction(userEmail, 'SETOR', `Definiu setor de ${device.tag}: ${value || 'Sem setor'}`, 'DEVICE', device.id).catch(() => {});
+      logAuditAction(userEmail, 'SETOR', `Definiu setor de ${device.tag}: ${finalValue || 'Sem setor'}`, 'DEVICE', device.id).catch(() => {});
       onSuccess();
       onClose();
     } catch (e: any) {
@@ -64,18 +70,30 @@ export function MoveSectorModal({ device, onClose, onSuccess, userEmail }: Props
           <div className="relative">
             <select
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => { setValue(e.target.value); setCustom(''); }}
               className="w-full bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl pl-3 pr-10 py-3 text-[13px] font-semibold text-slate-800 dark:text-white outline-none focus:border-indigo-500 appearance-none"
             >
               <option value="">— Sem setor / limpar —</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.name}>{d.name}</option>
+              {options.map((name) => (
+                <option key={name} value={name}>{name}</option>
               ))}
             </select>
             <Building size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
+
+          <div className="pt-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-white/40">Ou criar um setor novo</label>
+            <input
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              placeholder="Digite um setor novo (opcional)…"
+              className="mt-1.5 w-full bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+            />
+          </div>
+
           <p className="text-[11px] text-slate-400 dark:text-white/40">
             Define o setor manualmente. Prioriza no agrupamento e <strong>não é apagado</strong> pelo sync do Mosyle.
+            {custom.trim() && <span className="block text-indigo-500 font-bold mt-1">Vai salvar como: “{custom.trim()}”</span>}
           </p>
         </div>
 
