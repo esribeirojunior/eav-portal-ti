@@ -763,6 +763,35 @@ const App: React.FC = () => {
     }
   };
 
+  const handleBulkDeleteDevices = async (devicesToDelete: Device[]) => {
+    if (!devicesToDelete || devicesToDelete.length === 0) return;
+    const mosyleCount = devicesToDelete.filter((d: any) => d.supplier === 'Mosyle').length;
+    let msg = `Excluir permanentemente ${devicesToDelete.length} ativo(s)? Esta ação não pode ser desfeita.`;
+    if (mosyleCount > 0) {
+      msg += `\n\nAtenção: ${mosyleCount} vêm do Mosyle (MDM) — o sync do Mosyle vai recriá-los na próxima sincronização.`;
+    }
+    if (!window.confirm(msg)) return;
+
+    setLoading(true);
+    let ok = 0;
+    let fail = 0;
+    for (const device of devicesToDelete) {
+      try {
+        await apiClient.from('assignments').delete().eq('device_id', device.id);
+        const { error } = await apiClient.from('devices').delete().eq('id', device.id);
+        if (error) throw error;
+        logAuditAction(userEmail, 'EXCLUIR', `Excluiu em lote o ativo: ${device.tag}`, 'DEVICE', device.id).catch(() => {});
+        ok++;
+      } catch (e) {
+        console.error('Erro ao excluir', device.tag, e);
+        fail++;
+      }
+    }
+    await fetchDevices();
+    setLoading(false);
+    showNotification(`${ok} ativo(s) excluído(s)${fail ? ` — ${fail} com erro` : ''}.`);
+  };
+
   if (!isAuthenticated && !sharedTutorialId) return (
     <LoginScreen onLogin={async (email) => { 
       setIsAuthenticated(true);
@@ -1061,6 +1090,7 @@ const App: React.FC = () => {
                     onHistory={setViewingHistory}
                     onMaintenance={(device) => setMaintenanceDevice(device)}
                     onDelete={handleDeleteDevice}
+                    onBulkDelete={handleBulkDeleteDevices}
                     onRefresh={fetchDevices}
                     onPrepare={setDeviceToPrepare}
                     onRecebimento={setRecebimentoDevice}
