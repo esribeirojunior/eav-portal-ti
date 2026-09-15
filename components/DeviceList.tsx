@@ -46,6 +46,15 @@ const ChipBadge: React.FC<{ model?: string | null }> = ({ model }) => {
 // Campus do device: usa a atribuicao, senao o campus detectado pelo agente
 // (gravado como "| Campus: X" no condition pelo agent-sync).
 const getDeviceCampus = (device: any): string => {
+  // Prioriza a deteccao pelo IP do device (fonte real de onde a maquina esta),
+  // que corrige na hora mesmo quando o campus gravado veio do agente antigo.
+  // 10.10.* = Alvares; 10.5.* = Aeroporto.
+  const ip =
+    device?.ip_address ||
+    (device?.condition ? (device.condition.match(/\bIP:\s*([\d.]+)/) || [])[1] : '') ||
+    '';
+  if (/^10\.10\./.test(ip)) return 'Álvares';
+  if (/^10\.5\./.test(ip)) return 'Aeroporto';
   if (device?.currentAssignment?.campus) return device.currentAssignment.campus;
   const m = device?.condition ? device.condition.match(/Campus:\s*([^|]+)/i) : null;
   return m ? m[1].trim() : '';

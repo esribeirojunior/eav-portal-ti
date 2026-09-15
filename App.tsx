@@ -864,12 +864,17 @@ const App: React.FC = () => {
         selectedCategory === 'Manutenção' ? d.status === DeviceStatus.MAINTENANCE :
           (d.type || '').toLowerCase() === selectedCategory.toLowerCase();
 
-    // Campus do device: usa a atribuicao se houver; senao o campus detectado
-    // pelo agente (gravado como "| Campus: X" no condition).
+    // Campus do device: prioriza o IP (10.10 = Alvares, 10.5 = Aeroporto),
+    // que corrige na hora mesmo com campus gravado antigo; senao usa a
+    // atribuicao ou o campus gravado no condition.
+    const campusIp = d.ip_address || (d.condition ? (d.condition.match(/\bIP:\s*([\d.]+)/) || [])[1] : '') || '';
     const campusMatch = d.condition ? d.condition.match(/Campus:\s*([^|]+)/i) : null;
-    const deviceCampusNorm = normalizeText(
-      (d.currentAssignment && d.currentAssignment.campus) || (campusMatch ? campusMatch[1] : '')
-    );
+    const rawCampus = /^10\.10\./.test(campusIp)
+      ? 'alvares'
+      : /^10\.5\./.test(campusIp)
+        ? 'aeroporto'
+        : (d.currentAssignment && d.currentAssignment.campus) || (campusMatch ? campusMatch[1] : '');
+    const deviceCampusNorm = normalizeText(rawCampus);
     // Usa trechos que sobrevivem a corrupcao de acento ('lvares' / 'aero').
     const matchesCampus =
       selectedCampus === 'Todos' ? true :
